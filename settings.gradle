@@ -1,1 +1,1 @@
-include ':app', ':microgadapterlibrary'
+include ':app', ':microgadapterlibrary', ':push-notifier'

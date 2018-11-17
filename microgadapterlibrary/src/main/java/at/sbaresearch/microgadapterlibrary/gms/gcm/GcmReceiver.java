@@ -40,6 +40,7 @@ import static at.sbaresearch.microgadapterlibrary.gms.gcm.GcmConstants.*;
  * <receiver
  *     android:name="at.sbaresearch.microg.gms.gcm.GcmReceiver"
  *     android:exported="true"
+ *     // TODO is this the right permission? replace with own SEND perm
  *     android:permission="com.google.android.c2dm.permission.SEND" >
  *     <intent-filter>
  *         <action android:name="com.google.android.c2dm.intent.RECEIVE" />
@@ -47,6 +48,7 @@ import static at.sbaresearch.microgadapterlibrary.gms.gcm.GcmConstants.*;
  *         <category android:name="YOUR_PACKAGE_NAME" />
  *     </intent-filter>
  * </receiver></pre>
+ * // TODO adopt this
  * The <code>com.google.android.c2dm.permission.SEND</code> permission is held by Google Play
  * services. This prevents other apps from invoking the broadcast receiver.
  */

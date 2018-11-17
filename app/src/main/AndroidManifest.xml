@@ -19,6 +19,33 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <receiver
+                android:name="at.sbaresearch.microgadapterlibrary.gms.gcm.GcmReceiver"
+                android:exported="true"
+                android:permission="at.sbaresearch.android.gcm.intent.SEND">
+            <intent-filter>
+                <action android:name="at.sbaresearch.android.c2dm.intent.RECEIVE"/>
+                <category android:name="at.sbaresearch.microgadapter"/>
+            </intent-filter>
+        </receiver>
+        <service
+                android:name=".GcmTestService"
+                android:enabled="true"
+                android:exported="true">
+            <intent-filter>
+                <action android:name="at.sbaresearch.android.c2dm.intent.RECEIVE"/>
+            </intent-filter>
+        </service>
+        <!--
+        <service
+                android:name="com.example.MyInstanceIDListenerService"
+                android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.iid.InstanceID"/>
+            </intent-filter>
+        </service>
+        -->
     </application>
 
 </manifest>
