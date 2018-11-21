@@ -15,8 +15,6 @@ import org.eclipse.paho.client.mqttv3.*;
 
 public class MqttBackendConfigActivity extends AppCompatActivity {
 
-  private static final String INTENT_MQTT_RECEIVE =
-      "at.sbaresearch.android.gcm.mqtt.intent.RECEIVE";
   private static final String TAG = "MqttBackendConfig";
 
   private MqttAndroidClient mqttAndroidClient;
@@ -26,20 +24,7 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
   private String pw = "password";
   private String topic = "foo";
 
-  private MqttCallback recvCallback = new MqttCallback() {
-    @Override
-    public void connectionLost(Throwable cause) {
-    }
-
-    @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception {
-      Log.i(TAG, "MQTT msg recv: " + message.toString());
-    }
-
-    @Override
-    public void deliveryComplete(IMqttDeliveryToken token) {
-    }
-  };
+  private MqttCallback recvCallback;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +49,8 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     final MqttConnectOptions options = new MqttConnectOptions();
     options.setUserName(user);
     options.setPassword(pw.toCharArray());
+    options.setAutomaticReconnect(true);
+    recvCallback = new ReceiveCallback(getApplicationContext());
     try {
       mqttAndroidClient.setCallback(recvCallback);
       IMqttActionListener connectCb = new IMqttActionListener() {
@@ -88,16 +75,6 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     }
   }
 
-  private void sendIntent() {
-    Intent intent = new Intent(INTENT_MQTT_RECEIVE);
-    // TODO put data from mqtt backend here (appID? Identity hash? msg-content?)
-    // intent.putExtra(GCM_API.EXTRA_FROM, "testPushApp");
-    // TODO set package for application
-    // String clientPackageName = "at.sbaresearch.microgadapter";
-    // intent.setPackage(clientPackageName);
-    sendBroadcast(intent);
-  }
-
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     // Inflate the menu; this adds items to the action bar if it is present.
@@ -119,4 +96,5 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
 
     return super.onOptionsItemSelected(item);
   }
+
 }
