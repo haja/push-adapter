@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Mqtt Backend</string>
+    <string name="action_settings">Settings</string>
+</resources>

@@ -1,1 +1,1 @@
-include ':app', ':microgadapterlibrary', ':push-notifier'
+include ':app', ':microgadapterlibrary', ':push-notifier', ':mqtt-backend'
