@@ -1,15 +1,45 @@
 package at.sbaresearch.mqtt_backend;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import org.eclipse.paho.android.service.MqttAndroidClient;
+import org.eclipse.paho.client.mqttv3.*;
 
 public class MqttBackendConfigActivity extends AppCompatActivity {
+
+  private static final String INTENT_MQTT_RECEIVE =
+      "at.sbaresearch.android.gcm.mqtt.intent.RECEIVE";
+  private static final String TAG = "MqttBackendConfig";
+
+  private MqttAndroidClient mqttAndroidClient;
+  private String clientId = "test1";
+  private String server = "tcp://10.0.2.2:61613";
+  private String user = "admin";
+  private String pw = "password";
+  private String topic = "foo";
+
+  private MqttCallback recvCallback = new MqttCallback() {
+    @Override
+    public void connectionLost(Throwable cause) {
+    }
+
+    @Override
+    public void messageArrived(String topic, MqttMessage message) throws Exception {
+      Log.i(TAG, "MQTT msg recv: " + message.toString());
+    }
+
+    @Override
+    public void deliveryComplete(IMqttDeliveryToken token) {
+    }
+  };
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -22,10 +52,50 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+        Snackbar.make(view, "connecting..", Snackbar.LENGTH_SHORT)
             .setAction("Action", null).show();
+        connect();
       }
     });
+  }
+
+  private void connect() {
+    mqttAndroidClient = new MqttAndroidClient(getApplicationContext(), server, clientId);
+    final MqttConnectOptions options = new MqttConnectOptions();
+    options.setUserName(user);
+    options.setPassword(pw.toCharArray());
+    try {
+      mqttAndroidClient.setCallback(recvCallback);
+      IMqttActionListener connectCb = new IMqttActionListener() {
+        @Override
+        public void onSuccess(IMqttToken asyncActionToken) {
+          Log.i(TAG, "connection established");
+          try {
+            mqttAndroidClient.subscribe(topic, 0);
+          } catch (MqttException e) {
+            Log.e(TAG, "subscribe failed: " + e.getMessage());
+          }
+        }
+
+        @Override
+        public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+          Log.e(TAG, "connect failed: " + exception.getMessage());
+        }
+      };
+      mqttAndroidClient.connect(options, null, connectCb);
+    } catch (MqttException e) {
+      Log.e(TAG, "error while connecting:" + e.getMessage());
+    }
+  }
+
+  private void sendIntent() {
+    Intent intent = new Intent(INTENT_MQTT_RECEIVE);
+    // TODO put data from mqtt backend here (appID? Identity hash? msg-content?)
+    // intent.putExtra(GCM_API.EXTRA_FROM, "testPushApp");
+    // TODO set package for application
+    // String clientPackageName = "at.sbaresearch.microgadapter";
+    // intent.setPackage(clientPackageName);
+    sendBroadcast(intent);
   }
 
   @Override

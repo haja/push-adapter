@@ -83,6 +83,7 @@ public class PushNotifyActivity extends AppCompatActivity {
   }
 
   public void sendIntent(View view) {
+    // TODO use micro-g implementation for relay of intents
     Intent intent = new Intent(INTENT_RECEIVE);
     intent.putExtra(GCM_API.EXTRA_FROM, "testPushApp");
     // TODO set package for application
