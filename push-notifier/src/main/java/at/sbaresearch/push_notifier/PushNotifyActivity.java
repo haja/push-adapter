@@ -27,20 +27,22 @@ public class PushNotifyActivity extends AppCompatActivity {
 
     FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-    final PushNotifyActivity activity = this;
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        if (ContextCompat.checkSelfPermission(activity, SEND_PERM)
-            != PackageManager.PERMISSION_GRANTED) {
-          ActivityCompat.requestPermissions(activity, new String[]{SEND_PERM}, SEND_PERM_REQ);
-        } else {
-          // all fine
-        }
       }
     });
 
 
+  }
+
+  public void reqPermission(View view) {
+    if (ContextCompat.checkSelfPermission(this, SEND_PERM)
+        != PackageManager.PERMISSION_GRANTED) {
+      ActivityCompat.requestPermissions(this, new String[]{SEND_PERM}, SEND_PERM_REQ);
+    } else {
+      // all fine
+    }
   }
 
   @Override

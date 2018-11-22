@@ -21,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
 
     FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-    final MainActivity activity = this;
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
