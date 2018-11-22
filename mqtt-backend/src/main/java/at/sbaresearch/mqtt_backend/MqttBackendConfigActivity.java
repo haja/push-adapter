@@ -1,21 +1,27 @@
 package at.sbaresearch.mqtt_backend;
 
-import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Toast;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.*;
 
 public class MqttBackendConfigActivity extends AppCompatActivity {
 
   private static final String TAG = "MqttBackendConfig";
+
+  private static final String SEND_PERM = API.SEND_PERM;
+  private static final int SEND_PERM_REQ = 1;
 
   private MqttAndroidClient mqttAndroidClient;
   private String clientId = "test1";
@@ -37,11 +43,14 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        Snackbar.make(view, "connecting..", Snackbar.LENGTH_SHORT)
-            .setAction("Action", null).show();
-        connect();
       }
     });
+  }
+
+  public void connect(View view) {
+    Snackbar.make(view, "connecting..", Snackbar.LENGTH_SHORT)
+        .setAction("Action", null).show();
+    connect();
   }
 
   private void connect() {
@@ -95,6 +104,33 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     }
 
     return super.onOptionsItemSelected(item);
+  }
+
+  public void reqPermission(View view) {
+    if (ContextCompat.checkSelfPermission(this, SEND_PERM)
+        != PackageManager.PERMISSION_GRANTED) {
+      ActivityCompat.requestPermissions(this, new String[]{SEND_PERM}, SEND_PERM_REQ);
+    } else {
+      // all fine
+    }
+  }
+
+  @Override
+  public void onRequestPermissionsResult(int requestCode, String permissions[],
+      int[] grantResults) {
+    switch (requestCode) {
+      case SEND_PERM_REQ: {
+        if (grantResults.length > 0
+            && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+          Toast.makeText(this, "perm granted: " + API.SEND_PERM,
+              Toast.LENGTH_SHORT).show();
+        } else {
+          Toast.makeText(this, "perm NOT granted",
+              Toast.LENGTH_SHORT).show();
+        }
+        break;
+      }
+    }
   }
 
 }

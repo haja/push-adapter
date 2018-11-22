@@ -17,7 +17,6 @@ public class PushNotifyActivity extends AppCompatActivity {
 
   private static final String SEND_PERM = "at.sbaresearch.android.gcm.intent.SEND";
   private static final int SEND_PERM_REQ = 1;
-  private static final String INTENT_RECEIVE = "at.sbaresearch.android.c2dm.intent.RECEIVE";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -82,9 +81,13 @@ public class PushNotifyActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
+  /**
+   *  TODO remove this method, call on other class
+    */
+  @Deprecated
   public void sendIntent(View view) {
     // TODO use micro-g implementation for relay of intents
-    Intent intent = new Intent(INTENT_RECEIVE);
+    Intent intent = new Intent(GCM_API.INTENT_RECEIVE);
     intent.putExtra(GCM_API.EXTRA_FROM, "testPushApp");
     // TODO set package for application
     String clientPackageName = "at.sbaresearch.microgadapter";
