@@ -40,115 +40,117 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging.TAG;
 
 public class CloudMessagingRpc {
-    private static final AtomicInteger messageIdCounter = new AtomicInteger(1);
-    private static String gcmPackageName;
+  private static final AtomicInteger messageIdCounter = new AtomicInteger(1);
+  private static String gcmPackageName;
 
-    private final BlockingQueue<Intent> messengerResponseQueue = new LinkedBlockingQueue<Intent>();
-    private final Messenger messenger = new Messenger(new Handler(Looper.getMainLooper()) {
-        @Override
-        public void handleMessage(Message msg) {
-            if (msg == null || !(msg.obj instanceof Intent)) {
-                // Invalid message -> drop
-                return;
-            }
-            Intent intent = (Intent) msg.obj;
-            if (ACTION_C2DM_REGISTRATION.equals(intent.getAction())) {
-                messengerResponseQueue.add(intent);
-            }
-        }
-    });
-
-    /**
-     * Due to it's nature of being a monitored reference, Intents can be used to authenticate a package source.
-     */
-    private PendingIntent selfAuthIntent;
-    private Context context;
-
-    public CloudMessagingRpc(Context context) {
-        this.context = context;
+  private final BlockingQueue<Intent> messengerResponseQueue = new LinkedBlockingQueue<Intent>();
+  private final Messenger messenger = new Messenger(new Handler(Looper.getMainLooper()) {
+    @Override
+    public void handleMessage(Message msg) {
+      if (msg == null || !(msg.obj instanceof Intent)) {
+        // Invalid message -> drop
+        return;
+      }
+      Intent intent = (Intent) msg.obj;
+      if (ACTION_C2DM_REGISTRATION.equals(intent.getAction())) {
+        messengerResponseQueue.add(intent);
+      }
     }
+  });
 
-    public static String getGcmPackageName(Context context) {
-        Log.i(TAG, "getGcmPackageName");
-        if (gcmPackageName != null) {
-            return gcmPackageName;
-        }
-        PackageManager packageManager = context.getPackageManager();
-        for (ResolveInfo resolveInfo : packageManager.queryIntentServices(new Intent(ACTION_C2DM_REGISTER), 0)) {
-            if (packageManager.checkPermission(PERMISSION_RECEIVE, resolveInfo.serviceInfo.packageName) == PERMISSION_GRANTED) {
-                return gcmPackageName = resolveInfo.serviceInfo.packageName;
-            }
-        }
-        try {
-            ApplicationInfo appInfo = packageManager.getApplicationInfo(GMS_PACKAGE_NAME, 0);
-            return gcmPackageName = appInfo.packageName;
-        } catch (PackageManager.NameNotFoundException ignored) {
-        }
-        try {
-            ApplicationInfo appInfo = packageManager.getApplicationInfo(GSF_PACKAGE_NAME, 0);
-            return gcmPackageName = appInfo.packageName;
-        } catch (PackageManager.NameNotFoundException ex3) {
-            return null;
-        }
-    }
+  /**
+   * Due to it's nature of being a monitored reference, Intents can be used to authenticate a package source.
+   */
+  private PendingIntent selfAuthIntent;
+  private Context context;
 
-    public void close() {
-        // Cancel the authentication
-        if (selfAuthIntent != null) {
-            selfAuthIntent.cancel();
-            selfAuthIntent = null;
-        }
-    }
+  public CloudMessagingRpc(Context context) {
+    this.context = context;
+  }
 
-    private PendingIntent getSelfAuthIntent() {
-        if (selfAuthIntent == null) {
-            Intent intent = new Intent();
-            intent.setPackage("com.google.example.invalidpackage");
-            selfAuthIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
-        }
-        return selfAuthIntent;
+  public static String getGcmPackageName(Context context) {
+    Log.i(TAG, "getGcmPackageName");
+    if (gcmPackageName != null) {
+      return gcmPackageName;
     }
+    PackageManager packageManager = context.getPackageManager();
+    for (ResolveInfo resolveInfo : packageManager
+        .queryIntentServices(new Intent(ACTION_C2DM_REGISTER), 0)) {
+      if (packageManager.checkPermission(PERMISSION_RECEIVE, resolveInfo.serviceInfo.packageName) ==
+          PERMISSION_GRANTED) {
+        return gcmPackageName = resolveInfo.serviceInfo.packageName;
+      }
+    }
+    try {
+      ApplicationInfo appInfo = packageManager.getApplicationInfo(GMS_PACKAGE_NAME, 0);
+      return gcmPackageName = appInfo.packageName;
+    } catch (PackageManager.NameNotFoundException ignored) {
+    }
+    try {
+      ApplicationInfo appInfo = packageManager.getApplicationInfo(GSF_PACKAGE_NAME, 0);
+      return gcmPackageName = appInfo.packageName;
+    } catch (PackageManager.NameNotFoundException ex3) {
+      return null;
+    }
+  }
 
-    public Intent sendRegisterMessageBlocking(Bundle extras) throws IOException {
-        sendRegisterMessage(extras);
-        Intent resultIntent;
-        try {
-            resultIntent = messengerResponseQueue.poll(30, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
-            throw new IOException(e.getMessage());
-        }
-        if (resultIntent == null) {
-            throw new IOException(ERROR_SERVICE_NOT_AVAILABLE);
-        }
-        return resultIntent;
+  public void close() {
+    // Cancel the authentication
+    if (selfAuthIntent != null) {
+      selfAuthIntent.cancel();
+      selfAuthIntent = null;
     }
+  }
 
-    private void sendRegisterMessage(Bundle extras) {
-        Intent intent = new Intent(ACTION_C2DM_REGISTER);
-        final String gcmPackageName = getGcmPackageName(context);
-        Log.i(TAG, "got package name " + gcmPackageName);
-        intent.setPackage(gcmPackageName);
-        extras.putString(EXTRA_MESSAGE_ID, "google.rpc" + messageIdCounter.getAndIncrement());
-        intent.putExtras(extras);
-        intent.putExtra(EXTRA_MESSENGER, messenger);
-        intent.putExtra(EXTRA_APP, getSelfAuthIntent());
-        context.startService(intent);
+  private PendingIntent getSelfAuthIntent() {
+    if (selfAuthIntent == null) {
+      Intent intent = new Intent();
+      intent.setPackage("com.google.example.invalidpackage");
+      selfAuthIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
     }
+    return selfAuthIntent;
+  }
 
-    public void sendGcmMessage(Bundle extras) {
-        Intent intent = new Intent(ACTION_GCM_SEND);
-        intent.setPackage(GMS_PACKAGE_NAME);
-        intent.putExtras(extras);
-        intent.putExtra(EXTRA_APP, getSelfAuthIntent());
-        context.sendOrderedBroadcast(intent, PERMISSION_GTALK);
+  public Intent sendRegisterMessageBlocking(Bundle extras) throws IOException {
+    sendRegisterMessage(extras);
+    Intent resultIntent;
+    try {
+      resultIntent = messengerResponseQueue.poll(30, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      throw new IOException(e.getMessage());
     }
+    if (resultIntent == null) {
+      throw new IOException(ERROR_SERVICE_NOT_AVAILABLE);
+    }
+    return resultIntent;
+  }
 
-    public String handleRegisterMessageResult(Intent resultIntent) throws IOException {
-        if (resultIntent == null) throw new IOException(InstanceID.ERROR_SERVICE_NOT_AVAILABLE);
-        String result = resultIntent.getStringExtra(EXTRA_REGISTRATION_ID);
-        if (result == null) result = resultIntent.getStringExtra(EXTRA_UNREGISTERED);
-        if (result != null) return result;
-        result = resultIntent.getStringExtra(EXTRA_ERROR);
-        throw new IOException(result != null ? result : InstanceID.ERROR_SERVICE_NOT_AVAILABLE);
-    }
+  private void sendRegisterMessage(Bundle extras) {
+    Intent intent = new Intent(ACTION_C2DM_REGISTER);
+    final String gcmPackageName = getGcmPackageName(context);
+    Log.i(TAG, "got package name " + gcmPackageName);
+    intent.setPackage(gcmPackageName);
+    extras.putString(EXTRA_MESSAGE_ID, "google.rpc" + messageIdCounter.getAndIncrement());
+    intent.putExtras(extras);
+    intent.putExtra(EXTRA_MESSENGER, messenger);
+    intent.putExtra(EXTRA_APP, getSelfAuthIntent());
+    context.startService(intent);
+  }
+
+  public void sendGcmMessage(Bundle extras) {
+    Intent intent = new Intent(ACTION_GCM_SEND);
+    intent.setPackage(GMS_PACKAGE_NAME);
+    intent.putExtras(extras);
+    intent.putExtra(EXTRA_APP, getSelfAuthIntent());
+    context.sendOrderedBroadcast(intent, PERMISSION_GTALK);
+  }
+
+  public String handleRegisterMessageResult(Intent resultIntent) throws IOException {
+    if (resultIntent == null) throw new IOException(InstanceID.ERROR_SERVICE_NOT_AVAILABLE);
+    String result = resultIntent.getStringExtra(EXTRA_REGISTRATION_ID);
+    if (result == null) result = resultIntent.getStringExtra(EXTRA_UNREGISTERED);
+    if (result != null) return result;
+    result = resultIntent.getStringExtra(EXTRA_ERROR);
+    throw new IOException(result != null ? result : InstanceID.ERROR_SERVICE_NOT_AVAILABLE);
+  }
 }

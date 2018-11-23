@@ -53,71 +53,77 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  * services. This prevents other apps from invoking the broadcast receiver.
  */
 public class GcmReceiver extends WakefulBroadcastReceiver {
-    private static final String TAG = "GcmReceiver";
+  private static final String TAG = "GcmReceiver";
 
-    public void onReceive(Context context, Intent intent) {
-        sanitizeIntent(context, intent);
-        enforceIntentClassName(context, intent);
-        sendIntent(context, intent);
-        if (getResultCode() == 0) setResultCodeIfOrdered(-1);
-    }
+  public void onReceive(Context context, Intent intent) {
+    sanitizeIntent(context, intent);
+    enforceIntentClassName(context, intent);
+    sendIntent(context, intent);
+    if (getResultCode() == 0) setResultCodeIfOrdered(-1);
+  }
 
-    private void sanitizeIntent(Context context, Intent intent) {
-        intent.setComponent(null);
-        intent.setPackage(context.getPackageName());
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            intent.removeCategory(context.getPackageName());
-        }
-        String from = intent.getStringExtra(EXTRA_FROM);
-        if (ACTION_C2DM_REGISTRATION.equals(intent.getAction()) || GCMID_INSTANCE_ID.equals(from) || GCMID_REFRESH.equals(from)) {
-            intent.setAction(ACTION_INSTANCE_ID);
-        }
-        String base64encoded = intent.getStringExtra(EXTRA_RAWDATA_BASE64);
-        if (base64encoded != null) {
-            intent.putExtra(EXTRA_RAWDATA, Base64.decode(base64encoded, Base64.DEFAULT));
-            intent.removeExtra(EXTRA_RAWDATA_BASE64);
-        }
+  private void sanitizeIntent(Context context, Intent intent) {
+    intent.setComponent(null);
+    intent.setPackage(context.getPackageName());
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+      intent.removeCategory(context.getPackageName());
     }
+    String from = intent.getStringExtra(EXTRA_FROM);
+    if (ACTION_C2DM_REGISTRATION.equals(intent.getAction()) || GCMID_INSTANCE_ID.equals(from) ||
+        GCMID_REFRESH.equals(from)) {
+      intent.setAction(ACTION_INSTANCE_ID);
+    }
+    String base64encoded = intent.getStringExtra(EXTRA_RAWDATA_BASE64);
+    if (base64encoded != null) {
+      intent.putExtra(EXTRA_RAWDATA, Base64.decode(base64encoded, Base64.DEFAULT));
+      intent.removeExtra(EXTRA_RAWDATA_BASE64);
+    }
+  }
 
-    private void enforceIntentClassName(Context context, Intent intent) {
-        ResolveInfo resolveInfo = context.getPackageManager().resolveService(intent, 0);
-        if (resolveInfo == null || resolveInfo.serviceInfo == null) {
-            Log.e(TAG, "Failed to resolve target intent service, skipping classname enforcement");
-            return;
-        }
-        ServiceInfo serviceInfo = resolveInfo.serviceInfo;
-        if (!context.getPackageName().equals(serviceInfo.packageName) || serviceInfo.name == null) {
-            Log.e(TAG, "Error resolving target intent service, skipping classname enforcement. Resolved service was: " + serviceInfo.packageName + "/" + serviceInfo.name);
-            return;
-        }
-        intent.setClassName(context, serviceInfo.name.startsWith(".") ? (context.getPackageName() + serviceInfo.name) : serviceInfo.name);
+  private void enforceIntentClassName(Context context, Intent intent) {
+    ResolveInfo resolveInfo = context.getPackageManager().resolveService(intent, 0);
+    if (resolveInfo == null || resolveInfo.serviceInfo == null) {
+      Log.e(TAG, "Failed to resolve target intent service, skipping classname enforcement");
+      return;
     }
+    ServiceInfo serviceInfo = resolveInfo.serviceInfo;
+    if (!context.getPackageName().equals(serviceInfo.packageName) || serviceInfo.name == null) {
+      Log.e(TAG,
+          "Error resolving target intent service, skipping classname enforcement. Resolved service was: " +
+              serviceInfo.packageName + "/" + serviceInfo.name);
+      return;
+    }
+    intent.setClassName(context, serviceInfo.name.startsWith(".") ?
+        (context.getPackageName() + serviceInfo.name) :
+        serviceInfo.name);
+  }
 
-    private void sendIntent(Context context, Intent intent) {
-        setResultCodeIfOrdered(500);
-        try {
-            ComponentName startedComponent;
-            if (context.checkCallingOrSelfPermission(Manifest.permission.WAKE_LOCK) == PackageManager.PERMISSION_GRANTED) {
-                startedComponent = startWakefulService(context, intent);
-            } else {
-                Log.d(TAG, "Missing wake lock permission, service start may be delayed");
-                startedComponent = context.startService(intent);
-            }
-            if (startedComponent == null) {
-                Log.e(TAG, "Error while delivering the message: ServiceIntent not found.");
-                setResultCodeIfOrdered(404);
-            } else {
-                setResultCodeIfOrdered(-1);
-            }
-        } catch (SecurityException e) {
-            Log.e(TAG, "Error while delivering the message to the serviceIntent", e);
-            setResultCodeIfOrdered(401);
-        }
+  private void sendIntent(Context context, Intent intent) {
+    setResultCodeIfOrdered(500);
+    try {
+      ComponentName startedComponent;
+      if (context.checkCallingOrSelfPermission(Manifest.permission.WAKE_LOCK) ==
+          PackageManager.PERMISSION_GRANTED) {
+        startedComponent = startWakefulService(context, intent);
+      } else {
+        Log.d(TAG, "Missing wake lock permission, service start may be delayed");
+        startedComponent = context.startService(intent);
+      }
+      if (startedComponent == null) {
+        Log.e(TAG, "Error while delivering the message: ServiceIntent not found.");
+        setResultCodeIfOrdered(404);
+      } else {
+        setResultCodeIfOrdered(-1);
+      }
+    } catch (SecurityException e) {
+      Log.e(TAG, "Error while delivering the message to the serviceIntent", e);
+      setResultCodeIfOrdered(401);
     }
+  }
 
-    private void setResultCodeIfOrdered(int code) {
-        if (isOrderedBroadcast()) {
-            setResultCode(code);
-        }
+  private void setResultCodeIfOrdered(int code) {
+    if (isOrderedBroadcast()) {
+      setResultCode(code);
     }
+  }
 }

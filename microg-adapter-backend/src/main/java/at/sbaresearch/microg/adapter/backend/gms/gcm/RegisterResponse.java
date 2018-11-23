@@ -22,21 +22,21 @@ import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.ResponseS
 import static at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.ResponseField;
 
 public class RegisterResponse {
-    @ResponseField("token")
-    public String token;
-    @ResponseHeader("Retry-After")
-    public String retryAfter;
-    @ResponseField("deleted")
-    public String deleted;
-    @ResponseStatusText
-    public String responseText;
+  @ResponseField("token")
+  public String token;
+  @ResponseHeader("Retry-After")
+  public String retryAfter;
+  @ResponseField("deleted")
+  public String deleted;
+  @ResponseStatusText
+  public String responseText;
 
-    @Override
-    public String toString() {
-        return "RegisterResponse{" +
-                "token='" + token + '\'' +
-                ", retryAfter='" + retryAfter + '\'' +
-                ", deleted='" + deleted + '\'' +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "RegisterResponse{" +
+        "token='" + token + '\'' +
+        ", retryAfter='" + retryAfter + '\'' +
+        ", deleted='" + deleted + '\'' +
+        '}';
+  }
 }

@@ -24,20 +24,20 @@ import java.io.InputStream;
 
 public class Utils {
 
-    public static Build getBuild(Context context) {
-        return new Build();
-    }
+  public static Build getBuild(Context context) {
+    return new Build();
+  }
 
-    public static byte[] readStreamToEnd(final InputStream is) throws IOException {
-        final ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        if (is != null) {
-            final byte[] buff = new byte[1024];
-            int read;
-            do {
-                bos.write(buff, 0, (read = is.read(buff)) < 0 ? 0 : read);
-            } while (read >= 0);
-            is.close();
-        }
-        return bos.toByteArray();
+  public static byte[] readStreamToEnd(final InputStream is) throws IOException {
+    final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+    if (is != null) {
+      final byte[] buff = new byte[1024];
+      int read;
+      do {
+        bos.write(buff, 0, (read = is.read(buff)) < 0 ? 0 : read);
+      } while (read >= 0);
+      is.close();
     }
+    return bos.toByteArray();
+  }
 }

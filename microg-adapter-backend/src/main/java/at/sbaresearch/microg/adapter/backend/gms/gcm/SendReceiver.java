@@ -25,19 +25,19 @@ import android.util.Log;
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.McsConstants.ACTION_SEND;
 
 public class SendReceiver extends WakefulBroadcastReceiver {
-    @Override
-    public void onReceive(Context context, Intent intent) {
-        if (intent.getExtras() == null) return;
-        Bundle extras = intent.getExtras();
-        Log.d("GmsMcsSendRcvr", "original extras: " + extras);
-        for (String key : extras.keySet()) {
-            if (key.startsWith("GOOG.") || key.startsWith("GOOGLE.")) {
-                extras.remove(key);
-            }
-        }
-        Intent i = new Intent(context, McsService.class);
-        i.setAction(ACTION_SEND);
-        i.putExtras(extras);
-        startWakefulService(context, i);
+  @Override
+  public void onReceive(Context context, Intent intent) {
+    if (intent.getExtras() == null) return;
+    Bundle extras = intent.getExtras();
+    Log.d("GmsMcsSendRcvr", "original extras: " + extras);
+    for (String key : extras.keySet()) {
+      if (key.startsWith("GOOG.") || key.startsWith("GOOGLE.")) {
+        extras.remove(key);
+      }
     }
+    Intent i = new Intent(context, McsService.class);
+    i.setAction(ACTION_SEND);
+    i.putExtras(extras);
+    startWakefulService(context, i);
+  }
 }

@@ -24,7 +24,6 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.os.AsyncTaskCompat;
 import android.util.Log;
-
 import at.sbaresearch.microg.adapter.library.gms.common.PublicApi;
 
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
@@ -50,136 +49,137 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  */
 @PublicApi
 public abstract class GcmListenerService extends Service {
-    private static final String TAG = "GcmListenerService";
+  private static final String TAG = "GcmListenerService";
 
-    private final Object lock = new Object();
-    private int startId;
-    private int counter = 0;
+  private final Object lock = new Object();
+  private int startId;
+  private int counter = 0;
 
-    public final IBinder onBind(Intent intent) {
-        return null;
+  public final IBinder onBind(Intent intent) {
+    return null;
+  }
+
+  /**
+   * Called when GCM server deletes pending messages due to exceeded
+   * storage limits, for example, when the device cannot be reached
+   * for an extended period of time.
+   * <p/>
+   * It is recommended to retrieve any missing messages directly from the
+   * app server.
+   */
+  public void onDeletedMessages() {
+    // To be overwritten
+  }
+
+  /**
+   * Called when a message is received.
+   *
+   * @param from describes message sender.
+   * @param data message data as String key/value pairs.
+   */
+  public void onMessageReceived(String from, Bundle data) {
+    // To be overwritten
+  }
+
+  /**
+   * Called when an upstream message has been successfully sent to the
+   * GCM connection server.
+   *
+   * @param msgId of the upstream message sent using
+   * {@link com.google.android.gms.gcm.GoogleCloudMessaging#send(String, String, Bundle)}.
+   */
+  public void onMessageSent(String msgId) {
+    // To be overwritten
+  }
+
+  /**
+   * Called when there was an error sending an upstream message.
+   *
+   * @param msgId of the upstream message sent using
+   * {@link com.google.android.gms.gcm.GoogleCloudMessaging#send(String, String, Bundle)}.
+   * @param error description of the error.
+   */
+  public void onSendError(String msgId, String error) {
+    // To be overwritten
+  }
+
+  public final int onStartCommand(final Intent intent, int flags, int startId) {
+    synchronized (lock) {
+      this.startId = startId;
+      this.counter++;
     }
 
-    /**
-     * Called when GCM server deletes pending messages due to exceeded
-     * storage limits, for example, when the device cannot be reached
-     * for an extended period of time.
-     * <p/>
-     * It is recommended to retrieve any missing messages directly from the
-     * app server.
-     */
-    public void onDeletedMessages() {
-        // To be overwritten
+    if (intent != null) {
+      if (ACTION_NOTIFICATION_OPEN.equals(intent.getAction())) {
+        handlePendingNotification(intent);
+        finishCounter();
+        GcmReceiver.completeWakefulIntent(intent);
+      } else if (ACTION_C2DM_RECEIVE.equals(intent.getAction())) {
+        AsyncTaskCompat.executeParallel(new AsyncTask<Void, Void, Void>() {
+          @Override
+          protected Void doInBackground(Void... params) {
+            handleC2dmMessage(intent);
+            return null;
+          }
+        });
+      } else {
+        Log.w(TAG, "Unknown intent action: " + intent.getAction());
+
+      }
+
+      return START_REDELIVER_INTENT;
+    } else {
+      finishCounter();
+      return START_NOT_STICKY;
     }
+  }
 
-    /**
-     * Called when a message is received.
-     *
-     * @param from describes message sender.
-     * @param data message data as String key/value pairs.
-     */
-    public void onMessageReceived(String from, Bundle data) {
-        // To be overwritten
+  private void handleC2dmMessage(Intent intent) {
+    try {
+      String messageType = intent.getStringExtra(EXTRA_MESSAGE_TYPE);
+      if (messageType == null || MESSAGE_TYPE_GCM.equals(messageType)) {
+        String from = intent.getStringExtra(EXTRA_FROM);
+        Bundle data = intent.getExtras();
+        data.remove(EXTRA_MESSAGE_TYPE);
+        data.remove(
+            "android.support.content.wakelockid"); // WakefulBroadcastReceiver.EXTRA_WAKE_LOCK_ID
+        data.remove(EXTRA_FROM);
+        onMessageReceived(from, data);
+      } else if (MESSAGE_TYPE_DELETED_MESSAGE.equals(messageType)) {
+        onDeletedMessages();
+      } else if (MESSAGE_TYPE_SEND_EVENT.equals(messageType)) {
+        onMessageSent(intent.getStringExtra(EXTRA_MESSAGE_ID));
+      } else if (MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
+        onSendError(intent.getStringExtra(EXTRA_MESSAGE_ID), intent.getStringExtra(EXTRA_ERROR));
+      } else {
+        Log.w(TAG, "Unknown message type: " + messageType);
+      }
+      finishCounter();
+    } finally {
+      GcmReceiver.completeWakefulIntent(intent);
     }
+  }
 
-    /**
-     * Called when an upstream message has been successfully sent to the
-     * GCM connection server.
-     *
-     * @param msgId of the upstream message sent using
-     *              {@link com.google.android.gms.gcm.GoogleCloudMessaging#send(String, String, Bundle)}.
-     */
-    public void onMessageSent(String msgId) {
-        // To be overwritten
+  private void handlePendingNotification(Intent intent) {
+    PendingIntent pendingIntent = intent.getParcelableExtra(EXTRA_PENDING_INTENT);
+    if (pendingIntent != null) {
+      try {
+        pendingIntent.send();
+      } catch (PendingIntent.CanceledException e) {
+        Log.w(TAG, "Notification cancelled", e);
+      }
+    } else {
+      Log.w(TAG, "Notification was null");
     }
+  }
 
-    /**
-     * Called when there was an error sending an upstream message.
-     *
-     * @param msgId of the upstream message sent using
-     *              {@link com.google.android.gms.gcm.GoogleCloudMessaging#send(String, String, Bundle)}.
-     * @param error description of the error.
-     */
-    public void onSendError(String msgId, String error) {
-        // To be overwritten
+  private void finishCounter() {
+    synchronized (lock) {
+      this.counter--;
+      if (counter == 0) {
+        stopSelfResult(startId);
+      }
     }
-
-    public final int onStartCommand(final Intent intent, int flags, int startId) {
-        synchronized (lock) {
-            this.startId = startId;
-            this.counter++;
-        }
-
-        if (intent != null) {
-            if (ACTION_NOTIFICATION_OPEN.equals(intent.getAction())) {
-                handlePendingNotification(intent);
-                finishCounter();
-                GcmReceiver.completeWakefulIntent(intent);
-            } else if (ACTION_C2DM_RECEIVE.equals(intent.getAction())) {
-                AsyncTaskCompat.executeParallel(new AsyncTask<Void, Void, Void>() {
-                    @Override
-                    protected Void doInBackground(Void... params) {
-                        handleC2dmMessage(intent);
-                        return null;
-                    }
-                });
-            } else {
-                Log.w(TAG, "Unknown intent action: " + intent.getAction());
-
-            }
-
-            return START_REDELIVER_INTENT;
-        } else {
-            finishCounter();
-            return START_NOT_STICKY;
-        }
-    }
-
-    private void handleC2dmMessage(Intent intent) {
-        try {
-            String messageType = intent.getStringExtra(EXTRA_MESSAGE_TYPE);
-            if (messageType == null || MESSAGE_TYPE_GCM.equals(messageType)) {
-                String from = intent.getStringExtra(EXTRA_FROM);
-                Bundle data = intent.getExtras();
-                data.remove(EXTRA_MESSAGE_TYPE);
-                data.remove("android.support.content.wakelockid"); // WakefulBroadcastReceiver.EXTRA_WAKE_LOCK_ID
-                data.remove(EXTRA_FROM);
-                onMessageReceived(from, data);
-            } else if (MESSAGE_TYPE_DELETED_MESSAGE.equals(messageType)) {
-                onDeletedMessages();
-            } else if (MESSAGE_TYPE_SEND_EVENT.equals(messageType)) {
-                onMessageSent(intent.getStringExtra(EXTRA_MESSAGE_ID));
-            } else if (MESSAGE_TYPE_SEND_ERROR.equals(messageType)) {
-                onSendError(intent.getStringExtra(EXTRA_MESSAGE_ID), intent.getStringExtra(EXTRA_ERROR));
-            } else {
-                Log.w(TAG, "Unknown message type: " + messageType);
-            }
-            finishCounter();
-        } finally {
-            GcmReceiver.completeWakefulIntent(intent);
-        }
-    }
-
-    private void handlePendingNotification(Intent intent) {
-        PendingIntent pendingIntent = intent.getParcelableExtra(EXTRA_PENDING_INTENT);
-        if (pendingIntent != null) {
-            try {
-                pendingIntent.send();
-            } catch (PendingIntent.CanceledException e) {
-                Log.w(TAG, "Notification cancelled", e);
-            }
-        } else {
-            Log.w(TAG, "Notification was null");
-        }
-    }
-
-    private void finishCounter() {
-        synchronized (lock) {
-            this.counter--;
-            if (counter == 0) {
-                stopSelfResult(startId);
-            }
-        }
-    }
+  }
 
 }

@@ -3,8 +3,10 @@ package at.sbaresearch.microg.adapter.backend.gms.gcm;
 public final class GcmConstants {
   public static final String ACTION_C2DM_RECEIVE = "at.sbaresearch.android.c2dm.intent.RECEIVE";
   public static final String ACTION_C2DM_REGISTER = "at.sbaresearch.android.c2dm.intent.REGISTER";
-  public static final String ACTION_C2DM_REGISTRATION = "at.sbaresearch.android.c2dm.intent.REGISTRATION";
-  public static final String ACTION_C2DM_UNREGISTER = "at.sbaresearch.android.c2dm.intent.UNREGISTER";
+  public static final String ACTION_C2DM_REGISTRATION =
+      "at.sbaresearch.android.c2dm.intent.REGISTRATION";
+  public static final String ACTION_C2DM_UNREGISTER =
+      "at.sbaresearch.android.c2dm.intent.UNREGISTER";
   public static final String ACTION_GCM_SEND = "at.sbaresearch.android.gcm.intent.SEND";
   public static final String ACTION_NOTIFICATION_OPEN =
       "at.sbaresearch.android.gms.gcm.NOTIFICATION_OPEN";

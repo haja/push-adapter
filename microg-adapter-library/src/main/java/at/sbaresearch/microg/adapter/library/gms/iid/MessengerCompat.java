@@ -23,64 +23,64 @@ import static android.os.Build.VERSION.SDK_INT;
 import static android.os.Build.VERSION_CODES.LOLLIPOP;
 
 public class MessengerCompat implements Parcelable {
-    private static final String TAG = "IidMessengerCompat";
-    private Messenger messenger;
+  private static final String TAG = "IidMessengerCompat";
+  private Messenger messenger;
 
-    public MessengerCompat(IBinder binder) {
-        if (SDK_INT >= LOLLIPOP) {
-            messenger = new Messenger(binder);
-        } else {
-          Log.e(TAG, "API level too low, requires " + LOLLIPOP);
-        }
+  public MessengerCompat(IBinder binder) {
+    if (SDK_INT >= LOLLIPOP) {
+      messenger = new Messenger(binder);
+    } else {
+      Log.e(TAG, "API level too low, requires " + LOLLIPOP);
     }
+  }
 
-    public MessengerCompat(Handler handler) {
-        if (SDK_INT >= LOLLIPOP) {
-            messenger = new Messenger(handler);
-        } else {
-            Log.e(TAG, "API level too low, requires " + LOLLIPOP);
-        }
+  public MessengerCompat(Handler handler) {
+    if (SDK_INT >= LOLLIPOP) {
+      messenger = new Messenger(handler);
+    } else {
+      Log.e(TAG, "API level too low, requires " + LOLLIPOP);
+    }
+  }
+
+  @Override
+  public int describeContents() {
+    return 0;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return o instanceof MessengerCompat && ((MessengerCompat) o).getBinder().equals(getBinder());
+  }
+
+  public IBinder getBinder() {
+    return messenger.getBinder();
+  }
+
+  @Override
+  public int hashCode() {
+    return getBinder().hashCode();
+  }
+
+  public void send(Message message) throws RemoteException {
+    messenger.send(message);
+  }
+
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    dest.writeStrongBinder(getBinder());
+  }
+
+  public static final Creator<MessengerCompat> CREATOR = new Creator<MessengerCompat>() {
+    @Override
+    public MessengerCompat createFromParcel(Parcel source) {
+      IBinder binder = source.readStrongBinder();
+      return binder != null ? new MessengerCompat(binder) : null;
     }
 
     @Override
-    public int describeContents() {
-        return 0;
+    public MessengerCompat[] newArray(int size) {
+      return new MessengerCompat[size];
     }
-
-    @Override
-    public boolean equals(Object o) {
-        return o instanceof MessengerCompat && ((MessengerCompat) o).getBinder().equals(getBinder());
-    }
-
-    public IBinder getBinder() {
-        return messenger.getBinder();
-    }
-
-    @Override
-    public int hashCode() {
-        return getBinder().hashCode();
-    }
-
-    public void send(Message message) throws RemoteException {
-        messenger.send(message);
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeStrongBinder(getBinder());
-    }
-
-    public static final Creator<MessengerCompat> CREATOR = new Creator<MessengerCompat>() {
-        @Override
-        public MessengerCompat createFromParcel(Parcel source) {
-            IBinder binder = source.readStrongBinder();
-            return binder != null ? new MessengerCompat(binder) : null;
-        }
-
-        @Override
-        public MessengerCompat[] newArray(int size) {
-            return new MessengerCompat[size];
-        }
-    };
+  };
 
 }

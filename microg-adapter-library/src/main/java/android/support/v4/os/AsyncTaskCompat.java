@@ -47,6 +47,8 @@ public final class AsyncTaskCompat {
     }
     return task;
   }
-  private AsyncTaskCompat() {}
+
+  private AsyncTaskCompat() {
+  }
 }
 

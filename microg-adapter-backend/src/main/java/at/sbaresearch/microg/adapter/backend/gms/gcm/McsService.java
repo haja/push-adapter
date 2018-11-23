@@ -12,8 +12,8 @@ import at.sbaresearch.microg.adapter.backend.gms.gcm.mcs.AppData;
 
 import java.util.List;
 
-import static at.sbaresearch.microg.adapter.backend.gms.gcm.McsConstants.*;
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
+import static at.sbaresearch.microg.adapter.backend.gms.gcm.McsConstants.MCS_DATA_MESSAGE_STANZA_TAG;
 
 public class McsService extends Service {
 
@@ -36,7 +36,6 @@ public class McsService extends Service {
     database.close();
     super.onDestroy();
   }
-
 
   private void handleInput(int type, Message message) {
     try {
@@ -74,9 +73,9 @@ public class McsService extends Service {
     // GcmPrefs.get(this).extendLastPersistedId(message.persistent_id);
     // }
     // if (SELF_CATEGORY.equals(message.category)) {
-      // handleSelfMessage(message);
+    // handleSelfMessage(message);
     // } else {
-      handleAppMessage(message);
+    handleAppMessage(message);
     // }
   }
 
@@ -108,14 +107,16 @@ public class McsService extends Service {
       receiverPermission = null;
     }
 
-    List<ResolveInfo> infos = getPackageManager().queryBroadcastReceivers(intent, PackageManager.GET_RESOLVED_FILTER);
+    List<ResolveInfo> infos =
+        getPackageManager().queryBroadcastReceivers(intent, PackageManager.GET_RESOLVED_FILTER);
     if (infos == null || infos.isEmpty()) {
       logd("No target for message, wut?");
     } else {
       for (ResolveInfo resolveInfo : infos) {
         logd("Target: " + resolveInfo);
         Intent targetIntent = new Intent(intent);
-        targetIntent.setComponent(new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
+        targetIntent.setComponent(
+            new ComponentName(resolveInfo.activityInfo.packageName, resolveInfo.activityInfo.name));
         sendOrderedBroadcast(targetIntent, receiverPermission);
       }
     }

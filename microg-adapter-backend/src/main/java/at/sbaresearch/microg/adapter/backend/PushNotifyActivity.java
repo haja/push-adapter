@@ -36,7 +36,6 @@ public class PushNotifyActivity extends AppCompatActivity {
       }
     });
 
-
   }
 
   public void reqPermission(View view) {
@@ -94,8 +93,8 @@ public class PushNotifyActivity extends AppCompatActivity {
   }
 
   /**
-   *  TODO remove this method, call on other class
-    */
+   * TODO remove this method, call on other class
+   */
   @Deprecated
   public void sendIntent(View view) {
     // TODO use micro-g implementation for relay of intents

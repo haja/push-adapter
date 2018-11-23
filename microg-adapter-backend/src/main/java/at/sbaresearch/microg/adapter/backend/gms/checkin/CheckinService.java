@@ -10,7 +10,6 @@ public class CheckinService extends IntentService {
   public static final String EXTRA_FORCE_CHECKIN = "force";
   public static final String EXTRA_CALLBACK_INTENT = "callback";
 
-
   public CheckinService() {
     super(TAG);
   }

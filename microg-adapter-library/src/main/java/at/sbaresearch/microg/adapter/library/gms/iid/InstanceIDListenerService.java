@@ -48,88 +48,89 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  */
 public class InstanceIDListenerService extends Service {
 
-    private BroadcastReceiver registrationReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            handleIntent(intent);
-            stop();
-        }
-    };
-    private MessengerCompat messengerCompat = new MessengerCompat(new Handler(Looper.getMainLooper()) {
+  private BroadcastReceiver registrationReceiver = new BroadcastReceiver() {
+    @Override
+    public void onReceive(Context context, Intent intent) {
+      handleIntent(intent);
+      stop();
+    }
+  };
+  private MessengerCompat messengerCompat =
+      new MessengerCompat(new Handler(Looper.getMainLooper()) {
         @Override
         public void handleMessage(Message msg) {
-            handleIntent((Intent) msg.obj);
+          handleIntent((Intent) msg.obj);
         }
-    });
+      });
 
-    private int counter = 0;
-    private int startId = -1;
+  private int counter = 0;
+  private int startId = -1;
 
-    private void handleIntent(Intent intent) {
-        // TODO
+  private void handleIntent(Intent intent) {
+    // TODO
+  }
+
+  public IBinder onBind(Intent intent) {
+    if (intent != null && ACTION_INSTANCE_ID.equals(intent.getAction())) {
+      return messengerCompat.getBinder();
     }
+    return null;
+  }
 
-    public IBinder onBind(Intent intent) {
-        if (intent != null && ACTION_INSTANCE_ID.equals(intent.getAction())) {
-            return messengerCompat.getBinder();
+  public void onCreate() {
+    IntentFilter filter = new IntentFilter(ACTION_C2DM_REGISTRATION);
+    filter.addCategory(getPackageName());
+    registerReceiver(registrationReceiver, filter);
+  }
+
+  public void onDestroy() {
+    unregisterReceiver(registrationReceiver);
+  }
+
+  public int onStartCommand(Intent intent, int flags, int startId) {
+    synchronized (this) {
+      this.counter++;
+      if (startId > this.startId) this.startId = startId;
+    }
+    try {
+      if (intent != null) {
+        if (ACTION_INSTANCE_ID.equals(intent.getAction()) && intent.hasExtra(EXTRA_GSF_INTENT)) {
+          startService((Intent) intent.getParcelableExtra(EXTRA_GSF_INTENT));
+          return START_STICKY;
         }
-        return null;
+
+        handleIntent(intent);
+
+        if (intent.hasExtra(EXTRA_FROM))
+          WakefulBroadcastReceiver.completeWakefulIntent(intent);
+      }
+    } finally {
+      stop();
     }
+    return START_NOT_STICKY;
+  }
 
-    public void onCreate() {
-        IntentFilter filter = new IntentFilter(ACTION_C2DM_REGISTRATION);
-        filter.addCategory(getPackageName());
-        registerReceiver(registrationReceiver, filter);
+  /**
+   * Called when the system determines that the tokens need to be refreshed. The application
+   * should call getToken() and send the tokens to all application servers.
+   * <p/>
+   * This will not be called very frequently, it is needed for key rotation and to handle special
+   * cases.
+   * <p/>
+   * The system will throttle the refresh event across all devices to avoid overloading
+   * application servers with token updates.
+   */
+  public void onTokenRefresh() {
+    // To be overwritten
+  }
+
+  private void stop() {
+    synchronized (this) {
+      counter--;
+      if (counter <= 0) {
+        stopSelf(startId);
+      }
     }
-
-    public void onDestroy() {
-        unregisterReceiver(registrationReceiver);
-    }
-
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        synchronized (this) {
-            this.counter++;
-            if (startId > this.startId) this.startId = startId;
-        }
-        try {
-            if (intent != null) {
-                if (ACTION_INSTANCE_ID.equals(intent.getAction()) && intent.hasExtra(EXTRA_GSF_INTENT)) {
-                    startService((Intent) intent.getParcelableExtra(EXTRA_GSF_INTENT));
-                    return START_STICKY;
-                }
-
-                handleIntent(intent);
-
-                if (intent.hasExtra(EXTRA_FROM))
-                    WakefulBroadcastReceiver.completeWakefulIntent(intent);
-            }
-        } finally {
-            stop();
-        }
-        return START_NOT_STICKY;
-    }
-
-    /**
-     * Called when the system determines that the tokens need to be refreshed. The application
-     * should call getToken() and send the tokens to all application servers.
-     * <p/>
-     * This will not be called very frequently, it is needed for key rotation and to handle special
-     * cases.
-     * <p/>
-     * The system will throttle the refresh event across all devices to avoid overloading
-     * application servers with token updates.
-     */
-    public void onTokenRefresh() {
-        // To be overwritten
-    }
-
-    private void stop() {
-        synchronized (this) {
-            counter--;
-            if (counter <= 0) {
-                stopSelf(startId);
-            }
-        }
-    }
+  }
 
 }

@@ -32,221 +32,226 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpFormClient {
-    private static final String TAG = "GmsHttpFormClient";
+  private static final String TAG = "GmsHttpFormClient";
 
-    public static <T> T request(String url, Request request, Class<T> tClass) throws IOException {
-        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
-        connection.setRequestMethod("POST");
-        connection.setDoInput(true);
-        connection.setDoOutput(true);
-        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        StringBuilder content = new StringBuilder();
-        request.prepare();
-        for (Field field : request.getClass().getDeclaredFields()) {
-            try {
-                field.setAccessible(true);
-                Object objVal = field.get(request);
-                String value = objVal != null ? String.valueOf(objVal) : null;
-                Boolean boolVal = null;
-                if (field.getType().equals(boolean.class)) {
-                    boolVal = field.getBoolean(request);
-                }
-                if (field.isAnnotationPresent(RequestHeader.class)) {
-                    RequestHeader annotation = field.getAnnotation(RequestHeader.class);
-                    value = valueFromBoolVal(value, boolVal, annotation.truePresent(), annotation.falsePresent());
-                    if (value != null || annotation.nullPresent()) {
-                        for (String key : annotation.value()) {
-                            connection.setRequestProperty(key, String.valueOf(value));
-                        }
-                    }
-                }
-                if (field.isAnnotationPresent(RequestContent.class)) {
-                    RequestContent annotation = field.getAnnotation(RequestContent.class);
-                    value = valueFromBoolVal(value, boolVal, annotation.truePresent(), annotation.falsePresent());
-                    if (value != null || annotation.nullPresent()) {
-                        for (String key : annotation.value()) {
-                            if (content.length() > 0)
-                                content.append("&");
-                            content.append(Uri.encode(key)).append("=").append(Uri.encode(String.valueOf(value)));
-                        }
-                    }
-                }
-            } catch (Exception ignored) {
-            }
+  public static <T> T request(String url, Request request, Class<T> tClass) throws IOException {
+    HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+    connection.setRequestMethod("POST");
+    connection.setDoInput(true);
+    connection.setDoOutput(true);
+    connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    StringBuilder content = new StringBuilder();
+    request.prepare();
+    for (Field field : request.getClass().getDeclaredFields()) {
+      try {
+        field.setAccessible(true);
+        Object objVal = field.get(request);
+        String value = objVal != null ? String.valueOf(objVal) : null;
+        Boolean boolVal = null;
+        if (field.getType().equals(boolean.class)) {
+          boolVal = field.getBoolean(request);
         }
-
-        Log.d(TAG, "-- Request --\n" + content);
-        OutputStream os = connection.getOutputStream();
-        os.write(content.toString().getBytes());
-        os.close();
-
-        if (connection.getResponseCode() != 200) {
-            String error = connection.getResponseMessage();
-            try {
-                error = new String(Utils.readStreamToEnd(connection.getErrorStream()));
-            } catch (IOException e) {
-                // Ignore
+        if (field.isAnnotationPresent(RequestHeader.class)) {
+          RequestHeader annotation = field.getAnnotation(RequestHeader.class);
+          value =
+              valueFromBoolVal(value, boolVal, annotation.truePresent(), annotation.falsePresent());
+          if (value != null || annotation.nullPresent()) {
+            for (String key : annotation.value()) {
+              connection.setRequestProperty(key, String.valueOf(value));
             }
-            throw new IOException(error);
+          }
         }
-
-        String result = new String(Utils.readStreamToEnd(connection.getInputStream()));
-        Log.d(TAG, "-- Response --\n" + result);
-        return parseResponse(tClass, connection, result);
+        if (field.isAnnotationPresent(RequestContent.class)) {
+          RequestContent annotation = field.getAnnotation(RequestContent.class);
+          value =
+              valueFromBoolVal(value, boolVal, annotation.truePresent(), annotation.falsePresent());
+          if (value != null || annotation.nullPresent()) {
+            for (String key : annotation.value()) {
+              if (content.length() > 0)
+                content.append("&");
+              content.append(Uri.encode(key)).append("=").append(Uri.encode(String.valueOf(value)));
+            }
+          }
+        }
+      } catch (Exception ignored) {
+      }
     }
 
-    private static String valueFromBoolVal(String value, Boolean boolVal, boolean truePresent, boolean falsePresent) {
-        if (boolVal != null) {
-            if (boolVal && truePresent) {
-                return "1";
-            } else if (!boolVal && falsePresent) {
-                return "0";
-            } else {
-                return null;
-            }
-        } else {
-            return value;
-        }
+    Log.d(TAG, "-- Request --\n" + content);
+    OutputStream os = connection.getOutputStream();
+    os.write(content.toString().getBytes());
+    os.close();
+
+    if (connection.getResponseCode() != 200) {
+      String error = connection.getResponseMessage();
+      try {
+        error = new String(Utils.readStreamToEnd(connection.getErrorStream()));
+      } catch (IOException e) {
+        // Ignore
+      }
+      throw new IOException(error);
     }
 
-    private static <T> T parseResponse(Class<T> tClass, HttpURLConnection connection, String result) throws
-                                                                                                     IOException {
-        Map<String, List<String>> headerFields = connection.getHeaderFields();
-        T response;
-        try {
-            response = tClass.getConstructor().newInstance();
-        } catch (Exception e) {
-            return null;
-        }
-        String[] entries = result.split("\n");
-        for (String s : entries) {
-            String[] keyValuePair = s.split("=", 2);
-            String key = keyValuePair[0].trim();
-            String value = keyValuePair[1].trim();
-            try {
-                for (Field field : tClass.getDeclaredFields()) {
-                    if (field.isAnnotationPresent(ResponseField.class) &&
-                            key.equals(field.getAnnotation(ResponseField.class).value())) {
-                        if (field.getType().equals(String.class)) {
-                            field.set(response, value);
-                        } else if (field.getType().equals(boolean.class)) {
-                            field.setBoolean(response, value.equals("1"));
-                        } else if (field.getType().equals(long.class)) {
-                            field.setLong(response, Long.parseLong(value));
-                        } else if (field.getType().equals(int.class)) {
-                            field.setInt(response, Integer.parseInt(value));
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                Log.w(TAG, e);
-            }
-        }
+    String result = new String(Utils.readStreamToEnd(connection.getInputStream()));
+    Log.d(TAG, "-- Response --\n" + result);
+    return parseResponse(tClass, connection, result);
+  }
+
+  private static String valueFromBoolVal(String value, Boolean boolVal, boolean truePresent,
+      boolean falsePresent) {
+    if (boolVal != null) {
+      if (boolVal && truePresent) {
+        return "1";
+      } else if (!boolVal && falsePresent) {
+        return "0";
+      } else {
+        return null;
+      }
+    } else {
+      return value;
+    }
+  }
+
+  private static <T> T parseResponse(Class<T> tClass, HttpURLConnection connection, String result)
+      throws
+      IOException {
+    Map<String, List<String>> headerFields = connection.getHeaderFields();
+    T response;
+    try {
+      response = tClass.getConstructor().newInstance();
+    } catch (Exception e) {
+      return null;
+    }
+    String[] entries = result.split("\n");
+    for (String s : entries) {
+      String[] keyValuePair = s.split("=", 2);
+      String key = keyValuePair[0].trim();
+      String value = keyValuePair[1].trim();
+      try {
         for (Field field : tClass.getDeclaredFields()) {
-            if (field.isAnnotationPresent(ResponseHeader.class)) {
-                List<String> strings = headerFields.get(field.getAnnotation(ResponseHeader.class).value());
-                if (strings == null || strings.size() != 1) continue;
-                String value = strings.get(0);
-                try {
-                    if (field.getType().equals(String.class)) {
-                        field.set(response, value);
-                    } else if (field.getType().equals(boolean.class)) {
-                        field.setBoolean(response, value.equals("1"));
-                    } else if (field.getType().equals(long.class)) {
-                        field.setLong(response, Long.parseLong(value));
-                    } else if (field.getType().equals(int.class)) {
-                        field.setInt(response, Integer.parseInt(value));
-                    }
-                } catch (Exception e) {
-                    Log.w(TAG, e);
-                }
+          if (field.isAnnotationPresent(ResponseField.class) &&
+              key.equals(field.getAnnotation(ResponseField.class).value())) {
+            if (field.getType().equals(String.class)) {
+              field.set(response, value);
+            } else if (field.getType().equals(boolean.class)) {
+              field.setBoolean(response, value.equals("1"));
+            } else if (field.getType().equals(long.class)) {
+              field.setLong(response, Long.parseLong(value));
+            } else if (field.getType().equals(int.class)) {
+              field.setInt(response, Integer.parseInt(value));
             }
-            if (field.isAnnotationPresent(ResponseStatusCode.class) && field.getType() == int.class) {
-                try {
-                    field.setInt(response, connection.getResponseCode());
-                } catch (IllegalAccessException e) {
-                    Log.w(TAG, e);
-                }
-            }
-            if (field.isAnnotationPresent(ResponseStatusText.class) && field.getType() == String.class) {
-                try {
-                    field.set(response, connection.getResponseMessage());
-                } catch (IllegalAccessException e) {
-                    Log.w(TAG, e);
-                }
-            }
+          }
         }
-        return response;
+      } catch (Exception e) {
+        Log.w(TAG, e);
+      }
     }
-
-    public static <T> void requestAsync(final String url, final Request request, final Class<T> tClass,
-                                        final Callback<T> callback) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    callback.onResponse(request(url, request, tClass));
-                } catch (Exception e) {
-                    callback.onException(e);
-                }
-            }
-        }).start();
-    }
-
-    public static abstract class Request {
-        protected void prepare() {
+    for (Field field : tClass.getDeclaredFields()) {
+      if (field.isAnnotationPresent(ResponseHeader.class)) {
+        List<String> strings = headerFields.get(field.getAnnotation(ResponseHeader.class).value());
+        if (strings == null || strings.size() != 1) continue;
+        String value = strings.get(0);
+        try {
+          if (field.getType().equals(String.class)) {
+            field.set(response, value);
+          } else if (field.getType().equals(boolean.class)) {
+            field.setBoolean(response, value.equals("1"));
+          } else if (field.getType().equals(long.class)) {
+            field.setLong(response, Long.parseLong(value));
+          } else if (field.getType().equals(int.class)) {
+            field.setInt(response, Integer.parseInt(value));
+          }
+        } catch (Exception e) {
+          Log.w(TAG, e);
         }
+      }
+      if (field.isAnnotationPresent(ResponseStatusCode.class) && field.getType() == int.class) {
+        try {
+          field.setInt(response, connection.getResponseCode());
+        } catch (IllegalAccessException e) {
+          Log.w(TAG, e);
+        }
+      }
+      if (field.isAnnotationPresent(ResponseStatusText.class) && field.getType() == String.class) {
+        try {
+          field.set(response, connection.getResponseMessage());
+        } catch (IllegalAccessException e) {
+          Log.w(TAG, e);
+        }
+      }
     }
+    return response;
+  }
 
-    public interface Callback<T> {
-        void onResponse(T response);
+  public static <T> void requestAsync(final String url, final Request request,
+      final Class<T> tClass,
+      final Callback<T> callback) {
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          callback.onResponse(request(url, request, tClass));
+        } catch (Exception e) {
+          callback.onException(e);
+        }
+      }
+    }).start();
+  }
 
-        void onException(Exception exception);
+  public static abstract class Request {
+    protected void prepare() {
     }
+  }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface RequestHeader {
-        public String[] value();
+  public interface Callback<T> {
+    void onResponse(T response);
 
-        public boolean truePresent() default true;
+    void onException(Exception exception);
+  }
 
-        public boolean falsePresent() default false;
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.FIELD)
+  public @interface RequestHeader {
+    public String[] value();
 
-        public boolean nullPresent() default false;
-    }
+    public boolean truePresent() default true;
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface RequestContent {
-        public String[] value();
+    public boolean falsePresent() default false;
 
-        public boolean truePresent() default true;
+    public boolean nullPresent() default false;
+  }
 
-        public boolean falsePresent() default false;
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.FIELD)
+  public @interface RequestContent {
+    public String[] value();
 
-        public boolean nullPresent() default false;
-    }
+    public boolean truePresent() default true;
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface ResponseField {
-        public String value();
-    }
+    public boolean falsePresent() default false;
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface ResponseHeader {
-        public String value();
-    }
+    public boolean nullPresent() default false;
+  }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface ResponseStatusCode {
-    }
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.FIELD)
+  public @interface ResponseField {
+    public String value();
+  }
 
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface ResponseStatusText {
-    }
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.FIELD)
+  public @interface ResponseHeader {
+    public String value();
+  }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.FIELD)
+  public @interface ResponseStatusCode {
+  }
+
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target(ElementType.FIELD)
+  public @interface ResponseStatusText {
+  }
 }

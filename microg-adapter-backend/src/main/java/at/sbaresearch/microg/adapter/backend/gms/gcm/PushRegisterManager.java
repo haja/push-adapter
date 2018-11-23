@@ -19,7 +19,6 @@ package at.sbaresearch.microg.adapter.backend.gms.gcm;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
-
 import at.sbaresearch.microg.adapter.backend.gms.checkin.LastCheckinInfo;
 import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
@@ -30,135 +29,142 @@ import java.io.IOException;
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
 public class PushRegisterManager {
-    private static final String TAG = "GmsGcmRegisterMgr";
+  private static final String TAG = "GmsGcmRegisterMgr";
 
-    public static RegisterResponse unregister(Context context, String packageName, String pkgSignature, String sender, String info) {
-        GcmDatabase database = new GcmDatabase(context);
-        RegisterResponse response = new RegisterResponse();
-        try {
-            response = new RegisterRequest()
-                    .build(Utils.getBuild(context))
-                    .sender(sender)
-                    .info(info)
-                    .checkin(LastCheckinInfo.read(context))
-                    .app(packageName, pkgSignature)
-                    .delete(true)
-                    .getResponse();
-        } catch (IOException e) {
-            Log.w(TAG, e);
-        }
-        if (!packageName.equals(response.deleted)) {
-            database.noteAppRegistrationError(packageName, response.responseText);
+  public static RegisterResponse unregister(Context context, String packageName,
+      String pkgSignature, String sender, String info) {
+    GcmDatabase database = new GcmDatabase(context);
+    RegisterResponse response = new RegisterResponse();
+    try {
+      response = new RegisterRequest()
+          .build(Utils.getBuild(context))
+          .sender(sender)
+          .info(info)
+          .checkin(LastCheckinInfo.read(context))
+          .app(packageName, pkgSignature)
+          .delete(true)
+          .getResponse();
+    } catch (IOException e) {
+      Log.w(TAG, e);
+    }
+    if (!packageName.equals(response.deleted)) {
+      database.noteAppRegistrationError(packageName, response.responseText);
+    } else {
+      database.noteAppUnregistered(packageName, pkgSignature);
+    }
+    database.close();
+    return response;
+  }
+
+  public interface BundleCallback {
+    void onResult(Bundle bundle);
+  }
+
+  public static void completeRegisterRequest(Context context, GcmDatabase database,
+      RegisterRequest request, BundleCallback callback) {
+    completeRegisterRequest(context, database, null, request, callback);
+  }
+
+  public static void completeRegisterRequest(Context context, final GcmDatabase database,
+      final String requestId, final RegisterRequest request, final BundleCallback callback) {
+    if (request.app != null) {
+      if (request.appSignature == null)
+        request.appSignature = PackageUtils.firstSignatureDigest(context, request.app);
+      if (request.appVersion <= 0)
+        request.appVersion = PackageUtils.versionCode(context, request.app);
+      if (request.appVersionName == null)
+        request.appVersionName = PackageUtils.versionName(context, request.app);
+    }
+
+    GcmDatabase.App app = database.getApp(request.app);
+    GcmPrefs prefs = GcmPrefs.get(context);
+    if (!request.delete) {
+      if (!prefs.isEnabled() ||
+          (app != null && !app.allowRegister) ||
+          LastCheckinInfo.read(context).lastCheckin <= 0 ||
+          (app == null && prefs.isConfirmNewApps())) {
+        Bundle bundle = new Bundle();
+        bundle.putString(EXTRA_ERROR, ERROR_SERVICE_NOT_AVAILABLE);
+        callback.onResult(bundle);
+        return;
+      }
+    } else {
+      if (database.getRegistrationsByApp(request.app).isEmpty()) {
+        Bundle bundle = new Bundle();
+        bundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
+        callback.onResult(bundle);
+        return;
+      }
+    }
+
+    request.getResponseAsync(new HttpFormClient.Callback<RegisterResponse>() {
+      @Override
+      public void onResponse(RegisterResponse response) {
+        callback.onResult(handleResponse(database, request, response, requestId));
+      }
+
+      @Override
+      public void onException(Exception e) {
+        Log.w(TAG, e);
+        callback.onResult(handleResponse(database, request, e, requestId));
+      }
+    });
+  }
+
+  private static Bundle handleResponse(GcmDatabase database, RegisterRequest request,
+      RegisterResponse response, String requestId) {
+    return handleResponse(database, request, response, null, requestId);
+  }
+
+  private static Bundle handleResponse(GcmDatabase database, RegisterRequest request, Exception e,
+      String requestId) {
+    return handleResponse(database, request, null, e, requestId);
+  }
+
+  private static Bundle handleResponse(GcmDatabase database, RegisterRequest request,
+      RegisterResponse response, Exception e, String requestId) {
+    Bundle resultBundle = new Bundle();
+    if (response == null && e == null) {
+      resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
+    } else if (e != null) {
+      if (e.getMessage() != null && e.getMessage().startsWith("Error=")) {
+        String errorMessage = e.getMessage().substring(6);
+        database.noteAppRegistrationError(request.app, errorMessage);
+        resultBundle.putString(EXTRA_ERROR, attachRequestId(errorMessage, requestId));
+      } else {
+        resultBundle
+            .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
+      }
+    } else {
+      if (!request.delete) {
+        if (response.token == null) {
+          database.noteAppRegistrationError(request.app, response.responseText);
+          resultBundle
+              .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
         } else {
-            database.noteAppUnregistered(packageName, pkgSignature);
+          database.noteAppRegistered(request.app, request.appSignature, response.token);
+          resultBundle.putString(EXTRA_REGISTRATION_ID, attachRequestId(response.token, requestId));
         }
-        database.close();
-        return response;
-    }
-
-    public interface BundleCallback {
-        void onResult(Bundle bundle);
-    }
-
-    public static void completeRegisterRequest(Context context, GcmDatabase database, RegisterRequest request, BundleCallback callback) {
-        completeRegisterRequest(context, database, null, request, callback);
-    }
-
-    public static void completeRegisterRequest(Context context, final GcmDatabase database, final String requestId, final RegisterRequest request, final BundleCallback callback) {
-        if (request.app != null) {
-            if (request.appSignature == null)
-                request.appSignature = PackageUtils.firstSignatureDigest(context, request.app);
-            if (request.appVersion <= 0)
-                request.appVersion = PackageUtils.versionCode(context, request.app);
-            if (request.appVersionName == null)
-                request.appVersionName = PackageUtils.versionName(context, request.app);
-        }
-
-        GcmDatabase.App app = database.getApp(request.app);
-        GcmPrefs prefs = GcmPrefs.get(context);
-        if (!request.delete) {
-            if (!prefs.isEnabled() ||
-                    (app != null && !app.allowRegister) ||
-                    LastCheckinInfo.read(context).lastCheckin <= 0 ||
-                    (app == null && prefs.isConfirmNewApps())) {
-                Bundle bundle = new Bundle();
-                bundle.putString(EXTRA_ERROR, ERROR_SERVICE_NOT_AVAILABLE);
-                callback.onResult(bundle);
-                return;
-            }
+      } else {
+        if (!request.app.equals(response.deleted) && !request.app.equals(response.token)) {
+          database.noteAppRegistrationError(request.app, response.responseText);
+          resultBundle
+              .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
         } else {
-            if (database.getRegistrationsByApp(request.app).isEmpty()) {
-                Bundle bundle = new Bundle();
-                bundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
-                callback.onResult(bundle);
-                return;
-            }
+          database.noteAppUnregistered(request.app, request.appSignature);
+          resultBundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
         }
+      }
 
-        request.getResponseAsync(new HttpFormClient.Callback<RegisterResponse>() {
-            @Override
-            public void onResponse(RegisterResponse response) {
-                callback.onResult(handleResponse(database, request, response, requestId));
-            }
-
-            @Override
-            public void onException(Exception e) {
-                Log.w(TAG, e);
-                callback.onResult(handleResponse(database, request, e, requestId));
-            }
-        });
+      if (response.retryAfter != null && !response.retryAfter.contains(":")) {
+        resultBundle.putLong(EXTRA_RETRY_AFTER, Long.parseLong(response.retryAfter));
+      }
     }
+    return resultBundle;
+  }
 
-
-
-    private static Bundle handleResponse(GcmDatabase database, RegisterRequest request, RegisterResponse response, String requestId) {
-        return handleResponse(database, request, response, null, requestId);
-    }
-
-    private static Bundle handleResponse(GcmDatabase database, RegisterRequest request, Exception e, String requestId) {
-        return handleResponse(database, request, null, e, requestId);
-    }
-
-    private static Bundle handleResponse(GcmDatabase database, RegisterRequest request, RegisterResponse response, Exception e, String requestId) {
-        Bundle resultBundle = new Bundle();
-        if (response == null && e == null) {
-            resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-        } else if (e != null) {
-            if (e.getMessage() != null && e.getMessage().startsWith("Error=")) {
-                String errorMessage = e.getMessage().substring(6);
-                database.noteAppRegistrationError(request.app, errorMessage);
-                resultBundle.putString(EXTRA_ERROR, attachRequestId(errorMessage, requestId));
-            } else {
-                resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-            }
-        } else {
-            if (!request.delete) {
-                if (response.token == null) {
-                    database.noteAppRegistrationError(request.app, response.responseText);
-                    resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-                } else {
-                    database.noteAppRegistered(request.app, request.appSignature, response.token);
-                    resultBundle.putString(EXTRA_REGISTRATION_ID, attachRequestId(response.token, requestId));
-                }
-            } else {
-                if (!request.app.equals(response.deleted) && !request.app.equals(response.token)) {
-                    database.noteAppRegistrationError(request.app, response.responseText);
-                    resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-                } else {
-                    database.noteAppUnregistered(request.app, request.appSignature);
-                    resultBundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
-                }
-            }
-
-            if (response.retryAfter != null && !response.retryAfter.contains(":")) {
-                resultBundle.putLong(EXTRA_RETRY_AFTER, Long.parseLong(response.retryAfter));
-            }
-        }
-        return resultBundle;
-    }
-
-    public static String attachRequestId(String msg, String requestId) {
-        if (requestId == null) return msg;
-        return "|ID|" + requestId + "|" + msg;
-    }
+  public static String attachRequestId(String msg, String requestId) {
+    if (requestId == null) return msg;
+    return "|ID|" + requestId + "|" + msg;
+  }
 }
