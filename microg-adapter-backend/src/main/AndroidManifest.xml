@@ -42,6 +42,7 @@
             android:permission="at.sbaresearch.android.gcm.mqtt.intent.SEND">
             <intent-filter>
                 <action android:name="at.sbaresearch.android.gcm.mqtt.intent.RECEIVE"/>
+                <!-- TODO change package name for intent receiver -->
                 <category android:name="at.sbaresearch.push_notifier"/>
             </intent-filter>
         </receiver>
@@ -58,16 +59,16 @@
 
         <service android:name=".gms.checkin.CheckinService">
             <intent-filter>
-                <action android:name="com.google.android.gms.checkin.BIND_TO_SERVICE"/>
+                <action android:name="at.sbaresearch.android.gms.checkin.BIND_TO_SERVICE"/>
             </intent-filter>
         </service>
 
         <service
             android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterService"
-            android:permission="com.google.android.c2dm.permission.RECEIVE">
+            android:permission="at.sbaresearch.android.c2dm.permission.RECEIVE">
             <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.REGISTER"/>
-                <action android:name="com.google.android.c2dm.intent.UNREGISTER"/>
+                <action android:name="at.sbaresearch.android.c2dm.intent.REGISTER"/>
+                <action android:name="at.sbaresearch.android.c2dm.intent.UNREGISTER"/>
 
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
@@ -83,9 +84,9 @@
 
         <receiver
             android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.SendReceiver"
-            android:permission="com.google.android.c2dm.permission.RECEIVE">
+            android:permission="at.sbaresearch.android.c2dm.permission.RECEIVE">
             <intent-filter>
-                <action android:name="com.google.android.gcm.intent.SEND"/>
+                <action android:name="at.sbaresearch.android.gcm.intent.SEND"/>
             </intent-filter>
         </receiver>
 
