@@ -30,6 +30,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="at.sbaresearch.microg.adapter.backend.gms.ui.AskPushPermission"
+            android:excludeFromRecents="true"
+            android:theme="@style/Theme.AppCompat.Light.Dialog.Alert"/>
+
+
         <receiver
             android:name="at.sbaresearch.microg.adapter.backend.MqttBackendReceiver"
             android:exported="true"
@@ -49,6 +55,49 @@
             </intent-filter>
         </service>
         -->
+
+        <service android:name=".gms.checkin.CheckinService">
+            <intent-filter>
+                <action android:name="com.google.android.gms.checkin.BIND_TO_SERVICE"/>
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterService"
+            android:permission="com.google.android.c2dm.permission.RECEIVE">
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.REGISTER"/>
+                <action android:name="com.google.android.c2dm.intent.UNREGISTER"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+        </service>
+
+        <receiver android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterReceiver">
+            <intent-filter>
+                <action android:name="com.google.iid.TOKEN_REQUEST"/>
+            </intent-filter>
+        </receiver>
+
+        <service android:name=".gms.gcm.McsService"/>
+
+        <receiver
+            android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.SendReceiver"
+            android:permission="com.google.android.c2dm.permission.RECEIVE">
+            <intent-filter>
+                <action android:name="com.google.android.gcm.intent.SEND"/>
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.UnregisterReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED"/>
+                <action android:name="android.intent.action.PACKAGE_REMOVED"/>
+
+                <data android:scheme="package"/>
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
