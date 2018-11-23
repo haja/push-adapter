@@ -91,8 +91,10 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPostExecute(String id) {
-      final String msg = "registration successful, id: " + id;
-      Log.i(TAG, msg);
+      if (id != null) {
+        final String msg = "registration successful, id: " + id;
+        Log.i(TAG, msg);
+      }
     }
   }
 }
