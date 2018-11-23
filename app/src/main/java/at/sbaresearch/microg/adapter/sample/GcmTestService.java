@@ -2,7 +2,7 @@ package at.sbaresearch.microg.adapter.sample;
 
 import android.os.Bundle;
 import android.util.Log;
-import at.sbaresearch.microgadapterlibrary.gms.gcm.GcmListenerService;
+import at.sbaresearch.microg.adapter.library.gms.gcm.GcmListenerService;
 
 public class GcmTestService extends GcmListenerService {
 

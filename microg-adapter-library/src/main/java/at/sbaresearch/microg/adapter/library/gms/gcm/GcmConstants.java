@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microgadapterlibrary.gms.gcm;
+package at.sbaresearch.microg.adapter.library.gms.gcm;
 
 public final class GcmConstants {
     public static final String ACTION_C2DM_RECEIVE = "at.sbaresearch.android.c2dm.intent.RECEIVE";

@@ -22,7 +22,7 @@
         </activity>
 
         <receiver
-                android:name="at.sbaresearch.microgadapterlibrary.gms.gcm.GcmReceiver"
+                android:name="at.sbaresearch.microg.adapter.library.gms.gcm.GcmReceiver"
                 android:exported="true"
                 android:permission="at.sbaresearch.android.gcm.intent.SEND">
             <intent-filter>

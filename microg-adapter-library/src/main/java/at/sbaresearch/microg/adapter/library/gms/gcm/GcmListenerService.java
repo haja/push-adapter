@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microgadapterlibrary.gms.gcm;
+package at.sbaresearch.microg.adapter.library.gms.gcm;
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -25,9 +25,9 @@ import android.os.IBinder;
 import android.support.v4.os.AsyncTaskCompat;
 import android.util.Log;
 
-import at.sbaresearch.microgadapterlibrary.gms.common.PublicApi;
+import at.sbaresearch.microg.adapter.library.gms.common.PublicApi;
 
-import static at.sbaresearch.microgadapterlibrary.gms.gcm.GcmConstants.*;
+import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
 
 /**
  * Base class for communicating with Google Cloud Messaging.

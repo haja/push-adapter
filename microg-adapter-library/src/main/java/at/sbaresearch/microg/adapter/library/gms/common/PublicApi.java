@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microgadapterlibrary.gms.common;
+package at.sbaresearch.microg.adapter.library.gms.common;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

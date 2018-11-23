@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microgadapterlibrary.gms.gcm;
+package at.sbaresearch.microg.adapter.library.gms.gcm;
 
 import android.Manifest;
 import android.content.ComponentName;
@@ -28,7 +28,7 @@ import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Base64;
 import android.util.Log;
 
-import static at.sbaresearch.microgadapterlibrary.gms.gcm.GcmConstants.*;
+import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
 
 /**
  * <code>WakefulBroadcastReceiver</code> that receives GCM messages and delivers them to an
