@@ -73,28 +73,23 @@ public class PushRegisterService extends IntentService {
             }
         }
 
-        if (LastCheckinInfo.read(this).lastCheckin > 0) {
-            try {
-                if (ACTION_C2DM_UNREGISTER.equals(intent.getAction()) ||
-                        (ACTION_C2DM_REGISTER.equals(intent.getAction()) && "1".equals(intent.getStringExtra(EXTRA_DELETE)))) {
-                    unregister(intent, requestId);
-                } else if (ACTION_C2DM_REGISTER.equals(intent.getAction())) {
-                    register(intent, requestId);
-                }
-            } catch (Exception e) {
-                Log.w(TAG, e);
+        // TODO checkin service call was here
+
+        try {
+            if (ACTION_C2DM_UNREGISTER.equals(intent.getAction()) ||
+                (ACTION_C2DM_REGISTER.equals(intent.getAction()) &&
+                    "1".equals(intent.getStringExtra(EXTRA_DELETE)))) {
+                unregister(intent, requestId);
+            } else if (ACTION_C2DM_REGISTER.equals(intent.getAction())) {
+                register(intent, requestId);
             }
-        } else if (!intent.getBooleanExtra(EXTRA_SKIP_TRY_CHECKIN, false)) {
-            Log.d(TAG, "No checkin yet, trying to checkin");
-            intent.putExtra(EXTRA_SKIP_TRY_CHECKIN, true);
-            Intent subIntent = new Intent(this, CheckinService.class);
-            subIntent.putExtra(CheckinService.EXTRA_FORCE_CHECKIN, true);
-            subIntent.putExtra(CheckinService.EXTRA_CALLBACK_INTENT, intent);
-            startService(subIntent);
+        } catch (Exception e) {
+            Log.w(TAG, e);
         }
     }
 
     private void register(final Intent intent, String requestId) {
+        // TODO check if already registered, return token w/o new registration
         PendingIntent pendingIntent = intent.getParcelableExtra(EXTRA_APP);
         final String packageName = PackageUtils.packageFromPendingIntent(pendingIntent);
 
