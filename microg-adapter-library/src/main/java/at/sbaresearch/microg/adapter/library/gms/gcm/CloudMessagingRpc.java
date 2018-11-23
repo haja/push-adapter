@@ -23,6 +23,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.*;
+import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.iid.InstanceID;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import static at.sbaresearch.microg.adapter.library.gms.common.Constants.GMS_PAC
 import static at.sbaresearch.microg.adapter.library.gms.common.Constants.GSF_PACKAGE_NAME;
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging.ERROR_SERVICE_NOT_AVAILABLE;
+import static at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging.TAG;
 
 public class CloudMessagingRpc {
     private static final AtomicInteger messageIdCounter = new AtomicInteger(1);
@@ -67,6 +69,7 @@ public class CloudMessagingRpc {
     }
 
     public static String getGcmPackageName(Context context) {
+        Log.i(TAG, "getGcmPackageName");
         if (gcmPackageName != null) {
             return gcmPackageName;
         }
@@ -122,7 +125,9 @@ public class CloudMessagingRpc {
 
     private void sendRegisterMessage(Bundle extras) {
         Intent intent = new Intent(ACTION_C2DM_REGISTER);
-        intent.setPackage(getGcmPackageName(context));
+        final String gcmPackageName = getGcmPackageName(context);
+        Log.i(TAG, "got package name " + gcmPackageName);
+        intent.setPackage(gcmPackageName);
         extras.putString(EXTRA_MESSAGE_ID, "google.rpc" + messageIdCounter.getAndIncrement());
         intent.putExtras(extras);
         intent.putExtra(EXTRA_MESSENGER, messenger);

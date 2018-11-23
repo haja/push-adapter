@@ -3,12 +3,18 @@
           package="at.sbaresearch.microg.adapter.backend">
 
     <permission
-            android:name="at.sbaresearch.android.gcm.intent.SEND"
+        android:name="at.sbaresearch.android.c2dm.permission.RECEIVE"
+        android:label="@string/perm_c2dm_receive_label"
+        android:permissionGroup="android.permission-group.NETWORK"
+        android:protectionLevel="normal"/>
+    <permission
+            android:name="at.sbaresearch.android.c2dm.permission.SEND"
             android:label="@string/permlab_send_push"
             android:description="@string/permdesc_send_push"
             android:protectionLevel="dangerous" />
 
-    <uses-permission android:name="at.sbaresearch.android.gcm.intent.SEND"/>
+    <uses-permission android:name="at.sbaresearch.android.c2dm.permission.RECEIVE"/>
+    <uses-permission android:name="at.sbaresearch.android.c2dm.permission.SEND"/>
 
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
@@ -42,8 +48,8 @@
             android:permission="at.sbaresearch.android.gcm.mqtt.intent.SEND">
             <intent-filter>
                 <action android:name="at.sbaresearch.android.gcm.mqtt.intent.RECEIVE"/>
-                <!-- TODO change package name for intent receiver -->
-                <category android:name="at.sbaresearch.push_notifier"/>
+                <!-- TODO change package name for intent receiver? -->
+                <category android:name="at.sbaresearch.microg.adapter.backend"/>
             </intent-filter>
         </receiver>
         <!--

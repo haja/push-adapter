@@ -13,12 +13,12 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.ACTION_C2DM_RECEIVE;
-import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.EXTRA_FROM;
+import java.util.Arrays;
+
+import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
 public class PushNotifyActivity extends AppCompatActivity {
 
-  private static final String SEND_PERM = "at.sbaresearch.android.gcm.intent.SEND";
   private static final int SEND_PERM_REQ = 1;
 
   @Override
@@ -40,9 +40,14 @@ public class PushNotifyActivity extends AppCompatActivity {
   }
 
   public void reqPermission(View view) {
-    if (ContextCompat.checkSelfPermission(this, SEND_PERM)
+    reqPermission(PERMISSION_SEND);
+    reqPermission(PERMISSION_RECEIVE);
+  }
+
+  private void reqPermission(final String permission) {
+    if (ContextCompat.checkSelfPermission(this, permission)
         != PackageManager.PERMISSION_GRANTED) {
-      ActivityCompat.requestPermissions(this, new String[]{SEND_PERM}, SEND_PERM_REQ);
+      ActivityCompat.requestPermissions(this, new String[]{permission}, SEND_PERM_REQ);
     } else {
       // all fine
     }
@@ -57,7 +62,9 @@ public class PushNotifyActivity extends AppCompatActivity {
             && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
           Toast.makeText(this, "perm granted", Toast.LENGTH_SHORT).show();
         } else {
-          Toast.makeText(this, "perm NOT granted", Toast.LENGTH_SHORT).show();
+          Toast.makeText(this, "perm NOT granted: " +
+                  Arrays.deepToString(permissions),
+              Toast.LENGTH_SHORT).show();
         }
         break;
       }
