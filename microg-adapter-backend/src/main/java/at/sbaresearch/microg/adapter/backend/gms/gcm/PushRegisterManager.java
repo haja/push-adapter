@@ -79,15 +79,16 @@ public class PushRegisterManager {
     GcmDatabase.App app = database.getApp(request.app);
     GcmPrefs prefs = GcmPrefs.get(context);
     if (!request.delete) {
-      if (!prefs.isEnabled() ||
-          (app != null && !app.allowRegister) ||
-          LastCheckinInfo.read(context).lastCheckin <= 0 ||
-          (app == null && prefs.isConfirmNewApps())) {
-        Bundle bundle = new Bundle();
-        bundle.putString(EXTRA_ERROR, ERROR_SERVICE_NOT_AVAILABLE);
-        callback.onResult(bundle);
-        return;
-      }
+      // TODO implement complex app registration logic?
+//      if (!prefs.isEnabled() ||
+//          (app != null && !app.allowRegister) ||
+//          LastCheckinInfo.read(context).lastCheckin <= 0 ||
+//          (app == null && prefs.isConfirmNewApps())) {
+//        Bundle bundle = new Bundle();
+//        bundle.putString(EXTRA_ERROR, ERROR_SERVICE_NOT_AVAILABLE);
+//        callback.onResult(bundle);
+//        return;
+//      }
     } else {
       if (database.getRegistrationsByApp(request.app).isEmpty()) {
         Bundle bundle = new Bundle();

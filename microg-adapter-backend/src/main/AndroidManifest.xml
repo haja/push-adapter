@@ -17,6 +17,7 @@
     <uses-permission android:name="at.sbaresearch.android.c2dm.permission.SEND"/>
 
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
             android:allowBackup="true"

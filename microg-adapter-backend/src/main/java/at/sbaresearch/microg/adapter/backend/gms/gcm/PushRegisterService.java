@@ -87,7 +87,6 @@ public class PushRegisterService extends IntentService {
   }
 
   private void register(final Intent intent, String requestId) {
-    // TODO check if already registered, return token w/o new registration
     PendingIntent pendingIntent = intent.getParcelableExtra(EXTRA_APP);
     final String packageName = PackageUtils.packageFromPendingIntent(pendingIntent);
 
