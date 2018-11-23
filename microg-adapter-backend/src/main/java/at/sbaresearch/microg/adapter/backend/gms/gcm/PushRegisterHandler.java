@@ -88,6 +88,7 @@ class PushRegisterHandler extends Handler {
 
     @Override
     public void handleMessage(Message msg) {
+        Log.d(TAG, "handleMessage " + msg);
         if (msg.what == 0) {
             if (msg.obj instanceof Intent) {
                 Message nuMsg = Message.obtain();
@@ -134,6 +135,7 @@ class PushRegisterHandler extends Handler {
 
         // TODO: We should checkin and/or ask for permission here.
 
+        Log.d(TAG, "about to send register request");
         // TODO fix http requests
         PushRegisterManager.completeRegisterRequest(context, database,
                 new RegisterRequest()

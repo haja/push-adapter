@@ -13,6 +13,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
+import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.ACTION_C2DM_RECEIVE;
+import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.EXTRA_FROM;
+
 public class PushNotifyActivity extends AppCompatActivity {
 
   private static final String SEND_PERM = "at.sbaresearch.android.gcm.intent.SEND";
@@ -89,8 +92,8 @@ public class PushNotifyActivity extends AppCompatActivity {
   @Deprecated
   public void sendIntent(View view) {
     // TODO use micro-g implementation for relay of intents
-    Intent intent = new Intent(GCM_API.ACTION_C2DM_RECEIVE);
-    intent.putExtra(GCM_API.EXTRA_FROM, "testPushApp");
+    Intent intent = new Intent(ACTION_C2DM_RECEIVE);
+    intent.putExtra(EXTRA_FROM, "testPushApp");
     // TODO set package for application
     String clientPackageName = "at.sbaresearch.microg.adapter.sample";
     intent.setPackage(clientPackageName);
