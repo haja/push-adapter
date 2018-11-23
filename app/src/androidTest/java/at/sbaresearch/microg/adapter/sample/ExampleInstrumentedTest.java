@@ -1,4 +1,4 @@
-package at.sbaresearch.microgadapter;
+package at.sbaresearch.microg.adapter.sample;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     // Context of the app under test.
     Context appContext = InstrumentationRegistry.getTargetContext();
 
-    assertEquals("at.sbaresearch.microgadapter", appContext.getPackageName());
+    assertEquals("at.sbaresearch.microg.adapter.sample", appContext.getPackageName());
   }
 }

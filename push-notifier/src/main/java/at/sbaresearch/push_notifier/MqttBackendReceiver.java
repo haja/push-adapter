@@ -22,7 +22,7 @@ public class MqttBackendReceiver extends BroadcastReceiver {
     // TODO lookup package and from of receiving app from appId of intent
     String id = backendIntent.getStringExtra(MQTT_API.id);
     out.putExtra(GCM_API.EXTRA_FROM, id);
-    String clientPackageName = "at.sbaresearch.microgadapter";
+    String clientPackageName = "at.sbaresearch.microg.adapter.sample";
     out.setPackage(clientPackageName);
 
     // TODO handle payload as bundle like GCM

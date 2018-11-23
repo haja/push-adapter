@@ -92,7 +92,7 @@ public class PushNotifyActivity extends AppCompatActivity {
     Intent intent = new Intent(GCM_API.INTENT_RECEIVE);
     intent.putExtra(GCM_API.EXTRA_FROM, "testPushApp");
     // TODO set package for application
-    String clientPackageName = "at.sbaresearch.microgadapter";
+    String clientPackageName = "at.sbaresearch.microg.adapter.sample";
     intent.setPackage(clientPackageName);
     sendBroadcast(intent);
   }

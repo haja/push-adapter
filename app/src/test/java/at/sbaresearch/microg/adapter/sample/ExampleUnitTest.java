@@ -1,4 +1,4 @@
-package at.sbaresearch.microgadapter;
+package at.sbaresearch.microg.adapter.sample;
 
 import org.junit.Test;
 

@@ -3,7 +3,7 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "at.sbaresearch.microgadapter"
+        applicationId "at.sbaresearch.microg.adapter.sample"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode 1

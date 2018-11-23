@@ -1,4 +1,4 @@
-package at.sbaresearch.microgadapter;
+package at.sbaresearch.microg.adapter.sample;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
