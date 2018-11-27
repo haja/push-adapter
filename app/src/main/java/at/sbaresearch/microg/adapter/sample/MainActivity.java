@@ -7,13 +7,9 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging;
-
-import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -70,31 +66,4 @@ public class MainActivity extends AppCompatActivity {
     return super.onOptionsItemSelected(item);
   }
 
-  private static class RegisterTask extends AsyncTask<Context, Void, String> {
-
-    private final static String TAG = RegisterTask.class.getSimpleName();
-
-    public RegisterTask() {
-    }
-
-    @Override
-    protected String doInBackground(Context... ctx) {
-      final GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(ctx[0]);
-      try {
-        final String id = gcm.register("testId1");
-        return id;
-      } catch (IOException e) {
-        Log.e(TAG, "registration failed", e);
-      }
-      return null;
-    }
-
-    @Override
-    protected void onPostExecute(String id) {
-      if (id != null) {
-        final String msg = "registration successful, id: " + id;
-        Log.i(TAG, msg);
-      }
-    }
-  }
 }
