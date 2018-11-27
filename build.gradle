@@ -22,6 +22,14 @@ allprojects {
     }
 }
 
+project.ext {
+    retrofitVersion = '2.5.0'
+    retrofitLoggingVersion = '3.12.0'
+    // 1.18.4 is buggy on incremental rebuild after class change
+    // see https://github.com/rzwitserloot/lombok/issues/1727
+    lombokVersion = '1.16.20'
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

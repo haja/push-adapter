@@ -4,8 +4,15 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging;
+import at.sbaresearch.microg.adapter.sample.BackendRestClient.AppRegistrationRequest;
+import lombok.val;
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor.Level;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
 
@@ -16,8 +23,14 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
   private final BackendRestClient restClient;
 
   public RegisterTask() {
+    val logger = new HttpLoggingInterceptor();
+    logger.setLevel(Level.BODY);
+    val cl = new OkHttpClient.Builder();
+    cl.addInterceptor(logger);
     Retrofit retrofit = new Retrofit.Builder()
         .baseUrl(URL_BACKEND)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .client(cl.build())
         .build();
     restClient = retrofit.create(BackendRestClient.class);
   }
@@ -27,9 +40,11 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
     final GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(ctx[0]);
     try {
       final String id = gcm.register("testId1");
-      Log.d(TAG, "doInBackground: registration successful, sending to backend");
+      Log.i(TAG, "doInBackground: registration successful, sending to backend");
+      Log.d(TAG, "doInBackground: registration id" + id);
 
-      Response<Void> response = restClient.sendRegistrationId(id).execute();
+      Response<Void> response = restClient.sendRegistrationId(
+          new AppRegistrationRequest(id)).execute();
       if (response.isSuccessful()){
         return id;
       } else {

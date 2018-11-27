@@ -30,20 +30,15 @@ android {
 
 }
 
-def retrofitVersion = '2.5.0'
-def lombokVersion = '1.16.20'
-
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation "com.squareup.retrofit2:retrofit:$retrofitVersion"
-    implementation "com.squareup.retrofit2:converter-jackson:$retrofitVersion"
+    implementation "com.squareup.retrofit2:retrofit:$project.retrofitVersion"
+    implementation "com.squareup.retrofit2:converter-jackson:$project.retrofitVersion"
+    implementation "com.squareup.okhttp3:logging-interceptor:$project.retrofitLoggingVersion"
 
-    // does old lombok version work? 18.4 is buggy on rebuild after class change
-    //noinspection GradleDependency
-    compileOnly "org.projectlombok:lombok:$lombokVersion"
-    //noinspection GradleDependency
-    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    compileOnly "org.projectlombok:lombok:$project.lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$project.lombokVersion"
 
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'

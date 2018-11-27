@@ -9,10 +9,13 @@ import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 @Slf4j
@@ -29,11 +32,13 @@ public class AppResource {
     this.restTemplate = builder.build();
   }
 
-  @RequestMapping(value = "/register", method = RequestMethod.POST)
-  public void register(String registrationId) {
-    log.info("register call with registrationId {}", registrationId);
+  @RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  //public void register(HttpServletRequest req) {
+  public void register(AppRegistrationRequest request) {
+    log.info("register called with registrationId {}", request.registrationId);
     // TODO link with app instance / userId.. mocked for now
-    this.currentRegId = Option.of(registrationId);
+    this.currentRegId = Option.of(request.registrationId);
+    //log.info("register called with req {}", req);
   }
 
   @RequestMapping(value = "/send", method = RequestMethod.POST)
@@ -47,5 +52,10 @@ public class AppResource {
   @Value
   private class PushRequest {
     String message;
+  }
+
+  @Value
+  private class AppRegistrationRequest {
+    private String registrationId;
   }
 }
