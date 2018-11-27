@@ -178,9 +178,7 @@ public class GcmDatabase extends SQLiteOpenHelper {
 
   public synchronized void noteAppRegistrationError(String packageName, String error) {
     SQLiteDatabase db = getWritableDatabase();
-    ContentValues cv = new ContentValues();
-    cv.put(FIELD_LAST_ERROR, error);
-    db.update(TABLE_APPS, cv, FIELD_PACKAGE_NAME + " LIKE ?", new String[]{packageName});
+    setLastError(packageName, db, error);
   }
 
   public synchronized void noteAppKnown(String packageName, boolean allowRegister) {
@@ -230,24 +228,41 @@ public class GcmDatabase extends SQLiteOpenHelper {
 
     App app = getApp(db, packageName);
     if (app == null) {
-      ContentValues cv = new ContentValues();
-      cv.put(FIELD_PACKAGE_NAME, packageName);
-      db.insert(TABLE_APPS, null, cv);
+      insertApp(packageName, db);
     } else {
-      ContentValues cv = new ContentValues();
-      cv.put(FIELD_LAST_ERROR, "");
-      db.update(TABLE_APPS, cv, FIELD_PACKAGE_NAME + " LIKE ?", new String[]{packageName});
+      clearLastError(packageName, db);
     }
 
+    updateAppRegistrationId(packageName, signature, registrationId, db);
+
+    db.setTransactionSuccessful();
+    db.endTransaction();
+  }
+
+  private void updateAppRegistrationId(String packageName, String signature, String registrationId,
+      SQLiteDatabase db) {
     ContentValues cv = new ContentValues();
     cv.put(FIELD_PACKAGE_NAME, packageName);
     cv.put(FIELD_SIGNATURE, signature);
     cv.put(FIELD_REGISTER_ID, registrationId);
     cv.put(FIELD_TIMESTAMP, System.currentTimeMillis());
     db.insertWithOnConflict(TABLE_REGISTRATIONS, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+  }
 
-    db.setTransactionSuccessful();
-    db.endTransaction();
+  private void clearLastError(String packageName, SQLiteDatabase db) {
+    setLastError(packageName, db, "");
+  }
+
+  private void setLastError(String packageName, SQLiteDatabase db, String s) {
+    ContentValues cv = new ContentValues();
+    cv.put(FIELD_LAST_ERROR, s);
+    db.update(TABLE_APPS, cv, FIELD_PACKAGE_NAME + " LIKE ?", new String[]{packageName});
+  }
+
+  private void insertApp(String packageName, SQLiteDatabase db) {
+    ContentValues cv = new ContentValues();
+    cv.put(FIELD_PACKAGE_NAME, packageName);
+    db.insert(TABLE_APPS, null, cv);
   }
 
   public synchronized void noteAppUnregistered(String packageName, String signature) {
