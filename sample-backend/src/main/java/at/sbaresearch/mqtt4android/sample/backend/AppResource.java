@@ -56,6 +56,6 @@ public class AppResource {
 
   @Value
   private class AppRegistrationRequest {
-    private String registrationId;
+    String registrationId;
   }
 }
