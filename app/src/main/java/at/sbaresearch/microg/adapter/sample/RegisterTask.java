@@ -27,7 +27,7 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
     final GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(ctx[0]);
     try {
       final String id = gcm.register("testId1");
-      Log.d(TAG, "doInBackground: registration successfull, sending to backend");
+      Log.d(TAG, "doInBackground: registration successful, sending to backend");
 
       Response<Void> response = restClient.sendRegistrationId(id).execute();
       if (response.isSuccessful()){

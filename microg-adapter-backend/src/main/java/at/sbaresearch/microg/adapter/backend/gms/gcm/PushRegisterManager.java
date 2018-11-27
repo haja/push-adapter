@@ -23,6 +23,14 @@ import at.sbaresearch.microg.adapter.backend.gms.checkin.LastCheckinInfo;
 import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
 import at.sbaresearch.microg.adapter.backend.gms.common.Utils;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.RegisterRequest2;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.RegisterResponse2;
+import lombok.val;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
 
@@ -30,6 +38,16 @@ import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
 public class PushRegisterManager {
   private static final String TAG = "GmsGcmRegisterMgr";
+
+  private static PushRegisterClient pushRegisterClient;
+
+  static {
+    pushRegisterClient = new Retrofit.Builder()
+        .baseUrl(PushRegisterClient.SERVICE_URL)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .build()
+        .create(PushRegisterClient.class);
+  }
 
   public static RegisterResponse unregister(Context context, String packageName,
       String pkgSignature, String sender, String info) {
@@ -98,14 +116,16 @@ public class PushRegisterManager {
       }
     }
 
-    request.getResponseAsync(new HttpFormClient.Callback<RegisterResponse>() {
+    val registerCall = pushRegisterClient.register(RegisterRequest2.fromOldRequest(request));
+    registerCall.enqueue(new Callback<RegisterResponse2>() {
       @Override
-      public void onResponse(RegisterResponse response) {
-        callback.onResult(handleResponse(database, request, response, requestId));
+      public void onResponse(Call<RegisterResponse2> call, Response<RegisterResponse2> response) {
+        val old = RegisterResponse2.toOldResponse(response);
+        callback.onResult(handleResponse(database, request, old, requestId));
       }
 
       @Override
-      public void onException(Exception e) {
+      public void onFailure(Call<RegisterResponse2> call, Throwable e) {
         Log.w(TAG, e);
         callback.onResult(handleResponse(database, request, e, requestId));
       }
@@ -117,13 +137,13 @@ public class PushRegisterManager {
     return handleResponse(database, request, response, null, requestId);
   }
 
-  private static Bundle handleResponse(GcmDatabase database, RegisterRequest request, Exception e,
+  private static Bundle handleResponse(GcmDatabase database, RegisterRequest request, Throwable e,
       String requestId) {
     return handleResponse(database, request, null, e, requestId);
   }
 
   private static Bundle handleResponse(GcmDatabase database, RegisterRequest request,
-      RegisterResponse response, Exception e, String requestId) {
+      RegisterResponse response, Throwable e, String requestId) {
     Bundle resultBundle = new Bundle();
     if (response == null && e == null) {
       resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
