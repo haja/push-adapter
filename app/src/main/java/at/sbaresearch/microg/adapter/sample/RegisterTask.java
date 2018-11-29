@@ -39,7 +39,8 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
   protected String doInBackground(Context... ctx) {
     final GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(ctx[0]);
     try {
-      final String id = gcm.register("testId1");
+      //final String id = gcm.register("testId1");
+      final String id = "mockedRegId";
       Log.i(TAG, "doInBackground: registration successful, sending to backend");
       Log.d(TAG, "doInBackground: registration id" + id);
 

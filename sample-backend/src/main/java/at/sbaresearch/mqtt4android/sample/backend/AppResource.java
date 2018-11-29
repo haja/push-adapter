@@ -16,8 +16,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import javax.servlet.http.HttpServletRequest;
-
 @RestController
 @Slf4j
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -34,12 +32,10 @@ public class AppResource {
   }
 
   @RequestMapping(value = "/register", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  //public void register(HttpServletRequest req) {
-  public void register(@RequestBody AppRegistrationRequest request) {
-    log.info("register called with registrationId {}", request.registrationId);
+  public void register(@RequestBody AppRegistrationRequestLombok request) {
+    log.info("register called with registrationId {}", request.getRegistrationId());
     // TODO link with app instance / userId.. mocked for now
-    this.currentRegId = Option.of(request.registrationId);
-    //log.info("register called with req {}", req);
+    this.currentRegId = Option.of(request.getRegistrationId());
   }
 
   @RequestMapping(value = "/send", method = RequestMethod.POST)
@@ -56,7 +52,7 @@ public class AppResource {
   }
 
   @Value
-  public static class AppRegistrationRequest {
+  public static class AppRegistrationRequestLombok {
     String registrationId;
   }
 }
