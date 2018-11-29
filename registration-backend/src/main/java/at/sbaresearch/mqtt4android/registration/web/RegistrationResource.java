@@ -1,14 +1,17 @@
 package at.sbaresearch.mqtt4android.registration.web;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.ServletRequest;
 
 @RestController
 @RequestMapping("/registration")
@@ -17,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RegistrationResource {
 
   @RequestMapping(path = "/new", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public RegistrationResponse registerDevice(RegistrationRequest req) {
+  public RegistrationResponse registerDevice(@RequestBody RegistrationRequest req) {
     log.info("register device: {}", req);
     // TODO mocked for now
     // TODO legitimate client to receive notifications for this app
@@ -32,13 +35,13 @@ public class RegistrationResource {
   }
 
   @Value
-  private class RegistrationRequest {
+  public static class RegistrationRequest {
     String app;
     String cert;
     Integer appVer;
     String appVerName;
     String info;
-//    boolean delete;
+//    Boolean delete;
 //    int osv;
 //    int gmsv;
 //    String scope;
