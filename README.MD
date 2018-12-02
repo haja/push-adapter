@@ -15,3 +15,6 @@ this part uses a different license, required by the mqtt-library used.
 
 ## app
 sample app which uses mqtt-adapter library
+
+## sample-backend
+backend for the sample app
