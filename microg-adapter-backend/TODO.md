@@ -21,6 +21,5 @@
         - app can now send token to app service. app service can push with token as auth for this specific app via the relay.
         - relay handles routing to topic, adds identifier/token to push message
         - adapter routes push notifications via identifier/token to correct app
-        
-     
-    
+
+- generating a token for each client app? hash(appId + 'some secret for this device')?
