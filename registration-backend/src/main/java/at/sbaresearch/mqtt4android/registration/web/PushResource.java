@@ -18,7 +18,7 @@ public class PushResource {
 
   @RequestMapping(value = "/{registrationId}", method = RequestMethod.POST)
   public void sendMessage(@PathVariable String registrationId, @RequestBody String message) {
-    log.info("push message {} for registrationId {} received", message, registrationId);
+    log.info("*** push message {} for registrationId {} received", message, registrationId);
 
     // TODO get device
     pushService.pushMessage(message);

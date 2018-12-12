@@ -11,6 +11,9 @@ public interface BackendRestClient {
   @POST("register")
   Call<Void> sendRegistrationId(@Body AppRegistrationRequest req);
 
+  @POST("send")
+  Call<Void> sendMessage(@Body String message);
+
   @Data
   @AllArgsConstructor
   class AppRegistrationRequest {

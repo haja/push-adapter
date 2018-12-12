@@ -21,7 +21,7 @@ class ReceiveCallback implements MqttCallback {
 
   @Override
   public void connectionLost(Throwable cause) {
-    Log.e(TAG, "connection lost: " + cause.getMessage());
+    Log.e(TAG, "connection lost: " + (cause != null ? cause.getMessage() : ""));
   }
 
   @Override

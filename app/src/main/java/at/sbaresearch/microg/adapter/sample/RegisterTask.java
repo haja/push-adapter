@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging;
 import at.sbaresearch.microg.adapter.sample.BackendRestClient.AppRegistrationRequest;
+import lombok.AllArgsConstructor;
 import lombok.val;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
@@ -16,24 +17,12 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
 
+@AllArgsConstructor
 public class RegisterTask extends AsyncTask<Context, Void, String> {
 
-  private final static String TAG = RegisterTask.class.getSimpleName();
-  private static final String URL_BACKEND = "http://10.0.2.2:8888";
+  private static final String TAG = RegisterTask.class.getSimpleName();
   private final BackendRestClient restClient;
 
-  public RegisterTask() {
-    val logger = new HttpLoggingInterceptor();
-    logger.setLevel(Level.BODY);
-    val cl = new OkHttpClient.Builder();
-    cl.addInterceptor(logger);
-    Retrofit retrofit = new Retrofit.Builder()
-        .baseUrl(URL_BACKEND)
-        .addConverterFactory(JacksonConverterFactory.create())
-        .client(cl.build())
-        .build();
-    restClient = retrofit.create(BackendRestClient.class);
-  }
 
   @Override
   protected String doInBackground(Context... ctx) {

@@ -21,7 +21,7 @@ import org.springframework.web.client.RestTemplate;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AppResource {
 
-  private static final String URL_RELAY = "localhost:9876/push/{requestId}";
+  private static final String URL_RELAY = "http://localhost:9876/push/{requestId}";
 
   @NonFinal
   Option<String> currentRegId = Option.none();
@@ -39,16 +39,11 @@ public class AppResource {
   }
 
   @RequestMapping(value = "/send", method = RequestMethod.POST)
-  public void sendMessage(String message) {
+  public void sendMessage(@RequestBody String message) {
+    log.info("sending message: {}", message);
     currentRegId.peek(registrationId -> {
-      val req = new PushRequest(message);
-      restTemplate.postForLocation(URL_RELAY, req, HashMap.of("requestId", registrationId));
+      restTemplate.postForLocation(URL_RELAY, message, HashMap.of("requestId", registrationId).toJavaMap());
     }).onEmpty(() -> log.warn("not registered, cannot send message"));
-  }
-
-  @Value
-  private class PushRequest {
-    String message;
   }
 
   @Value

@@ -89,6 +89,17 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     connectTask.execute();
   }
 
+  public void disconnect(final View view) {
+    if (mqttAndroidClient != null) {
+      try {
+        mqttAndroidClient.disconnect();
+      } catch (MqttException e) {
+        Log.e(TAG, "disconnect: ", e);
+      }
+    }
+
+  }
+
   @Override
   public boolean onCreateOptionsMenu(Menu menu) {
     // Inflate the menu; this adds items to the action bar if it is present.

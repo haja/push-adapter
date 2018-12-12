@@ -3,6 +3,7 @@ package at.sbaresearch.microg.adapter.backend;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.ACTION_C2DM_RECEIVE;
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.EXTRA_FROM;
@@ -12,8 +13,11 @@ import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.EXTRA_F
  */
 public class MqttBackendReceiver extends BroadcastReceiver {
 
+  private static final String TAG = MqttBackendReceiver.class.getSimpleName();
+
   @Override
   public void onReceive(Context context, Intent backendIntent) {
+    Log.i(TAG, "onReceive: " + backendIntent);
     Intent outgoingIntent = generateIntent(backendIntent);
     sendIntent(context, outgoingIntent);
   }

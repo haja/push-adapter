@@ -1,7 +1,5 @@
 package at.sbaresearch.microg.adapter.sample;
 
-import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -10,10 +8,19 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import lombok.val;
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import okhttp3.logging.HttpLoggingInterceptor.Level;
+import retrofit2.Retrofit;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
   private static final String TAG = MainActivity.class.getSimpleName();
+  private static final String URL_BACKEND = "http://10.0.2.2:8888";
+
+  private BackendRestClient backendRestClient;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -28,13 +35,35 @@ public class MainActivity extends AppCompatActivity {
     fab.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
+        sendMessage("test message 123", view);
       }
     });
+
+    backendRestClient = createRestClient();
+  }
+
+  private BackendRestClient createRestClient() {
+    val logger = new HttpLoggingInterceptor();
+    logger.setLevel(Level.BODY);
+    val cl = new OkHttpClient.Builder();
+    cl.addInterceptor(logger);
+    Retrofit retrofit = new Retrofit.Builder()
+        .baseUrl(URL_BACKEND)
+        .addConverterFactory(JacksonConverterFactory.create())
+        .client(cl.build())
+        .build();
+    return retrofit.create(BackendRestClient.class);
+  }
+
+  private void sendMessage(String message, View view) {
+    showSnack(view, "sending: " + message);
+    SendMessageTask sendTask = new SendMessageTask(backendRestClient);
+    sendTask.execute(message);
   }
 
   public void register(View view) {
     showSnack(view, "registering...");
-    final AsyncTask<Context, Void, String> registerTask = new RegisterTask();
+    RegisterTask registerTask = new RegisterTask(backendRestClient);
     registerTask.execute(this);
   }
 
