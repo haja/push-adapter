@@ -92,9 +92,24 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
   public void disconnect(final View view) {
     if (mqttAndroidClient != null) {
       try {
-        mqttAndroidClient.disconnect();
+        final IMqttToken token = mqttAndroidClient.disconnect(0);
+        token.setActionCallback(new IMqttActionListener() {
+          @Override
+          public void onSuccess(IMqttToken asyncActionToken) {
+            Log.i(TAG, "disconnect::onSuccess");
+            mqttAndroidClient.close();
+            mqttAndroidClient = null;
+          }
+
+          @Override
+          public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+            Log.e(TAG, "disconnect::onFailure");
+            mqttAndroidClient.close();
+            mqttAndroidClient = null;
+          }
+        });
       } catch (MqttException e) {
-        Log.e(TAG, "disconnect: ", e);
+        Log.e(TAG, "disconnect: failed ", e);
       }
     }
 
