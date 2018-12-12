@@ -1,6 +1,7 @@
 package at.sbaresearch.mqtt_backend;
 
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -59,38 +60,33 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     options.setPassword(pw.toCharArray());
     options.setAutomaticReconnect(true);
     recvCallback = new ReceiveCallback(getApplicationContext());
-    try {
-      mqttAndroidClient.setCallback(recvCallback);
-      IMqttActionListener connectCb = new IMqttActionListener() {
-        @Override
-        public void onSuccess(IMqttToken asyncActionToken) {
-          Log.i(TAG, "connection established");
-          Snackbar.make(view, "connection established", Snackbar.LENGTH_SHORT)
+    mqttAndroidClient.setCallback(recvCallback);
+    final IMqttActionListener connectCb = new IMqttActionListener() {
+      @Override
+      public void onSuccess(IMqttToken asyncActionToken) {
+        Log.i(TAG, "connection established");
+        Snackbar.make(view, "connection established", Snackbar.LENGTH_SHORT)
+            .setAction("Action", null).show();
+        try {
+          mqttAndroidClient.subscribe(topic, 0);
+        } catch (MqttException e) {
+          String msgFail = "subscribe failed: " + e.getMessage();
+          Log.e(TAG, msgFail);
+          Snackbar.make(view, msgFail, Snackbar.LENGTH_LONG)
               .setAction("Action", null).show();
-          try {
-            mqttAndroidClient.subscribe(topic, 0);
-          } catch (MqttException e) {
-            String msgFail = "subscribe failed: " + e.getMessage();
-            Log.e(TAG, msgFail);
-            Snackbar.make(view, msgFail, Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-          }
         }
+      }
 
-        @Override
-        public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-          Log.e(TAG, "connect failed: " + exception.getMessage());
-          Snackbar.make(view, "connect failed", Snackbar.LENGTH_SHORT)
-              .setAction("Action", null).show();
-        }
-      };
-      mqttAndroidClient.connect(options, null, connectCb);
-    } catch (MqttException e) {
-      Log.e(TAG, "error while connecting:" + e.getMessage());
-      Snackbar.make(view, "error while connecting",
-          Snackbar.LENGTH_SHORT)
-          .setAction("Action", null).show();
-    }
+      @Override
+      public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
+        Log.e(TAG, "connect failed: " + exception.getMessage());
+        Snackbar.make(view, "connect failed", Snackbar.LENGTH_SHORT)
+            .setAction("Action", null).show();
+      }
+    };
+    AsyncTask<Void, Void, Void> connectTask =
+        new VoidVoidVoidAsyncTask(options, connectCb, mqttAndroidClient);
+    connectTask.execute();
   }
 
   @Override
@@ -142,4 +138,25 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     }
   }
 
+  private static class VoidVoidVoidAsyncTask extends AsyncTask<Void, Void, Void> {
+    private final MqttConnectOptions options;
+    private final IMqttActionListener connectCb;
+    private final MqttAndroidClient mqttAndroidClient;
+
+    public VoidVoidVoidAsyncTask(MqttConnectOptions options, IMqttActionListener connectCb, MqttAndroidClient mqttAndroidClient) {
+      this.options = options;
+      this.connectCb = connectCb;
+      this.mqttAndroidClient = mqttAndroidClient;
+    }
+
+    @Override
+    protected Void doInBackground(Void... voids) {
+      try {
+        this.mqttAndroidClient.connect(options, null, connectCb);
+      } catch (MqttException e) {
+        Log.e(TAG, "connction failed" + e.getMessage());
+      }
+      return null;
+    }
+  }
 }
