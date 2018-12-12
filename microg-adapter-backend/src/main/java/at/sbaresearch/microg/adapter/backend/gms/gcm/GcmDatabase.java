@@ -143,6 +143,7 @@ public class GcmDatabase extends SQLiteOpenHelper {
 
   public synchronized List<Registration> getRegistrationsByApp(String packageName) {
     SQLiteDatabase db = getReadableDatabase();
+    // TODO cursor leaking here? use try-with here
     Cursor cursor = db.query(TABLE_REGISTRATIONS, null, FIELD_PACKAGE_NAME + " LIKE ?",
         new String[]{packageName}, null, null, null);
     if (cursor != null) {
