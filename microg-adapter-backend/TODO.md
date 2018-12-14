@@ -1,9 +1,15 @@
-# TODOs
+# push-adapter TODOs
+
+- start and configure mqtt-client via intents
+- remove activity from mqtt-client, start only based on intents from push-notifier
+
 ## configuration
 - configure backend and push-relay (host:port)
   - now, that mqtt is integrated in register-backend, only backend config needed?
   - -> get relay port / hostname from backend?
-- initial setup? register on push-relay?
+- initial setup:
+  - generate random UUID as device ID
+  - register on push-relay
 - "test setup"-button
 
 ## android integration
