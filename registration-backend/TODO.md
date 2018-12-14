@@ -1,6 +1,1 @@
-- integrate MQTT (so push through backend REST call is possible)
-    - apollo? standalone or as spring bean?
-    - activeMQ? artemis?
-    - maybe it's easy to do activeMQ as spring bean.
-    - or REST interface?
-    - how to handle tls client certs for auth on relay?
+- how to handle tls client certs for auth on relay?
