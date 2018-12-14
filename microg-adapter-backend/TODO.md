@@ -1,8 +1,15 @@
 # TODOs
 ## configuration
 - configure backend and push-relay (host:port)
+  - now, that mqtt is integrated in register-backend, only backend config needed?
+  - -> get relay port / hostname from backend?
 - initial setup? register on push-relay?
 - "test setup"-button
+
+## android integration
+- run on startup and try to establish connection
+- connect on wifi/4g connectivity (does paho handle this for us?)
+- respect disabled background data? (needed on newer android versions?)
 
 ## security: handling verification/certificates
 - configure (allow verification) of push-relay-certificate
@@ -23,3 +30,6 @@
         - adapter routes push notifications via identifier/token to correct app
 
 - generating a token for each client app? hash(appId + 'some secret for this device')?
+
+- document this workflow (+ analysis?) for thesis
+
