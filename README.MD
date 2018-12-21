@@ -3,8 +3,8 @@
 ## push-notifier -> push-adapter
 app, manages clients, relays push notifications from mqtt backend
 
-## mqtt-adapter -> library for apps using this service (push-integration-library)
-library; receives notifications from push-notifier;
+## mqtt-adapter -> library for apps using this service (push-integration-lib)
+library; receives notifications from push-adapter;
 - provides clients GcmListenerService class to receive GCM-compatible notifications
 
 ## MQTT-backend -> mqtt-client
