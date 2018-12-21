@@ -6,10 +6,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.filter.CommonsRequestLoggingFilter;
 
 @SpringBootApplication
-public class SampleBackendApplication {
+public class SampleAppBackendApplication {
 
   public static void main(String[] args) {
-    SpringApplication.run(SampleBackendApplication.class, args);
+    SpringApplication.run(SampleAppBackendApplication.class, args);
   }
 
   /* is this needed?
