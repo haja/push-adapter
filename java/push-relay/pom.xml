@@ -5,8 +5,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>at.sbaresearch.mqtt4android</groupId>
-    <artifactId>registration-backend</artifactId>
+    <artifactId>push-relay</artifactId>
     <version>1.0-SNAPSHOT</version>
+
+    <name>push-relay</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

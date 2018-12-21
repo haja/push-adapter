@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>at.sbaresearch.mqtt4android</groupId>
-    <artifactId>sample-backend</artifactId>
+    <artifactId>app-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
 
-    <name>sample-backend</name>
-    <description>Sample backend for a microg-adapter app</description>
+    <name>app-backend</name>
+    <description>Sample backend for a push-adapter app</description>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
