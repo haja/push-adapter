@@ -1,1 +1,1 @@
-include ':app', ':microg-adapter-library', ':microg-adapter-backend', ':mqtt-backend'
+include ':app', ':microg-adapter-library', ':push-adapter', ':mqtt-backend'
