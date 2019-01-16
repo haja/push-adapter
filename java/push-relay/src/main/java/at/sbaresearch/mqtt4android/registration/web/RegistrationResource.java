@@ -18,10 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @AllArgsConstructor
 public class RegistrationResource {
+  // TODO create DeviceResource with device registration endpoints?
 
   RegistrationService registrationService;
 
   @RequestMapping(path = "/new", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  // TODO actually, this is registerApp?
+  // TODO get deviceId from client TLS cert. how to do this with spring?
   public RegistrationResponse registerDevice(@RequestBody RegistrationRequest req) {
     log.info("register device: {}", req);
 

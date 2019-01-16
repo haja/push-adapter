@@ -3,6 +3,11 @@
 - start and configure mqtt-client via intents
 - remove activity from mqtt-client, start only based on intents from push-notifier
 
+## code-issues
+- do proper JSON-parsing of payload
+- cleanup unnecessary complex registration process
+- remove not needed app infos / legacy GCM compatibility on registration requests
+
 ## configuration
 - configure backend and push-relay (host:port)
   - now, that mqtt is integrated in register-backend, only backend config needed?
