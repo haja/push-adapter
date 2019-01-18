@@ -1,0 +1,33 @@
+.PS
+copy "umlgraph/sequence.pic";
+
+movewid = 1.9;
+
+# Define the objects
+actor(USR,"u:User");
+object(AD,"a:Adapter");
+object(REL,"r:Relay");
+#placeholder_object(P);
+step();
+step();
+
+# Message sequences
+active(USR);
+async();
+message(USR,AD,"configureRelay(ip, port, relayCert)");
+active(AD);
+message(AD,REL,"registerDevice()");
+active(REL);
+return_message(REL,AD,"registrationSuccess(clientCert)");
+inactive(REL)
+return_message(AD,USR,"registrationSuccess()");
+
+#inactive(P);
+
+# Complete the lifelines
+step();
+complete(USR);
+complete(AD);
+complete(REL);
+
+.PE
