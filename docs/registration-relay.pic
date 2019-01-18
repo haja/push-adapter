@@ -17,12 +17,15 @@ async();
 message(USR,AD,"configureRelay(ip, port, relayCert)");
 active(AD);
 message(AD,REL,"registerDevice()");
-active(REL);
-return_message(REL,AD,"registrationSuccess(clientCert)");
-inactive(REL)
-return_message(AD,USR,"registrationSuccess()");
 
-#inactive(P);
+active(REL);
+    sync();
+    message(REL,REL,"createMqttTopic(client)");
+    return_message(REL,AD,"registrationSuccess(clientCert)");
+    async();
+inactive(REL)
+
+return_message(AD,USR,"registrationSuccess()");
 
 # Complete the lifelines
 step();

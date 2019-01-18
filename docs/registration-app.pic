@@ -1,0 +1,48 @@
+.PS
+copy "umlgraph/sequence.pic";
+
+movewid = 1.2;
+
+# Define the objects
+actor(USR,"u:User");
+object(APP,"app:App");
+object(AD,"a:Adapter");
+object(REL,"r:Relay");
+object(SRV,"s:App-Server");
+step();
+step();
+
+# Message sequences
+active(USR);
+async();
+message(USR,APP,"install app");
+inactive(USR);
+active(APP);
+message(APP,AD,"register()");
+inactive(APP);
+active(AD);
+    message(AD,REL,"registerApp(appId)");
+        active(REL);
+        sync();
+        message(REL,REL,"createToken(client, appId)");
+        return_message(REL,AD,"success(appToken)");
+        async();
+        inactive(REL)
+    return_message(AD,APP,"success(relayConnection, relayCert, appToken)");
+inactive(AD);
+
+active(APP);
+    message(APP,SRV,"registerRelay(relayConnection, relayCert, appToken)");
+    active(SRV);
+        message(SRV,SRV,"saveRelay(relayConnection, relayCert, appToken)");
+        return_message(SRV,APP,"ok");
+    inactive(SRV);
+inactive(APP);
+
+# Complete the lifelines
+step();
+complete(USR);
+complete(AD);
+complete(REL);
+
+.PE

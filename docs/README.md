@@ -6,4 +6,5 @@ For sequence diagrams, e.g. run:
 ```
 pic2plot -Tsvg registration-relay.pic > registration-relay.svg
 ```
+if generated diagrams are clipped, edit the resulting svg (height/with + viewport), see http://tutorials.jenkov.com/svg/svg-viewport-view-box.html
 
