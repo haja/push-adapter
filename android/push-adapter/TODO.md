@@ -26,3 +26,6 @@
 - implement workflows for registration of relay and apps
 - document workflows (+ analysis?) for thesis
 
+# evaluation TODOs
+- analysis: our 1 connection to relay vs. every app has its own webSocket/... connection
+
