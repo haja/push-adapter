@@ -27,3 +27,11 @@
 
 # TODO
 - integrate sequence-diagrams here
+- gibts schon papers zu push? zu GCM? vergleich architekturen apple/google/firefox push?
+- activity-pub? (mastadon)
+- matrix
+- vor implementierung: state of the art abchecken und vergleichen
+- -> threat model kann dadurch weiterentwickelt werden
+    - z.B. honest but curios
+    - threat model definieren
+- berücksichtigen: neues relay (app updaten, da connection anders is), neues client cert
