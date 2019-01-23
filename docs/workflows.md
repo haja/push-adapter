@@ -25,6 +25,12 @@
 ### discussion
 - generating a token for each client app? hash(appId + 'some secret for this device')?
 
+## cert handling (request/revoke)
+- revoke via email-reset?
+- register via email OTP code?
+- -> draw diagrams for this
+- whitelisting via email-domains?
+
 # TODO
 - integrate sequence-diagrams here
 - gibts schon papers zu push? zu GCM? vergleich architekturen apple/google/firefox push?
