@@ -25,15 +25,24 @@ class ReceiveCallback implements MqttCallback {
   }
 
   @Override
-  public void messageArrived(String topic, MqttMessage message) throws Exception {
+  public void messageArrived(String topic, MqttMessage message) {
     Log.i(TAG, "MQTT msg recv: " + message.toString());
-    Payload pay = parsePayload(message);
-    sendIntent(pay);
+    try {
+      Payload pay = parsePayload(message);
+      Log.i(TAG, "MQTT msg parsed: " + pay.toString());
+      sendIntent(pay);
+    } catch (JSONException e) {
+      Log.e(TAG, "MQTT msg parsing failed", e);
+    }
   }
 
   private Payload parsePayload(MqttMessage msg) throws JSONException {
     // TODO do actual json parsing instead of toString
-    JSONObject obj = (JSONObject) new JSONTokener(msg.toString()).nextValue();
+    final Object raw = new JSONTokener(msg.toString()).nextValue();
+    if (raw instanceof  String) {
+      return new Payload("no id", (String) raw);
+    }
+    JSONObject obj = (JSONObject) raw;
     String id = obj.getString("id");
     String payload = obj.getString("payload");
     return new Payload(id, payload);
@@ -64,6 +73,15 @@ class ReceiveCallback implements MqttCallback {
     public Payload(String id, String payload) {
       this.id = id;
       this.payload = payload;
+    }
+
+    @Override
+    public String toString() {
+      final StringBuffer sb = new StringBuffer("Payload{");
+      sb.append("id='").append(id).append('\'');
+      sb.append(", payload='").append(payload).append('\'');
+      sb.append('}');
+      return sb.toString();
     }
   }
 }
