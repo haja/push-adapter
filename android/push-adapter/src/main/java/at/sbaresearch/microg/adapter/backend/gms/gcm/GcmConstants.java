@@ -73,6 +73,7 @@ public final class GcmConstants {
       "at.sbaresearch.android.gms.permission.BIND_NETWORK_TASK_SERVICE";
   public static final String PERMISSION_RECEIVE = "at.sbaresearch.android.c2dm.permission.RECEIVE";
   public static final String PERMISSION_SEND = "at.sbaresearch.android.c2dm.permission.SEND";
+  public static final String PERMISSION_CONNECT = "at.sbaresearch.android.c2dm.permission.CONNECT";
 
   public static final String ERROR_SERVICE_NOT_AVAILABLE = "SERVICE_NOT_AVAILABLE";
 

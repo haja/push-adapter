@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Mqtt Backend</string>
+    <string name="app_name">Mqtt Client</string>
     <string name="action_settings">Settings</string>
     <string name="permlab_send_mqtt">send MQTT notifications</string>
     <string name="permdesc_send_mqtt">send MQTT notifications description</string>

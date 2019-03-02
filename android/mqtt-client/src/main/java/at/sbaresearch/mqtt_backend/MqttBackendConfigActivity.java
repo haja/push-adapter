@@ -1,8 +1,12 @@
 package at.sbaresearch.mqtt_backend;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -14,8 +18,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-import org.eclipse.paho.android.service.MqttAndroidClient;
-import org.eclipse.paho.client.mqttv3.*;
+import at.sbaresearch.mqtt_backend.MqttConnectionManagerService.MqttConnectionBinder;
 
 public class MqttBackendConfigActivity extends AppCompatActivity {
 
@@ -24,14 +27,8 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
   private static final String SEND_PERM = API.SEND_PERM;
   private static final int SEND_PERM_REQ = 1;
 
-  private MqttAndroidClient mqttAndroidClient;
-  private String clientId = "test1";
-  private String server = "tcp://10.0.2.2:61613";
-  private String user = "admin";
-  private String pw = "password";
-  private String topic = "foo";
-
-  private MqttCallback recvCallback;
+  private MqttConnectionManagerService mqttConnectionManagerService;
+  private boolean mqttBound = false;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -46,73 +43,63 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
       public void onClick(View view) {
       }
     });
+
+    Log.i(TAG, "before startService");
+    //startService(new Intent(this, MqttConnectionManagerService.class));
   }
 
-  public void connect(final View view) {
-    final String msg = "connecting to " + this.server;
-    Log.d(TAG, msg);
-    Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
-        .setAction("Action", null).show();
-
-    mqttAndroidClient = new MqttAndroidClient(getApplicationContext(), server, clientId);
-    final MqttConnectOptions options = new MqttConnectOptions();
-    options.setUserName(user);
-    options.setPassword(pw.toCharArray());
-    options.setAutomaticReconnect(true);
-    recvCallback = new ReceiveCallback(getApplicationContext());
-    mqttAndroidClient.setCallback(recvCallback);
-    final IMqttActionListener connectCb = new IMqttActionListener() {
-      @Override
-      public void onSuccess(IMqttToken asyncActionToken) {
-        Log.i(TAG, "connection established");
-        Snackbar.make(view, "connection established", Snackbar.LENGTH_SHORT)
-            .setAction("Action", null).show();
-        try {
-          mqttAndroidClient.subscribe(topic, 0);
-        } catch (MqttException e) {
-          String msgFail = "subscribe failed: " + e.getMessage();
-          Log.e(TAG, msgFail);
-          Snackbar.make(view, msgFail, Snackbar.LENGTH_LONG)
-              .setAction("Action", null).show();
-        }
-      }
-
-      @Override
-      public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-        Log.e(TAG, "connect failed: " + exception.getMessage());
-        Snackbar.make(view, "connect failed", Snackbar.LENGTH_SHORT)
-            .setAction("Action", null).show();
-      }
-    };
-    AsyncTask<Void, Void, Void> connectTask =
-        new VoidVoidVoidAsyncTask(options, connectCb, mqttAndroidClient);
-    connectTask.execute();
+  @Override
+  protected void onStart() {
+    super.onStart();
+    Log.i(TAG, "on start");
+    final Intent serviceIntent = new Intent(this, MqttConnectionManagerService.class);
+    Log.i(TAG, "bind service result: " +
+        bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE));
   }
 
-  public void disconnect(final View view) {
-    if (mqttAndroidClient != null) {
-      try {
-        final IMqttToken token = mqttAndroidClient.disconnect(0);
-        token.setActionCallback(new IMqttActionListener() {
-          @Override
-          public void onSuccess(IMqttToken asyncActionToken) {
-            Log.i(TAG, "disconnect::onSuccess");
-            mqttAndroidClient.close();
-            mqttAndroidClient = null;
-          }
+  @Override
+  protected void onStop() {
+    super.onStop();
+    Log.i(TAG, "on stop");
+    unbindService(serviceConnection);
+    mqttBound = false;
+  }
 
-          @Override
-          public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-            Log.e(TAG, "disconnect::onFailure");
-            mqttAndroidClient.close();
-            mqttAndroidClient = null;
-          }
-        });
-      } catch (MqttException e) {
-        Log.e(TAG, "disconnect: failed ", e);
-      }
+  private ServiceConnection serviceConnection = new ServiceConnection() {
+
+    @Override
+    public void onServiceConnected(ComponentName className,
+        IBinder service) {
+      Log.i(TAG, "on service connected");
+      MqttConnectionBinder binder = (MqttConnectionBinder) service;
+      mqttConnectionManagerService = binder.getService();
+      mqttBound = true;
     }
 
+    @Override
+    public void onServiceDisconnected(ComponentName arg0) {
+      mqttBound = false;
+    }
+  };
+
+  public void connect(final View view) {
+    // Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
+        // .setAction("Action", null).show();
+    if (mqttBound) {
+      mqttConnectionManagerService.connect();
+    } else {
+      Snackbar.make(view, "cannot connect, service not bound", Snackbar.LENGTH_LONG)
+          .setAction("Action", null).show();
+    }
+
+  }
+  public void disconnect(final View view) {
+    if (mqttBound) {
+      mqttConnectionManagerService.disconnect();
+    } else {
+      Snackbar.make(view, "cannot disconnect, service not bound", Snackbar.LENGTH_LONG)
+          .setAction("Action", null).show();
+    }
   }
 
   @Override
@@ -164,25 +151,4 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     }
   }
 
-  private static class VoidVoidVoidAsyncTask extends AsyncTask<Void, Void, Void> {
-    private final MqttConnectOptions options;
-    private final IMqttActionListener connectCb;
-    private final MqttAndroidClient mqttAndroidClient;
-
-    public VoidVoidVoidAsyncTask(MqttConnectOptions options, IMqttActionListener connectCb, MqttAndroidClient mqttAndroidClient) {
-      this.options = options;
-      this.connectCb = connectCb;
-      this.mqttAndroidClient = mqttAndroidClient;
-    }
-
-    @Override
-    protected Void doInBackground(Void... voids) {
-      try {
-        this.mqttAndroidClient.connect(options, null, connectCb);
-      } catch (MqttException e) {
-        Log.e(TAG, "connction failed" + e.getMessage());
-      }
-      return null;
-    }
-  }
 }

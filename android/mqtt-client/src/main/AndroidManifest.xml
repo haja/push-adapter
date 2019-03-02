@@ -31,7 +31,17 @@
         </activity>
 
         <service android:name="org.eclipse.paho.android.service.MqttService" />
+        <service android:name=".MqttConnectionManagerService" />
 
+        <receiver
+            android:name="at.sbaresearch.mqtt_backend.MqttConnectReceiver"
+            android:exported="true"
+            android:permission="at.sbaresearch.android.c2dm.permission.CONNECT">
+            <intent-filter>
+                <action android:name="at.sbaresearch.android.gcm.mqtt.intent.CONNECT"/>
+                <!--<category android:name="at.sbaresearch.microg.adapter.backend"/>-->
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

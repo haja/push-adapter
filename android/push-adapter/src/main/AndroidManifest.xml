@@ -7,16 +7,29 @@
         android:label="@string/perm_c2dm_receive_label"
         android:permissionGroup="android.permission-group.NETWORK"
         android:protectionLevel="normal"/>
+    <permission-group
+        android:name="at.sbaresearch.android.permission-group.PUSH"
+        android:description="@string/permlab_group_push"
+        android:label="@string/permlab_group_push"/>
     <permission
-            android:name="at.sbaresearch.android.c2dm.permission.SEND"
-            android:label="@string/permlab_send_push"
-            android:description="@string/permdesc_send_push"
-            android:protectionLevel="dangerous" />
+        android:name="at.sbaresearch.android.c2dm.permission.SEND"
+        android:label="@string/permlab_send_push"
+        android:description="@string/permdesc_send_push"
+        android:permissionGroup="at.sbaresearch.android.permission-group.PUSH"
+        android:protectionLevel="dangerous" />
+    <permission
+        android:name="at.sbaresearch.android.c2dm.permission.CONNECT"
+        android:label="@string/permlab_connect_push"
+        android:description="@string/permdesc_connect_push"
+        android:permissionGroup="at.sbaresearch.android.permission-group.PUSH"
+        android:protectionLevel="dangerous" />
 
     <uses-permission android:name="at.sbaresearch.android.c2dm.permission.RECEIVE"/>
     <uses-permission android:name="at.sbaresearch.android.c2dm.permission.SEND"/>
+    <uses-permission android:name="at.sbaresearch.android.c2dm.permission.CONNECT"/>
 
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET"/>
 
     <application
@@ -51,6 +64,11 @@
                 <action android:name="at.sbaresearch.android.gcm.mqtt.intent.RECEIVE"/>
                 <!-- TODO change package name for intent receiver? -->
                 <category android:name="at.sbaresearch.microg.adapter.backend"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name="at.sbaresearch.microg.adapter.backend.BootBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
         <!--

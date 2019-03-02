@@ -3,6 +3,10 @@
     <string name="action_settings">Settings</string>
     <string name="permlab_send_push">send push notifications</string>
     <string name="permdesc_send_push">send push notifications description</string>
+    <string name="permlab_connect_push">connect to push notification service</string>
+    <string name="permdesc_connect_push">connect to push notification service description</string>
+    <string name="permlab_group_push">push related permissions</string>
+    <string name="permdesc_group_push">push related permissions group</string>
     <string name="perm_c2dm_receive_label">receive push notifications</string>
     <string name="deny">Deny</string>
     <string name="allow">Allow</string>

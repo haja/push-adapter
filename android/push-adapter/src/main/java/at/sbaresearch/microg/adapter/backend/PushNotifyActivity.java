@@ -41,6 +41,7 @@ public class PushNotifyActivity extends AppCompatActivity {
   public void reqPermission(View view) {
     reqPermission(PERMISSION_SEND);
     reqPermission(PERMISSION_RECEIVE);
+    reqPermission(PERMISSION_CONNECT);
   }
 
   private void reqPermission(final String permission) {
