@@ -27,6 +27,7 @@ import android.os.Messenger;
 import android.support.annotation.Nullable;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
+import at.sbaresearch.microg.adapter.backend.MqttClientAdapter;
 import at.sbaresearch.microg.adapter.backend.gms.checkin.LastCheckinInfo;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
 import at.sbaresearch.microg.adapter.backend.gms.common.Utils;
@@ -128,9 +129,11 @@ public class PushRegisterService extends IntentService {
           Intent outIntent = new Intent(ACTION_C2DM_REGISTRATION);
           outIntent.putExtras(bundle);
           Log.d(TAG, "register[res]: " + outIntent.toString() + " extras=" + outIntent.getExtras());
+          MqttClientAdapter.ensureBackendConnection(context);
           sendReply(context, intent, packageName, outIntent);
         });
   }
+
 
   private static void sendReply(Context context, Intent intent, String packageName,
       Intent outIntent) {

@@ -36,6 +36,7 @@ public class UnregisterReceiver extends BroadcastReceiver {
             }
             if (deletedAll) {
               database.removeApp(packageName);
+              // TODO if no more apps are registerd, close mqtt connection
             }
             database.close();
           }

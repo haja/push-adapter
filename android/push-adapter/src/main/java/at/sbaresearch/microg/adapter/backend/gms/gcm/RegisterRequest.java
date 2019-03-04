@@ -27,6 +27,10 @@ import java.io.IOException;
 import static at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.RequestContent;
 import static at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.RequestHeader;
 
+/**
+ * TODO this class is used for deregistration as well
+ *  adopt url for this
+ */
 public class RegisterRequest extends Request {
   //private static final String SERVICE_URL = "https://android.clients.google.com/c2dm/register3";
   private static final String SERVICE_URL = "http://10.0.2.2:9876/registration/new";

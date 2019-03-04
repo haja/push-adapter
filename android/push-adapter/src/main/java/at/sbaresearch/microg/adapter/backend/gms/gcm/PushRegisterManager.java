@@ -148,40 +148,60 @@ public class PushRegisterManager {
     if (response == null && e == null) {
       resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
     } else if (e != null) {
-      if (e.getMessage() != null && e.getMessage().startsWith("Error=")) {
-        String errorMessage = e.getMessage().substring(6);
-        database.noteAppRegistrationError(request.app, errorMessage);
-        resultBundle.putString(EXTRA_ERROR, attachRequestId(errorMessage, requestId));
-      } else {
-        resultBundle
-            .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-      }
+      handleErrorResponse(database, request, e, requestId, resultBundle);
     } else {
-      if (!request.delete) {
-        if (response.token == null) {
-          database.noteAppRegistrationError(request.app, response.responseText);
-          resultBundle
-              .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-        } else {
-          database.noteAppRegistered(request.app, request.appSignature, response.token);
-          resultBundle.putString(EXTRA_REGISTRATION_ID, attachRequestId(response.token, requestId));
-        }
-      } else {
-        if (!request.app.equals(response.deleted) && !request.app.equals(response.token)) {
-          database.noteAppRegistrationError(request.app, response.responseText);
-          resultBundle
-              .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-        } else {
-          database.noteAppUnregistered(request.app, request.appSignature);
-          resultBundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
-        }
-      }
-
-      if (response.retryAfter != null && !response.retryAfter.contains(":")) {
-        resultBundle.putLong(EXTRA_RETRY_AFTER, Long.parseLong(response.retryAfter));
-      }
+      handleSuccessResponse(database, request, response, requestId, resultBundle);
     }
     return resultBundle;
+  }
+
+  private static void handleSuccessResponse(GcmDatabase database, RegisterRequest request,
+      RegisterResponse response, String requestId, Bundle resultBundle) {
+    if (!request.delete) {
+      handleRegisterResponse(database, request, response, requestId, resultBundle);
+    } else {
+      handleDeleteResponse(database, request, response, requestId, resultBundle);
+    }
+
+    if (response.retryAfter != null && !response.retryAfter.contains(":")) {
+      resultBundle.putLong(EXTRA_RETRY_AFTER, Long.parseLong(response.retryAfter));
+    }
+  }
+
+  private static void handleRegisterResponse(GcmDatabase database, RegisterRequest request,
+      RegisterResponse response, String requestId, Bundle resultBundle) {
+    if (response.token == null) {
+      database.noteAppRegistrationError(request.app, response.responseText);
+      resultBundle
+          .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
+    } else {
+      database.noteAppRegistered(request.app, request.appSignature, response.token);
+      resultBundle.putString(EXTRA_REGISTRATION_ID, attachRequestId(response.token, requestId));
+    }
+  }
+
+  private static void handleDeleteResponse(GcmDatabase database, RegisterRequest request,
+      RegisterResponse response, String requestId, Bundle resultBundle) {
+    if (!request.app.equals(response.deleted) && !request.app.equals(response.token)) {
+      database.noteAppRegistrationError(request.app, response.responseText);
+      resultBundle
+          .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
+    } else {
+      database.noteAppUnregistered(request.app, request.appSignature);
+      resultBundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
+    }
+  }
+
+  private static void handleErrorResponse(GcmDatabase database, RegisterRequest request,
+      Throwable e, String requestId, Bundle resultBundle) {
+    if (e.getMessage() != null && e.getMessage().startsWith("Error=")) {
+      String errorMessage = e.getMessage().substring(6);
+      database.noteAppRegistrationError(request.app, errorMessage);
+      resultBundle.putString(EXTRA_ERROR, attachRequestId(errorMessage, requestId));
+    } else {
+      resultBundle
+          .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
+    }
   }
 
   public static String attachRequestId(String msg, String requestId) {
