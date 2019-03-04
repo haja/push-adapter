@@ -70,7 +70,7 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     @Override
     public void onServiceConnected(ComponentName className,
         IBinder service) {
-      Log.i(TAG, "on service connected");
+      Log.i(TAG, "on service bound");
       MqttConnectionBinder binder = (MqttConnectionBinder) service;
       mqttConnectionManagerService = binder.getService();
       mqttBound = true;

@@ -10,13 +10,12 @@ import android.util.Log;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.*;
 
-// TODO make this a singleton? or use DI to ensure only one instance exists
-//  is a service now, is this sufficient?
 public class MqttConnectionManagerService extends Service {
 
   private static final String TAG = "MqttConnectionManager";
 
   private MqttAndroidClient mqttAndroidClient;
+  // TODO receive connection details on connect intent
   private String clientId = "test1";
   private String server = "tcp://10.0.2.2:61613";
   private String user = "admin";
@@ -29,7 +28,6 @@ public class MqttConnectionManagerService extends Service {
   private IBinder binder = new MqttConnectionBinder();
 
   public MqttConnectionManagerService() {
-    mqttAndroidClient = new MqttAndroidClient(this, server, clientId);
 
     mqttConnectOptions = new MqttConnectOptions();
     mqttConnectOptions.setUserName(user);
@@ -49,9 +47,15 @@ public class MqttConnectionManagerService extends Service {
     return binder;
   }
 
+  @Override
+  public void onDestroy() {
+    disconnect();
+  }
+
   public void connect() {
     Log.d(TAG, "connect called");
 
+    ensureClientExists();
     if(!this.mqttAndroidClient.isConnected()) {
       Log.d(TAG, "connecting to " + this.server);
 
@@ -84,6 +88,12 @@ public class MqttConnectionManagerService extends Service {
       AsyncTask<Void, Void, Void> connectTask =
           new VoidVoidVoidAsyncTask(mqttConnectOptions, connectCb, mqttAndroidClient);
       connectTask.execute();
+    }
+  }
+
+  private void ensureClientExists() {
+    if (mqttAndroidClient == null) {
+      mqttAndroidClient = new MqttAndroidClient(this, server, clientId);
     }
   }
 
