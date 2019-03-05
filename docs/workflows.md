@@ -29,7 +29,7 @@
 - revoke via email-reset?
 - register via email OTP code?
 - -> draw diagrams for this
-- whitelisting via email-domains?
+- whitelisting via allowed email-domains? (e.g. only allow members who have a mail addres of @tuwien.ac.at)
 
 # TODO
 - integrate sequence-diagrams here

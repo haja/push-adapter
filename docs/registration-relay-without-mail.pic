@@ -20,10 +20,12 @@ message(AD,REL,"registerDevice()");
 
 active(REL);
     sync();
-    message(REL,REL,"createMqttTopic(client)");
-    return_message(REL,AD,"registrationSuccess(clientCert)");
+    message(REL,REL,"createMqttTopic(clientCert)");
+    return_message(REL,AD,"registrationSuccess(clientCert, topic)");
     async();
 inactive(REL)
+
+message(AD,AD,"storeClientCert()");
 
 return_message(AD,USR,"registrationSuccess()");
 
