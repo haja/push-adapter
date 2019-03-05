@@ -1,12 +1,22 @@
 .PS
 copy "umlgraph/sequence.pic";
 
+maxpswid = 13;
+maxpsht = 13;
+
 movewid = 1.2;
+boxwid = 1.5;
+boxht = 0.5;
+awid = 0.15;
+spacing = 0.5;
+underline = 0;
 
 # Define the objects
 actor(USR,"u:User");
 object(APP,"app:App");
+placeholder_object(Dummy1); # more space
 object(AD,"a:Adapter");
+placeholder_object(MQ);
 object(REL,"r:Relay");
 object(SRV,"s:App-Server");
 step();
@@ -27,14 +37,23 @@ active(AD);
         message(REL,REL,"createToken(client, appId)");
         return_message(REL,AD,"success(appToken)");
         async();
-        inactive(REL)
+        inactive(REL);
+    create_message(AD,MQ,"m:Mqtt-Client");
+    active(MQ);
+    message(AD,MQ,"connect(mqttTopic,clientCert)");
+        message(MQ,REL,"connect(mqttTopic,clientCert)");
+        inactive(MQ);
+        active(REL);
+        step();
+        inactive(REL);
     return_message(AD,APP,"success(relayConnection, relayCert, appToken)");
 inactive(AD);
 
 active(APP);
+    step();
     message(APP,SRV,"registerRelay(relayConnection, relayCert, appToken)");
     active(SRV);
-        message(SRV,SRV,"saveRelay(relayConnection, relayCert, appToken)");
+        comment(SRV,SAVEREL,right, wid 2 ht 0.75 "save relay" "connection data");
         return_message(SRV,APP,"ok");
     inactive(SRV);
 inactive(APP);
@@ -44,5 +63,6 @@ step();
 complete(USR);
 complete(AD);
 complete(REL);
+complete(MQ);
 
 .PE
