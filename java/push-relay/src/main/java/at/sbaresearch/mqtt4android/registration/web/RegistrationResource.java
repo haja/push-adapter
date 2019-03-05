@@ -7,10 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/registration")
@@ -18,25 +15,35 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @AllArgsConstructor
 public class RegistrationResource {
-  // TODO create DeviceResource with device registration endpoints?
 
   RegistrationService registrationService;
 
-  @RequestMapping(path = "/new", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  // TODO actually, this is registerApp?
+  // TODO are parameters needed at all?
+  @PostMapping(path = "/device", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public DeviceRegistrationResponse registerDevice(@RequestBody DeviceReqistrationRequest req) {
+    // TODO create clientCert
+    //  save clientCert ID / hash / whatever to associate with device
+    //  create mqtt topic and authorize clientCert for this topic
+    //  get connection settings of mqtt-relay
+    //  return clientCert + connection settings + topic
+    return null;
+  }
+
   // TODO get deviceId from client TLS cert. how to do this with spring?
-  public RegistrationResponse registerDevice(@RequestBody RegistrationRequest req) {
-    log.info("register device: {}", req);
+  // TODO actually, this is registerApp; rename endpoint to "app" or so
+  @PostMapping(path = "/new", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req) {
+    log.info("register app: {}", req);
 
     // TODO deviceID should be extracted from clientCert the adapter-backend got on device registration
     val deviceId = new DeviceId("1234foobar");
     val registrationData = mapFromRequest(req);
     val token = registrationService.registerApp(deviceId, registrationData);
 
-    return new RegistrationResponse(token, null);
+    return new AppRegistrationResponse(token, null);
   }
 
-  private AppRegistration mapFromRequest(RegistrationRequest req) {
+  private AppRegistration mapFromRequest(AppRegistrationRequest req) {
     return new AppRegistration(req.app, req.cert);
   }
 
@@ -49,25 +56,38 @@ public class RegistrationResource {
   }
 
   @Value
-  public static class RegistrationRequest {
+  public static class AppRegistrationRequest {
     String app;
     String cert;
     Integer appVer;
     String appVerName;
     String info;
-//    Boolean delete;
-//    int osv;
-//    int gmsv;
-//    String scope;
-//    String appid;
-//    String gmpAppId;
+    //    Boolean delete;
+    //    int osv;
+    //    int gmsv;
+    //    String scope;
+    //    TODO appID will be most likely needed
+    //    String appid;
+    //    String gmpAppId;
   }
 
+  // TODO this should be a static class
   @Value
-  private class RegistrationResponse {
+  private class AppRegistrationResponse {
     @NonNull
     String token;
     String deleted;
   }
 
+  @Value
+  public static class DeviceReqistrationRequest {
+
+  }
+
+  @Value
+  public static class DeviceRegistrationResponse {
+    // client cert
+    // mqtt-topic
+    // mqtt connection settings
+  }
 }
