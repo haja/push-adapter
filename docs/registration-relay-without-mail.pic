@@ -20,14 +20,15 @@ message(AD,REL,"registerDevice()");
 
 active(REL);
     sync();
-    message(REL,REL,"createMqttTopic(clientCert)");
-    return_message(REL,AD,"registrationSuccess(clientCert, topic)");
+    step();
+    comment(REL,CERT,right, wid 2 ht 0.5 "createClientCert()" "createMqttTopic(clientCert)");
+    return_message(REL,AD,"success(clientCert, topic)");
     async();
 inactive(REL)
 
 message(AD,AD,"storeClientCert()");
 
-return_message(AD,USR,"registrationSuccess()");
+return_message(AD,USR,"success()");
 
 # Complete the lifelines
 step();
