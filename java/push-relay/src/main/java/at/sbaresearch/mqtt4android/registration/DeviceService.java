@@ -10,15 +10,12 @@ import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.activemq.command.ActiveMQTopic;
-import org.springframework.stereotype.Component;
 
-@Component
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 public class DeviceService {
 
-  @org.springframework.beans.factory.annotation.Value("${mqtt.hostname}")
   String mqttHostname;
 
   public DeviceData registerDevice() {

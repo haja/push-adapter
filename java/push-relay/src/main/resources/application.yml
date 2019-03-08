@@ -21,3 +21,6 @@ spring:
     level:
       - ".=info"
       - "at.sbaresearch.mqtt4android=debug"
+
+mqtt:
+  hostname: "10.0.2.2"

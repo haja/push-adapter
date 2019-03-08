@@ -16,12 +16,16 @@ public class TlsCertificateAuthenticationBroker extends JaasCertificateAuthentic
   @Override
   public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
     // TODO allow all connections that have a valid certificate (from our CA)
+    if(context.getConnection().isNetworkConnection()) {
+
+    }
     super.addConnection(context, info);
   }
 
   @Override
   public Subscription addConsumer(ConnectionContext context, ConsumerInfo info) throws Exception {
     // TODO allow consumers only for the topic their certificate was issued for
+    // TODO is AuthorizationBroker / AuthorizationMap intended for this and sufficient?
     return super.addConsumer(context, info);
   }
 

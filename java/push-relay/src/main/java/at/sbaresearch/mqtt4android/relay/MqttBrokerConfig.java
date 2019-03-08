@@ -1,12 +1,16 @@
 package at.sbaresearch.mqtt4android.relay;
 
 import at.sbaresearch.mqtt4android.relay.jaas.JaasCertificateOnlyAuthPlugin;
-import com.sun.tools.javac.util.ArrayUtils;
+import io.vavr.control.Option;
+import lombok.EqualsAndHashCode;
 import lombok.val;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.broker.Broker;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.command.ActiveMQDestination;
+import org.apache.activemq.filter.DestinationMap;
+import org.apache.activemq.jaas.GroupPrincipal;
+import org.apache.activemq.security.*;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,14 +24,18 @@ import org.springframework.jms.support.converter.MessageType;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.QueueConnectionFactory;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableJms
 public class MqttBrokerConfig {
 
   public static final String MQTT_MOCK_TOPIC = "foo";
+  private static final String TOPIC_WRITE_USERNAME = "system";
+  private static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
   private final String embeddedBrokerName = "embeddedManual";
   public static final String mqttPort = "61613";
 
@@ -52,7 +60,7 @@ public class MqttBrokerConfig {
   @Bean
   public QueueConnectionFactory jmsConnectionFactory() {
     ActiveMQConnectionFactory connectionFactory =
-        new ActiveMQConnectionFactory("vm://" + embeddedBrokerName);
+        new ActiveMQConnectionFactory(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", "vm://" + embeddedBrokerName);
     return connectionFactory;
   }
 
@@ -77,17 +85,47 @@ public class MqttBrokerConfig {
     // broker.setUseJmx(false);
 
     // plugins must be added before connectors
-    addPlugin(broker, certAuthPlugin);
+    addAuthenticationplugin(broker);
+    addAuthorizationPlugin(broker);
 
-    broker.addConnector("mqtt://localhost:" + mqttPort);
+    broker.addConnector("mqtt+ssl://localhost:" + mqttPort + "?needClientAuth=true");
     return broker;
+  }
+
+  private void addAuthenticationplugin(BrokerService broker) {
+    // TODO add certAuthPlugin; how to allow system user access?
+    //addPlugin(broker, certAuthPlugin);
+    val plugin = new SimpleAuthenticationPlugin();
+
+    // TODO better system user access required; generate password in memory on startup and set here?
+    plugin.setUsers(List.of(
+        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TOPIC_WRITE_PRINCIPAL_GROUP)));
+    addPlugin(broker, plugin);
+  }
+
+  private void addAuthorizationPlugin(BrokerService broker) {
+    DestinationMap writeACLs = getTopicWriteACLs();
+
+    // TODO fix ACLs
+    val topicAuthPlugin = new AuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, writeACLs, writeACLs));
+    addPlugin(broker, topicAuthPlugin);
+  }
+
+  private DestinationMap getTopicWriteACLs() {
+    DestinationMap writeACLs = new DestinationMap();
+    writeACLs.put(
+        ActiveMQDestination.createDestination("topic://>", ActiveMQDestination.TOPIC_TYPE),
+        new GroupPrincipal(TOPIC_WRITE_PRINCIPAL_GROUP));
+
+    return writeACLs;
   }
 
   private void addPlugin(BrokerService broker, BrokerPlugin brokerPlugin) {
     val existing = broker.getPlugins();
-    val added = new ArrayList<>(Arrays.asList(existing));
-    added.add(brokerPlugin);
-    broker.setPlugins(added.toArray(BrokerPlugin[]::new));
+    val brokerPlugins = Option.of(existing)
+        .map(Arrays::asList).map(ArrayList::new)
+        .getOrElse(ArrayList::new);
+    brokerPlugins.add(brokerPlugin);
+    broker.setPlugins(brokerPlugins.toArray(BrokerPlugin[]::new));
   }
-
 }
