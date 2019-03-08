@@ -1,6 +1,6 @@
-package at.sbaresearch.mqtt4android.registration.web;
+package at.sbaresearch.mqtt4android.relay.web;
 
-import at.sbaresearch.mqtt4android.registration.PushService;
+import at.sbaresearch.mqtt4android.relay.PushService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;

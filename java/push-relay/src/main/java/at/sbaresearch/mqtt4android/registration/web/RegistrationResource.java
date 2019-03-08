@@ -1,5 +1,7 @@
 package at.sbaresearch.mqtt4android.registration.web;
 
+import at.sbaresearch.mqtt4android.registration.DeviceService;
+import at.sbaresearch.mqtt4android.registration.DeviceService.DeviceData;
 import at.sbaresearch.mqtt4android.registration.RegistrationService;
 import at.sbaresearch.mqtt4android.registration.RegistrationService.AppRegistration;
 import at.sbaresearch.mqtt4android.registration.RegistrationService.DeviceId;
@@ -17,16 +19,13 @@ import org.springframework.web.bind.annotation.*;
 public class RegistrationResource {
 
   RegistrationService registrationService;
+  DeviceService deviceService;
 
   // TODO are parameters needed at all?
   @PostMapping(path = "/device", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public DeviceRegistrationResponse registerDevice(@RequestBody DeviceReqistrationRequest req) {
-    // TODO create clientCert
-    //  save clientCert ID / hash / whatever to associate with device
-    //  create mqtt topic and authorize clientCert for this topic
-    //  get connection settings of mqtt-relay
-    //  return clientCert + connection settings + topic
-    return null;
+  public DeviceData registerDevice(@RequestBody DeviceReqistrationRequest req) {
+    // TODO what data do we need from the client?
+    return deviceService.registerDevice();
   }
 
   // TODO get deviceId from client TLS cert. how to do this with spring?
@@ -84,10 +83,4 @@ public class RegistrationResource {
 
   }
 
-  @Value
-  public static class DeviceRegistrationResponse {
-    // client cert
-    // mqtt-topic
-    // mqtt connection settings
-  }
 }

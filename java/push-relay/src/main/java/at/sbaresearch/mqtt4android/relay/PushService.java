@@ -1,6 +1,5 @@
-package at.sbaresearch.mqtt4android.registration;
+package at.sbaresearch.mqtt4android.relay;
 
-import at.sbaresearch.mqtt4android.relay.MqttBrokerConfig;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;

@@ -1,6 +1,11 @@
 package at.sbaresearch.mqtt4android.relay;
 
+import at.sbaresearch.mqtt4android.relay.jaas.JaasCertificateOnlyAuthPlugin;
+import com.sun.tools.javac.util.ArrayUtils;
+import lombok.val;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.broker.Broker;
+import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +20,8 @@ import org.springframework.jms.support.converter.MessageType;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.QueueConnectionFactory;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 @Configuration
 @EnableJms
@@ -22,6 +29,7 @@ public class MqttBrokerConfig {
 
   public static final String MQTT_MOCK_TOPIC = "foo";
   private final String embeddedBrokerName = "embeddedManual";
+  public static final String mqttPort = "61613";
 
   @Bean
   public JmsListenerContainerFactory<?> queueListenerFactory(
@@ -57,14 +65,29 @@ public class MqttBrokerConfig {
   }
 
   @Bean
-  public BrokerService brokerService() throws Exception {
+  public JaasCertificateOnlyAuthPlugin jaasCertificateOnlyAuthPlugin() {
+    return new JaasCertificateOnlyAuthPlugin();
+  }
+
+  @Bean
+  public BrokerService brokerService(JaasCertificateOnlyAuthPlugin certAuthPlugin) throws Exception {
     BrokerService broker = new BrokerService();
     broker.setBrokerName(embeddedBrokerName);
     broker.setPersistent(false);
     // broker.setUseJmx(false);
-    // TODO add plugins before connectors
-    broker.addConnector("mqtt://localhost:61613");
+
+    // plugins must be added before connectors
+    addPlugin(broker, certAuthPlugin);
+
+    broker.addConnector("mqtt://localhost:" + mqttPort);
     return broker;
+  }
+
+  private void addPlugin(BrokerService broker, BrokerPlugin brokerPlugin) {
+    val existing = broker.getPlugins();
+    val added = new ArrayList<>(Arrays.asList(existing));
+    added.add(brokerPlugin);
+    broker.setPlugins(added.toArray(BrokerPlugin[]::new));
   }
 
 }
