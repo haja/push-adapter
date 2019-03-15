@@ -17,7 +17,7 @@ public class MqttConnectionManagerService extends Service {
   private MqttAndroidClient mqttAndroidClient;
   // TODO receive connection details on connect intent
   private String clientId = "test1";
-  private String server = "tcp://10.0.2.2:61613";
+  private String server = "ssl://10.0.2.2:61613";
   private String user = "admin";
   private String pw = "password";
   private String topic = "foo";

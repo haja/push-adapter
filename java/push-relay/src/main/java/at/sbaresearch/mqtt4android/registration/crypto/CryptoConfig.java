@@ -22,6 +22,15 @@ public class CryptoConfig {
     } catch (NoSuchAlgorithmException e) {
       e.printStackTrace();
     }
-    log.info("Max Key Size for AES (this should print 2147483647): " + maxKeySize);
+    if (maxKeySize < 2147483647) {
+      throw new CryptoSetupConfigException("Max key size for AES too low: " + maxKeySize);
+    }
+  }
+
+  private class CryptoSetupConfigException extends RuntimeException {
+    CryptoSetupConfigException(
+        String s) {
+      super(s);
+    }
   }
 }

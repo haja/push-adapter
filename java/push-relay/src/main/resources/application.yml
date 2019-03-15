@@ -24,3 +24,9 @@ spring:
 
 mqtt:
   hostname: "10.0.2.2"
+
+ssl:
+  keyStore: "cert-stores/keystore.jks"
+  keyStorePassword: "ub1Uwei8"
+  trustStore: "cert-stores/keystore.jks"
+  trustStorePassword: "ub1Uwei8"

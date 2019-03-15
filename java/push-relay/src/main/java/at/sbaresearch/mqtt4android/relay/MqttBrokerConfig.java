@@ -2,11 +2,11 @@ package at.sbaresearch.mqtt4android.relay;
 
 import at.sbaresearch.mqtt4android.relay.jaas.JaasCertificateOnlyAuthPlugin;
 import io.vavr.control.Option;
-import lombok.EqualsAndHashCode;
 import lombok.val;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
+import org.apache.activemq.broker.SslContext;
 import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.filter.DestinationMap;
 import org.apache.activemq.jaas.GroupPrincipal;
@@ -24,7 +24,9 @@ import org.springframework.jms.support.converter.MessageType;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.QueueConnectionFactory;
-import java.security.Principal;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.TrustManager;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -78,21 +80,34 @@ public class MqttBrokerConfig {
   }
 
   @Bean
-  public BrokerService brokerService(JaasCertificateOnlyAuthPlugin certAuthPlugin) throws Exception {
+  public SslContext sslContext(KeyManager[] keyManager, TrustManager[] trustManager) {
+    SslContext sslContext = new SslContext(keyManager, trustManager, new SecureRandom());
+    sslContext.setProtocol("TLSv1.2");
+    return sslContext;
+
+  }
+
+  @Bean
+  public BrokerService brokerService(JaasCertificateOnlyAuthPlugin certAuthPlugin, SslContext sslContext) throws Exception {
     BrokerService broker = new BrokerService();
     broker.setBrokerName(embeddedBrokerName);
     broker.setPersistent(false);
     // broker.setUseJmx(false);
 
+    broker.setSslContext(sslContext);
+
     // plugins must be added before connectors
-    addAuthenticationplugin(broker);
+    addAuthenticationPlugin(broker);
     addAuthorizationPlugin(broker);
 
-    broker.addConnector("mqtt+ssl://localhost:" + mqttPort + "?needClientAuth=true");
+
+    broker.addConnector("mqtt+ssl://localhost:" + mqttPort
+        // TODO use this to verify clients + "?needClientAuth=true");
+    );
     return broker;
   }
 
-  private void addAuthenticationplugin(BrokerService broker) {
+  private void addAuthenticationPlugin(BrokerService broker) {
     // TODO add certAuthPlugin; how to allow system user access?
     //addPlugin(broker, certAuthPlugin);
     val plugin = new SimpleAuthenticationPlugin();
