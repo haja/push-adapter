@@ -10,6 +10,13 @@ import android.util.Log;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.*;
 
+import javax.net.SocketFactory;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import java.security.*;
+
 public class MqttConnectionManagerService extends Service {
 
   private static final String TAG = "MqttConnectionManager";
@@ -33,6 +40,30 @@ public class MqttConnectionManagerService extends Service {
     mqttConnectOptions.setUserName(user);
     mqttConnectOptions.setPassword(pw.toCharArray());
     mqttConnectOptions.setAutomaticReconnect(true);
+    mqttConnectOptions.setSocketFactory(createSslSocketFactory());
+  }
+
+  private SocketFactory createSslSocketFactory() {
+    try {
+      KeyStore trustStore;
+      KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(
+          KeyManagerFactory.getDefaultAlgorithm());
+      keyManagerFactory.init(trustStore, "password".toCharArray());
+      KeyManager[] keymanagers = keyManagerFactory.getKeyManagers();
+
+      TrustManagerFactory trustManagerFactory = TrustManagerFactory
+          .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+
+      trustManagerFactory.init(trustStore);
+
+      SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+
+      sslContext.init(keymanagers, trustManagerFactory.getTrustManagers(), new SecureRandom());
+
+      return sslContext.getSocketFactory();
+    } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | KeyManagementException e) {
+      throw new SslSetupException(e);
+    }
   }
 
   @Override
@@ -56,7 +87,7 @@ public class MqttConnectionManagerService extends Service {
     Log.d(TAG, "connect called");
 
     ensureClientExists();
-    if(!this.mqttAndroidClient.isConnected()) {
+    if (!this.mqttAndroidClient.isConnected()) {
       Log.d(TAG, "connecting to " + this.server);
 
       recvCallback = new ReceiveCallback(this);
@@ -80,7 +111,9 @@ public class MqttConnectionManagerService extends Service {
 
         @Override
         public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-          Log.e(TAG, "connect failed: " + exception.getMessage());
+          Throwable cause = exception.getCause();
+          String causeMsg = cause == null ? "" : cause.getMessage();
+          Log.e(TAG, "connect failed: " + exception.getMessage() + causeMsg);
           // Snackbar.make(view, "connect failed", Snackbar.LENGTH_SHORT)
           // .setAction("Action", null).show();
         }
@@ -127,7 +160,8 @@ public class MqttConnectionManagerService extends Service {
     private final IMqttActionListener connectCb;
     private final MqttAndroidClient mqttAndroidClient;
 
-    public VoidVoidVoidAsyncTask(MqttConnectOptions options, IMqttActionListener connectCb, MqttAndroidClient mqttAndroidClient) {
+    public VoidVoidVoidAsyncTask(MqttConnectOptions options, IMqttActionListener connectCb,
+        MqttAndroidClient mqttAndroidClient) {
       this.options = options;
       this.connectCb = connectCb;
       this.mqttAndroidClient = mqttAndroidClient;
@@ -147,6 +181,12 @@ public class MqttConnectionManagerService extends Service {
   public class MqttConnectionBinder extends Binder {
     public MqttConnectionManagerService getService() {
       return MqttConnectionManagerService.this;
+    }
+  }
+
+  private class SslSetupException extends RuntimeException {
+    public SslSetupException(Exception e) {
+      super(e);
     }
   }
 }
