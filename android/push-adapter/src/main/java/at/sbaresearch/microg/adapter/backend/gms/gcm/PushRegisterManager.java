@@ -121,6 +121,7 @@ public class PushRegisterManager {
       @Override
       public void onResponse(Call<RegisterResponse2> call, Response<RegisterResponse2> response) {
         val old = RegisterResponse2.toOldResponse(response);
+        Log.i(TAG, "onResponse: " + response.code());
         callback.onResult(handleResponse(database, request, old, requestId));
       }
 
