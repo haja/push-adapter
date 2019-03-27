@@ -7,15 +7,11 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import com.datatheorem.android.trustkit.TrustKit;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.*;
 
-import javax.net.SocketFactory;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
-import java.security.*;
+import javax.net.ssl.SSLSocketFactory;
 
 public class MqttConnectionManagerService extends Service {
 
@@ -24,7 +20,8 @@ public class MqttConnectionManagerService extends Service {
   private MqttAndroidClient mqttAndroidClient;
   // TODO receive connection details on connect intent
   private String clientId = "test1";
-  private String server = "ssl://10.0.2.2:61613";
+  private final String hostname = "trigger.lan";
+  private final String server = "ssl://" + hostname + ":61613";
   private String user = "admin";
   private String pw = "password";
   private String topic = "foo";
@@ -40,30 +37,17 @@ public class MqttConnectionManagerService extends Service {
     mqttConnectOptions.setUserName(user);
     mqttConnectOptions.setPassword(pw.toCharArray());
     mqttConnectOptions.setAutomaticReconnect(true);
-    mqttConnectOptions.setSocketFactory(createSslSocketFactory());
   }
 
-  private SocketFactory createSslSocketFactory() {
-    try {
-      KeyStore trustStore;
-      KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(
-          KeyManagerFactory.getDefaultAlgorithm());
-      keyManagerFactory.init(trustStore, "password".toCharArray());
-      KeyManager[] keymanagers = keyManagerFactory.getKeyManagers();
+  @Override
+  public void onCreate() {
+    super.onCreate();
 
-      TrustManagerFactory trustManagerFactory = TrustManagerFactory
-          .getInstance(TrustManagerFactory.getDefaultAlgorithm());
+    android.os.Debug.waitForDebugger();
 
-      trustManagerFactory.init(trustStore);
-
-      SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-
-      sslContext.init(keymanagers, trustManagerFactory.getTrustManagers(), new SecureRandom());
-
-      return sslContext.getSocketFactory();
-    } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException | KeyManagementException e) {
-      throw new SslSetupException(e);
-    }
+    TrustKit.initializeWithNetworkSecurityConfiguration(this);
+    SSLSocketFactory sslSocketFactory = TrustKit.getInstance().getSSLSocketFactory(hostname);
+    mqttConnectOptions.setSocketFactory(sslSocketFactory);
   }
 
   @Override

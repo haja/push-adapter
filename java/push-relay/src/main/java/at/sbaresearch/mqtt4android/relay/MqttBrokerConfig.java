@@ -40,6 +40,7 @@ public class MqttBrokerConfig {
   private static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
   private final String embeddedBrokerName = "embeddedManual";
   public static final String mqttPort = "61613";
+  public static final String externalIp = "0.0.0.0";
 
   @Bean
   public JmsListenerContainerFactory<?> queueListenerFactory(
@@ -101,7 +102,7 @@ public class MqttBrokerConfig {
     addAuthorizationPlugin(broker);
 
 
-    broker.addConnector("mqtt+ssl://localhost:" + mqttPort
+    broker.addConnector("mqtt+ssl://" + externalIp + ":" + mqttPort
         // TODO use this to verify clients + "?needClientAuth=true");
     );
     return broker;

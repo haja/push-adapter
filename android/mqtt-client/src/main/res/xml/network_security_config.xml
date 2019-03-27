@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config>
+        <domain includeSubdomains="true">trigger.lan</domain>
+        <pin-set>
+            <pin digest="SHA-256">qzknCKduV6M4knHbrDQW5bolJh7BNBSU7Furz26hT4w=</pin>
+            <pin digest="SHA-256">FAKECKduV6M4knHbrDQW5bolJh7BNBSU7Furz26hT4w=</pin>
+        </pin-set>
+        <trustkit-config enforcePinning="false">
+        </trustkit-config>
+    </domain-config>
+</network-security-config>
