@@ -38,6 +38,7 @@ public class MqttBrokerConfig {
   public static final String MQTT_MOCK_TOPIC = "foo";
   private static final String TOPIC_WRITE_USERNAME = "system";
   private static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
+  private static final String TOPIC_READ_PRINCIPAL_GROUP = "read-group";
   private final String embeddedBrokerName = "embeddedManual";
   public static final String mqttPort = "61613";
   public static final String externalIp = "0.0.0.0";
@@ -115,7 +116,10 @@ public class MqttBrokerConfig {
 
     // TODO better system user access required; generate password in memory on startup and set here?
     plugin.setUsers(List.of(
-        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TOPIC_WRITE_PRINCIPAL_GROUP)));
+        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TOPIC_WRITE_PRINCIPAL_GROUP),
+        // TODO fix credentials; using default creds for now with write perm
+        new AuthenticationUser("admin", "password", TOPIC_WRITE_PRINCIPAL_GROUP)
+    ));
     addPlugin(broker, plugin);
   }
 
@@ -132,7 +136,6 @@ public class MqttBrokerConfig {
     writeACLs.put(
         ActiveMQDestination.createDestination("topic://>", ActiveMQDestination.TOPIC_TYPE),
         new GroupPrincipal(TOPIC_WRITE_PRINCIPAL_GROUP));
-
     return writeACLs;
   }
 

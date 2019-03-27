@@ -162,6 +162,7 @@ public class MqttConnectionManagerService extends Service {
       } catch (MqttException e) {
         Log.e(TAG, "connection failed" + e.getMessage());
       }
+      Log.i(TAG, "connect: finished");
       return null;
     }
   }
