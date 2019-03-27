@@ -24,8 +24,13 @@ to verify the generated certificate, run
 keytool -list -v -keystore keystore.jks
 ```
 
-TODO for now, we use the same keystore as a truststore for issuing client certificates
-set `ssl.trustStore` and `ssl.trustStorePassword` to the same values as above.
+to export a certificate (to use in client app for auth/pinning), run
+```
+keytool -export -alias server -keystore keystore.jks -file server.cer
+```
+TODO this should be done automatically on build or solved differently
+
+for now, do the same for `ssl.trustStore` and `ssl.trustStorePassword` (client certs are still hardcoded)
 
 ## remove other CAs
 TODO document `cacerts` file; see https://docs.oracle.com/javase/1.5.0/docs/tooldocs/solaris/keytool.html#cacerts

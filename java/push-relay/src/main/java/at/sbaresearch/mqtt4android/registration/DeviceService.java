@@ -27,10 +27,11 @@ public class DeviceService {
   }
 
   private String createTopic(ClientCert cert) {
-    ActiveMQTopic topic = new ActiveMQTopic("test");
+    val topicName = "foo";
+    ActiveMQTopic topic = new ActiveMQTopic(topicName);
     //  return clientCert + connection settings + topic
     // TODO create mqtt topic and authorize clientCert for this topic
-    return "foo";
+    return topicName;
   }
 
   private Tuple2<String, String> getMqttSettings() {

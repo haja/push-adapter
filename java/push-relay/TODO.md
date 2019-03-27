@@ -10,3 +10,13 @@
     - how to handle tls client certs for auth on relay?
 - expose/advertise mqtt connection settings (host:port) through REST API
 
+# crypto setup
+write script to do the following:
+- generate server CA
+- generate server key
+- setup server keystore with server key
+- setup server truststore with server CA (to trust this CA)
+- setup mqtt-client truststore to trust server key or CA
+
+furthermore, mqtt-client needs to use client keys properly (WIP)
+

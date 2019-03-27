@@ -104,7 +104,7 @@ public class MqttBrokerConfig {
 
 
     broker.addConnector("mqtt+ssl://" + externalIp + ":" + mqttPort
-        // TODO use this to verify clients + "?needClientAuth=true");
+        + "?needClientAuth=true"
     );
     return broker;
   }

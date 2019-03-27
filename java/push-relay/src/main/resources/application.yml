@@ -28,5 +28,5 @@ mqtt:
 ssl:
   keyStore: "cert-stores/keystore.jks"
   keyStorePassword: "ub1Uwei8"
-  trustStore: "cert-stores/keystore.jks"
+  trustStore: "cert-stores/keystore_clients.jks"
   trustStorePassword: "ub1Uwei8"
