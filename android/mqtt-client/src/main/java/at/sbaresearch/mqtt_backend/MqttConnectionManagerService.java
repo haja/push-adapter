@@ -7,11 +7,9 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import com.datatheorem.android.trustkit.TrustKit;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.*;
 
-import javax.net.ssl.SSLSocketFactory;
 
 public class MqttConnectionManagerService extends Service {
 
@@ -45,9 +43,15 @@ public class MqttConnectionManagerService extends Service {
 
     android.os.Debug.waitForDebugger();
 
-    TrustKit.initializeWithNetworkSecurityConfiguration(this);
-    SSLSocketFactory sslSocketFactory = TrustKit.getInstance().getSSLSocketFactory(hostname);
-    mqttConnectOptions.setSocketFactory(sslSocketFactory);
+    //TrustKit.initializeWithNetworkSecurityConfiguration(this);
+    //SSLSocketFactory sslSocketFactory = TrustKit.getInstance().getSSLSocketFactory(hostname);
+    //mqttConnectOptions.setSocketFactory(sslSocketFactory);
+    try {
+      mqttConnectOptions.setSocketFactory(new PinningSslFactory(getApplicationContext()).getSocketFactory());
+    } catch (Exception e) {
+      Log.e(TAG, "onCreate: sslSocketFactorySetup failed", e);
+      throw new RuntimeException(e);
+    }
   }
 
   @Override
