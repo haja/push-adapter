@@ -17,3 +17,5 @@ this should transmit:
             - is this our usecase?
             - allow building of adopted apk automatically during relay-setup process (after generating relay cert/CA)
 
+# upgrade to android 7.1?
+-> would include native support for cert pinning
