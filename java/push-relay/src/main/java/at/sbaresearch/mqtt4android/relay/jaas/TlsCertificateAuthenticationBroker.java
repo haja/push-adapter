@@ -7,6 +7,7 @@ import org.apache.activemq.command.ConnectionInfo;
 import org.apache.activemq.command.ConsumerInfo;
 import org.apache.activemq.command.ProducerInfo;
 import org.apache.activemq.security.JaasCertificateAuthenticationBroker;
+import org.apache.activemq.security.SecurityContext;
 
 public class TlsCertificateAuthenticationBroker extends JaasCertificateAuthenticationBroker {
   public TlsCertificateAuthenticationBroker(Broker broker, String configuration) {
@@ -16,9 +17,7 @@ public class TlsCertificateAuthenticationBroker extends JaasCertificateAuthentic
   @Override
   public void addConnection(ConnectionContext context, ConnectionInfo info) throws Exception {
     // TODO allow all connections that have a valid certificate (from our CA)
-    if(context.getConnection().isNetworkConnection()) {
-
-    }
+    SecurityContext securityContext = context.getSecurityContext();
     super.addConnection(context, info);
   }
 

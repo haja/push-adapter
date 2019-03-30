@@ -1,6 +1,6 @@
 package at.sbaresearch.mqtt4android.relay;
 
-import at.sbaresearch.mqtt4android.relay.jaas.JaasCertificateOnlyAuthPlugin;
+import at.sbaresearch.mqtt4android.relay.jaas.JaasCertOnlyOrSimpleAuthPlugin;
 import io.vavr.control.Option;
 import lombok.val;
 import org.apache.activemq.ActiveMQConnectionFactory;
@@ -77,8 +77,18 @@ public class MqttBrokerConfig {
   }
 
   @Bean
-  public JaasCertificateOnlyAuthPlugin jaasCertificateOnlyAuthPlugin() {
-    return new JaasCertificateOnlyAuthPlugin();
+  public JaasCertOnlyOrSimpleAuthPlugin jaasCertificateOnlyAuthPlugin() {
+    // TODO this is currently used for all authentication; replace with system access only
+    val simpleAuthPlugin = new SimpleAuthenticationPlugin();
+
+    // TODO better system user access required; generate password in memory on startup and set here?
+    simpleAuthPlugin.setUsers(List.of(
+        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TOPIC_WRITE_PRINCIPAL_GROUP)
+        // TODO fix credentials; using default creds for now with write perm
+        //, new AuthenticationUser("admin", "password", TOPIC_WRITE_PRINCIPAL_GROUP)
+    ));
+
+    return new JaasCertOnlyOrSimpleAuthPlugin(simpleAuthPlugin);
   }
 
   @Bean
@@ -90,7 +100,7 @@ public class MqttBrokerConfig {
   }
 
   @Bean
-  public BrokerService brokerService(JaasCertificateOnlyAuthPlugin certAuthPlugin, SslContext sslContext) throws Exception {
+  public BrokerService brokerService(JaasCertOnlyOrSimpleAuthPlugin certAuthPlugin, SslContext sslContext) throws Exception {
     BrokerService broker = new BrokerService();
     broker.setBrokerName(embeddedBrokerName);
     broker.setPersistent(false);
@@ -99,7 +109,7 @@ public class MqttBrokerConfig {
     broker.setSslContext(sslContext);
 
     // plugins must be added before connectors
-    addAuthenticationPlugin(broker);
+    addAuthenticationPlugin(broker, certAuthPlugin);
     addAuthorizationPlugin(broker);
 
 
@@ -109,18 +119,8 @@ public class MqttBrokerConfig {
     return broker;
   }
 
-  private void addAuthenticationPlugin(BrokerService broker) {
-    // TODO add certAuthPlugin; how to allow system user access?
-    //addPlugin(broker, certAuthPlugin);
-    val plugin = new SimpleAuthenticationPlugin();
-
-    // TODO better system user access required; generate password in memory on startup and set here?
-    plugin.setUsers(List.of(
-        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TOPIC_WRITE_PRINCIPAL_GROUP),
-        // TODO fix credentials; using default creds for now with write perm
-        new AuthenticationUser("admin", "password", TOPIC_WRITE_PRINCIPAL_GROUP)
-    ));
-    addPlugin(broker, plugin);
+  private void addAuthenticationPlugin(BrokerService broker, JaasCertOnlyOrSimpleAuthPlugin certAuthPlugin) {
+    addPlugin(broker, certAuthPlugin);
   }
 
   private void addAuthorizationPlugin(BrokerService broker) {
