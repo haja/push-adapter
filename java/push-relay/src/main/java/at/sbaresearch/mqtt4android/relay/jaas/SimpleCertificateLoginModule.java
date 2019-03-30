@@ -9,6 +9,8 @@ import java.util.Set;
 
 public class SimpleCertificateLoginModule extends CertificateLoginModule {
 
+  private static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
+
   @Override
   protected String getUserNameForCertificates(X509Certificate[] certs) throws LoginException {
     if (certs == null) {
@@ -20,6 +22,8 @@ public class SimpleCertificateLoginModule extends CertificateLoginModule {
 
   @Override
   protected Set<String> getUserGroups(String username) throws LoginException {
-    return Collections.singleton(username);
+    // TODO mocked group for now
+    return Collections.singleton(TOPIC_WRITE_PRINCIPAL_GROUP);
+    //return Collections.singleton(username);
   }
 }

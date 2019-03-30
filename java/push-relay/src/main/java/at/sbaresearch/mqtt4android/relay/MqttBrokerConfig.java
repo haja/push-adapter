@@ -88,6 +88,7 @@ public class MqttBrokerConfig {
         //, new AuthenticationUser("admin", "password", TOPIC_WRITE_PRINCIPAL_GROUP)
     ));
 
+    // TODO mocked group for now
     return new JaasCertOnlyOrSimpleAuthPlugin(simpleAuthPlugin);
   }
 
