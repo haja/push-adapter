@@ -34,6 +34,9 @@ public class RegistrationResource {
   public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req) {
     log.info("register app: {}", req);
 
+    // TODO mock with register device for now
+    deviceService.registerDevice();
+
     // TODO deviceID should be extracted from clientCert the adapter-backend got on device registration
     val deviceId = new DeviceId("1234foobar");
     val registrationData = mapFromRequest(req);

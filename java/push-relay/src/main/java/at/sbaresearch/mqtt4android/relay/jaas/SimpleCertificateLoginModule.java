@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class SimpleCertificateLoginModule extends CertificateLoginModule {
 
-  private static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
+  private static final String TOPIC_READ_PRINCIPAL_GROUP = "read-group";
 
   @Override
   protected String getUserNameForCertificates(X509Certificate[] certs) throws LoginException {
@@ -23,7 +23,7 @@ public class SimpleCertificateLoginModule extends CertificateLoginModule {
   @Override
   protected Set<String> getUserGroups(String username) throws LoginException {
     // TODO mocked group for now
-    return Collections.singleton(TOPIC_WRITE_PRINCIPAL_GROUP);
+    return Collections.singleton(TOPIC_READ_PRINCIPAL_GROUP);
     //return Collections.singleton(username);
   }
 }

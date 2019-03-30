@@ -4,13 +4,17 @@ import at.sbaresearch.mqtt4android.relay.jaas.JaasCertOnlyOrSimpleAuthPlugin;
 import io.vavr.control.Option;
 import lombok.val;
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.activemq.advisory.AdvisorySupport;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.SslContext;
 import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.filter.DestinationMap;
 import org.apache.activemq.jaas.GroupPrincipal;
-import org.apache.activemq.security.*;
+import org.apache.activemq.security.AuthenticationUser;
+import org.apache.activemq.security.AuthorizationPlugin;
+import org.apache.activemq.security.SimpleAuthenticationPlugin;
+import org.apache.activemq.security.SimpleAuthorizationMap;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -126,18 +130,46 @@ public class MqttBrokerConfig {
 
   private void addAuthorizationPlugin(BrokerService broker) {
     DestinationMap writeACLs = getTopicWriteACLs();
+    DestinationMap readACLs = getTopicReadACLs();
 
     // TODO fix ACLs
-    val topicAuthPlugin = new AuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, writeACLs, writeACLs));
+    val topicAuthPlugin = new AuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, readACLs, writeACLs));
     addPlugin(broker, topicAuthPlugin);
   }
 
   private DestinationMap getTopicWriteACLs() {
-    DestinationMap writeACLs = new DestinationMap();
-    writeACLs.put(
-        ActiveMQDestination.createDestination("topic://>", ActiveMQDestination.TOPIC_TYPE),
-        new GroupPrincipal(TOPIC_WRITE_PRINCIPAL_GROUP));
-    return writeACLs;
+    DestinationMap destinationMap = new DestinationMap();
+    putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
+
+    // TODO consumers need to write to advisory topics. disable this? how to handle this?
+    putTopic(destinationMap,
+        AdvisorySupport.TOPIC_CONSUMER_ADVISORY_TOPIC_PREFIX + "*",
+        TOPIC_READ_PRINCIPAL_GROUP);
+    return destinationMap;
+  }
+
+  private DestinationMap getTopicReadACLs() {
+    DestinationMap destinationMap = new DestinationMap();
+
+    // allow writer reading
+    putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
+
+    putTopic(destinationMap, "topic://foo", TOPIC_READ_PRINCIPAL_GROUP);
+    return destinationMap;
+  }
+
+  private void putTopic(DestinationMap destinationMap, String topic, String group) {
+    ActiveMQDestination destination = ActiveMQDestination.createDestination(
+        topic,
+        ActiveMQDestination.TOPIC_TYPE);
+    putDestination(destinationMap, destination, group);
+  }
+
+  private void putDestination(DestinationMap destinationMap, ActiveMQDestination destination,
+      String group) {
+    destinationMap.put(destination,
+        new GroupPrincipal(group)
+    );
   }
 
   private void addPlugin(BrokerService broker, BrokerPlugin brokerPlugin) {

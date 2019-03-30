@@ -1,6 +1,7 @@
 package at.sbaresearch.mqtt4android.registration;
 
 import at.sbaresearch.mqtt4android.relay.MqttBrokerConfig;
+import at.sbaresearch.mqtt4android.relay.PushService;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import lombok.AccessLevel;
@@ -17,6 +18,7 @@ import org.apache.activemq.command.ActiveMQTopic;
 public class DeviceService {
 
   String mqttHostname;
+  PushService pushService;
 
   public DeviceData registerDevice() {
     val cert = createClientCert();
@@ -29,8 +31,12 @@ public class DeviceService {
   private String createTopic(ClientCert cert) {
     val topicName = "foo";
     ActiveMQTopic topic = new ActiveMQTopic(topicName);
-    //  return clientCert + connection settings + topic
+
     // TODO create mqtt topic and authorize clientCert for this topic
+    //  for now, this creates the mocked topic
+    pushService.pushMessage("hello");
+
+    //  return clientCert + connection settings + topic
     return topicName;
   }
 

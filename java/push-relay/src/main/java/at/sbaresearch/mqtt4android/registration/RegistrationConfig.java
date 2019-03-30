@@ -1,5 +1,6 @@
 package at.sbaresearch.mqtt4android.registration;
 
+import at.sbaresearch.mqtt4android.relay.PushService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 public class RegistrationConfig {
 
   @Bean
-  public DeviceService deviceService(@Value("${mqtt.hostname}") String mqttHostname) {
-    return new DeviceService(mqttHostname);
+  public DeviceService deviceService(@Value("${mqtt.hostname}") String mqttHostname, PushService pushService) {
+    return new DeviceService(mqttHostname, pushService);
   }
 
 }
