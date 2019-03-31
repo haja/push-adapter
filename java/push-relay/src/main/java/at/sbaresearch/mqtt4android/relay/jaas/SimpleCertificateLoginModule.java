@@ -1,8 +1,8 @@
 package at.sbaresearch.mqtt4android.relay.jaas;
 
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.activemq.jaas.CertificateLoginModule;
-import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
@@ -13,6 +13,7 @@ import java.security.cert.X509Certificate;
 import java.util.Collections;
 import java.util.Set;
 
+@Slf4j
 public class SimpleCertificateLoginModule extends CertificateLoginModule {
 
   @Override
@@ -22,7 +23,9 @@ public class SimpleCertificateLoginModule extends CertificateLoginModule {
     }
     // TODO verify certificate against our trustStore? do we rely that the ssl cert must already be authenticated since we accepted the ssl connection?
     try {
-      return getCn(certs);
+      val username = getCn(certs);
+      log.info("got username: {}", username);
+      return username;
     } catch (CertificateEncodingException e) {
       throw new LoginException("cannot extract CN " + e.getMessage());
     }
@@ -40,6 +43,7 @@ public class SimpleCertificateLoginModule extends CertificateLoginModule {
 
   @Override
   protected Set<String> getUserGroups(String username) throws LoginException {
+    log.info("got userGroups for username: {}", username);
     return Collections.singleton(username);
   }
 }

@@ -19,4 +19,9 @@ public class PushService {
     log.info("pushing message: {}", msg);
     jmsTemplate.convertAndSend(MqttBrokerConfig.MQTT_MOCK_TOPIC, msg);
   }
+
+  public void pushToDummyTopic() {
+    log.info("pushing to dummy topic");
+    jmsTemplate.convertAndSend(MqttBrokerConfig.DUMMY_TOPIC, "foo");
+  }
 }

@@ -1,13 +1,11 @@
 package at.sbaresearch.mqtt4android.relay;
 
-import at.sbaresearch.mqtt4android.registration.crypto.ClientKeyFactory.ClientKeys;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
 import org.apache.activemq.advisory.AdvisorySupport;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.command.ActiveMQDestination;
-import org.apache.activemq.command.ActiveMQTopic;
 import org.apache.activemq.filter.DestinationMap;
 import org.apache.activemq.jaas.GroupPrincipal;
 import org.apache.activemq.security.AuthorizationPlugin;
@@ -31,11 +29,8 @@ public class TopicRegistry {
     val topicName = MqttBrokerConfig.MQTT_MOCK_TOPIC;
     wrapper.authorize(clientId, topicName);
 
-    // TODO create mqtt topic and authorize clientCert for this topic
-    //  for now, this creates the mocked topic
-    pushService.pushMessage("hello");
-
-    //  return clientCert + connection settings + topic
+    // TODO this ensures all advisory topics are created by the system user
+    pushService.pushToDummyTopic();
     return topicName;
   }
 
@@ -50,11 +45,13 @@ public class TopicRegistry {
     AuthorizationPlugin authorizationPlugin;
     DestinationMap readACLs;
     DestinationMap writeACLs;
+    DestinationMap adminACLs;
 
     private AuthorizationWrapper() {
-      readACLs = getTopicReadACLs();
-      writeACLs = getTopicWriteACLs();
-      authorizationPlugin = new AuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, readACLs, writeACLs));
+      readACLs = createTopicReadACLs();
+      writeACLs = createTopicWriteACLs();
+      adminACLs = createTopicAdminACLs();
+      authorizationPlugin = new AuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, readACLs, adminACLs));
     }
 
     public AuthorizationPlugin getAuthorizationPlugin() {
@@ -63,7 +60,10 @@ public class TopicRegistry {
 
     public void authorize(String clientId, String topic) {
       putTopic(readACLs, topic, clientId);
+      // TODO consumer needs to be able to "auto-create" the topic and advisory
+      putTopic(adminACLs, topic, clientId);
       // TODO consumers need to write to advisory topics. disable this? how to handle this?
+      putTopic(adminACLs, withAdvisory(topic), clientId);
       putTopic(writeACLs, withAdvisory(topic), clientId);
     }
 
@@ -71,13 +71,13 @@ public class TopicRegistry {
       return AdvisorySupport.TOPIC_CONSUMER_ADVISORY_TOPIC_PREFIX + topic;
     }
 
-    private DestinationMap getTopicWriteACLs() {
+    private DestinationMap createTopicWriteACLs() {
       DestinationMap destinationMap = new DestinationMap();
       putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
       return destinationMap;
     }
 
-    private DestinationMap getTopicReadACLs() {
+    private DestinationMap createTopicReadACLs() {
       DestinationMap destinationMap = new DestinationMap();
 
       // allow writer reading
@@ -85,6 +85,11 @@ public class TopicRegistry {
 
       return destinationMap;
     }
+
+    private DestinationMap createTopicAdminACLs() {
+      return createTopicWriteACLs();
+    }
+
 
     private void putTopic(DestinationMap destinationMap, String topic, String group) {
       ActiveMQDestination destination = ActiveMQDestination.createDestination(
