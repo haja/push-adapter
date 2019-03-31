@@ -30,13 +30,15 @@ public class SecurityConfig {
   }
 
   @Bean
-  public PrivateKey caKey(SslConfig ssl) throws Exception {
-    return (PrivateKey) keyStore(ssl).getKey(ssl.caKeyAlias, ssl.keyPassword.toCharArray());
+  public PrivateKey caKey(KeyStore keyStore, SslConfig ssl) throws Exception {
+    val pwd = ssl.keyStorePassword;
+    val pwdAsChar = pwd == null ? null : pwd.toCharArray();
+    return (PrivateKey) keyStore.getKey(ssl.caKeyAlias, pwdAsChar);
   }
 
   @Bean
-  public KeyManager[] keyManager(SslConfig ssl) {
-    return getKeyManagerFactory(ssl).getKeyManagers();
+  public KeyManager[] keyManager(KeyStore keyStore, SslConfig ssl) {
+    return getKeyManagerFactory(keyStore, ssl).getKeyManagers();
   }
 
   @Bean
@@ -44,9 +46,8 @@ public class SecurityConfig {
     return getTrustManagerFactory(ssl).getTrustManagers();
   }
 
-  private KeyManagerFactory getKeyManagerFactory(SslConfig ssl) {
+  private KeyManagerFactory getKeyManagerFactory(KeyStore keyStore, SslConfig ssl) {
     try {
-      KeyStore keyStore = keyStore(ssl);
       KeyManagerFactory keyManagerFactory = KeyManagerFactory
           .getInstance(KeyManagerFactory.getDefaultAlgorithm());
       char[] keyPassword = (ssl.getKeyPassword() != null)

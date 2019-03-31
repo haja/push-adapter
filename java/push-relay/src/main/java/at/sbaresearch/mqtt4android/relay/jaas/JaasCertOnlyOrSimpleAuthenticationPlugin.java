@@ -6,11 +6,11 @@ import org.apache.activemq.security.JaasCertificateAuthenticationPlugin;
 import org.apache.activemq.security.SimpleAuthenticationBroker;
 import org.apache.activemq.security.SimpleAuthenticationPlugin;
 
-public class JaasCertOnlyOrSimpleAuthPlugin extends JaasCertificateAuthenticationPlugin {
+public class JaasCertOnlyOrSimpleAuthenticationPlugin extends JaasCertificateAuthenticationPlugin {
 
   private SimpleAuthenticationPlugin simpleAuthPlugin;
 
-  public JaasCertOnlyOrSimpleAuthPlugin(SimpleAuthenticationPlugin simpleAuthPlugin) {
+  public JaasCertOnlyOrSimpleAuthenticationPlugin(SimpleAuthenticationPlugin simpleAuthPlugin) {
     super();
     this.simpleAuthPlugin = simpleAuthPlugin;
   }

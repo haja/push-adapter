@@ -1,20 +1,14 @@
 package at.sbaresearch.mqtt4android.relay;
 
-import at.sbaresearch.mqtt4android.relay.jaas.JaasCertOnlyOrSimpleAuthPlugin;
+import at.sbaresearch.mqtt4android.relay.jaas.JaasCertOnlyOrSimpleAuthenticationPlugin;
 import io.vavr.control.Option;
 import lombok.val;
 import org.apache.activemq.ActiveMQConnectionFactory;
-import org.apache.activemq.advisory.AdvisorySupport;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.SslContext;
-import org.apache.activemq.command.ActiveMQDestination;
-import org.apache.activemq.filter.DestinationMap;
-import org.apache.activemq.jaas.GroupPrincipal;
 import org.apache.activemq.security.AuthenticationUser;
-import org.apache.activemq.security.AuthorizationPlugin;
 import org.apache.activemq.security.SimpleAuthenticationPlugin;
-import org.apache.activemq.security.SimpleAuthorizationMap;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,8 +35,6 @@ public class MqttBrokerConfig {
 
   public static final String MQTT_MOCK_TOPIC = "foo";
   private static final String TOPIC_WRITE_USERNAME = "system";
-  private static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
-  private static final String TOPIC_READ_PRINCIPAL_GROUP = "read-group";
   private final String embeddedBrokerName = "embeddedManual";
   public static final String mqttPort = "61613";
   public static final String externalIp = "0.0.0.0";
@@ -81,31 +73,34 @@ public class MqttBrokerConfig {
   }
 
   @Bean
-  public JaasCertOnlyOrSimpleAuthPlugin jaasCertificateOnlyAuthPlugin() {
+  public SslContext sslContext(KeyManager[] keyManager, TrustManager[] trustManager) {
+    SslContext sslContext = new SslContext(keyManager, trustManager, new SecureRandom());
+    sslContext.setProtocol("TLSv1.2");
+    return sslContext;
+  }
+
+  @Bean
+  public JaasCertOnlyOrSimpleAuthenticationPlugin jaasCertificateOnlyAuthPlugin() {
     // TODO this is currently used for all authentication; replace with system access only
     val simpleAuthPlugin = new SimpleAuthenticationPlugin();
 
     // TODO better system user access required; generate password in memory on startup and set here?
     simpleAuthPlugin.setUsers(List.of(
-        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TOPIC_WRITE_PRINCIPAL_GROUP)
+        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TopicRegistry.TOPIC_WRITE_PRINCIPAL_GROUP)
         // TODO fix credentials; using default creds for now with write perm
         //, new AuthenticationUser("admin", "password", TOPIC_WRITE_PRINCIPAL_GROUP)
     ));
 
     // TODO mocked group for now
-    return new JaasCertOnlyOrSimpleAuthPlugin(simpleAuthPlugin);
+    return new JaasCertOnlyOrSimpleAuthenticationPlugin(simpleAuthPlugin);
   }
 
   @Bean
-  public SslContext sslContext(KeyManager[] keyManager, TrustManager[] trustManager) {
-    SslContext sslContext = new SslContext(keyManager, trustManager, new SecureRandom());
-    sslContext.setProtocol("TLSv1.2");
-    return sslContext;
-
-  }
-
-  @Bean
-  public BrokerService brokerService(JaasCertOnlyOrSimpleAuthPlugin certAuthPlugin, SslContext sslContext) throws Exception {
+  public BrokerService brokerService(
+      JaasCertOnlyOrSimpleAuthenticationPlugin certAuthenticationPlugin,
+      TopicRegistry topicRegistry,
+      SslContext sslContext)
+      throws Exception {
     BrokerService broker = new BrokerService();
     broker.setBrokerName(embeddedBrokerName);
     broker.setPersistent(false);
@@ -114,62 +109,13 @@ public class MqttBrokerConfig {
     broker.setSslContext(sslContext);
 
     // plugins must be added before connectors
-    addAuthenticationPlugin(broker, certAuthPlugin);
-    addAuthorizationPlugin(broker);
-
+    addPlugin(broker, certAuthenticationPlugin);
+    addPlugin(broker, topicRegistry.getAuthorizationPlugin());
 
     broker.addConnector("mqtt+ssl://" + externalIp + ":" + mqttPort
         + "?needClientAuth=true"
     );
     return broker;
-  }
-
-  private void addAuthenticationPlugin(BrokerService broker, JaasCertOnlyOrSimpleAuthPlugin certAuthPlugin) {
-    addPlugin(broker, certAuthPlugin);
-  }
-
-  private void addAuthorizationPlugin(BrokerService broker) {
-    DestinationMap writeACLs = getTopicWriteACLs();
-    DestinationMap readACLs = getTopicReadACLs();
-
-    // TODO fix ACLs
-    val topicAuthPlugin = new AuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, readACLs, writeACLs));
-    addPlugin(broker, topicAuthPlugin);
-  }
-
-  private DestinationMap getTopicWriteACLs() {
-    DestinationMap destinationMap = new DestinationMap();
-    putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
-
-    // TODO consumers need to write to advisory topics. disable this? how to handle this?
-    putTopic(destinationMap,
-        AdvisorySupport.TOPIC_CONSUMER_ADVISORY_TOPIC_PREFIX + "*",
-        TOPIC_READ_PRINCIPAL_GROUP);
-    return destinationMap;
-  }
-
-  private DestinationMap getTopicReadACLs() {
-    DestinationMap destinationMap = new DestinationMap();
-
-    // allow writer reading
-    putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
-
-    putTopic(destinationMap, "topic://foo", TOPIC_READ_PRINCIPAL_GROUP);
-    return destinationMap;
-  }
-
-  private void putTopic(DestinationMap destinationMap, String topic, String group) {
-    ActiveMQDestination destination = ActiveMQDestination.createDestination(
-        topic,
-        ActiveMQDestination.TOPIC_TYPE);
-    putDestination(destinationMap, destination, group);
-  }
-
-  private void putDestination(DestinationMap destinationMap, ActiveMQDestination destination,
-      String group) {
-    destinationMap.put(destination,
-        new GroupPrincipal(group)
-    );
   }
 
   private void addPlugin(BrokerService broker, BrokerPlugin brokerPlugin) {
