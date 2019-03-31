@@ -18,10 +18,21 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import java.net.URL;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 
 @Configuration
 @EnableConfigurationProperties(SslConfig.class)
 public class SecurityConfig {
+
+  @Bean
+  public KeyStore keyStore(SslConfig ssl) throws Exception {
+    return getKeyStore(ssl);
+  }
+
+  @Bean
+  public PrivateKey caKey(SslConfig ssl) throws Exception {
+    return (PrivateKey) keyStore(ssl).getKey(ssl.caKeyAlias, ssl.keyPassword.toCharArray());
+  }
 
   @Bean
   public KeyManager[] keyManager(SslConfig ssl) {
@@ -35,7 +46,7 @@ public class SecurityConfig {
 
   private KeyManagerFactory getKeyManagerFactory(SslConfig ssl) {
     try {
-      KeyStore keyStore = getKeyStore(ssl);
+      KeyStore keyStore = keyStore(ssl);
       KeyManagerFactory keyManagerFactory = KeyManagerFactory
           .getInstance(KeyManagerFactory.getDefaultAlgorithm());
       char[] keyPassword = (ssl.getKeyPassword() != null)
@@ -96,6 +107,7 @@ public class SecurityConfig {
     String keyStorePassword;
     String keyStoreProvider;
 
+    String caKeyAlias;
     String keyPassword;
 
     String trustStore;

@@ -21,9 +21,11 @@ public class RegistrationResource {
   RegistrationService registrationService;
   DeviceService deviceService;
 
+  // TODO exception handling
+
   // TODO are parameters needed at all?
   @PostMapping(path = "/device", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public DeviceData registerDevice(@RequestBody DeviceReqistrationRequest req) {
+  public DeviceData registerDevice(@RequestBody DeviceReqistrationRequest req) throws Exception {
     // TODO what data do we need from the client?
     return deviceService.registerDevice();
   }
@@ -31,7 +33,8 @@ public class RegistrationResource {
   // TODO get deviceId from client TLS cert. how to do this with spring?
   // TODO actually, this is registerApp; rename endpoint to "app" or so
   @PostMapping(path = "/new", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req) {
+  public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req)
+      throws Exception {
     log.info("register app: {}", req);
 
     // TODO mock with register device for now

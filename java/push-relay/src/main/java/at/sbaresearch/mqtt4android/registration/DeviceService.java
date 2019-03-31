@@ -1,5 +1,7 @@
 package at.sbaresearch.mqtt4android.registration;
 
+import at.sbaresearch.mqtt4android.registration.crypto.ClientKeyFactory.ClientKeys;
+import at.sbaresearch.mqtt4android.registration.crypto.ClientKeyFactory;
 import at.sbaresearch.mqtt4android.relay.MqttBrokerConfig;
 import at.sbaresearch.mqtt4android.relay.PushService;
 import io.vavr.Tuple;
@@ -19,16 +21,19 @@ public class DeviceService {
 
   String mqttHostname;
   PushService pushService;
+  ClientKeyFactory clientKeyFactory;
 
-  public DeviceData registerDevice() {
-    val cert = createClientCert();
+  public DeviceData registerDevice() throws Exception {
+    val clientId = "mockedClientId";
+    log.info("registering new device; clientId: {}", clientId);
     //  save clientCert ID / hash / whatever to associate with device
-    val topic = createTopic(cert);
+    val clientKeys = clientKeyFactory.createSignedKey(clientId);
+    val topic = createTopic(clientKeys);
     val mqttSettings = getMqttSettings();
-    return new DeviceData(cert, topic, mqttSettings);
+    return new DeviceData(clientKeys, topic, mqttSettings);
   }
 
-  private String createTopic(ClientCert cert) {
+  private String createTopic(ClientKeys cert) {
     val topicName = "foo";
     ActiveMQTopic topic = new ActiveMQTopic(topicName);
 
@@ -44,18 +49,12 @@ public class DeviceService {
     return Tuple.of(mqttHostname, MqttBrokerConfig.mqttPort);
   }
 
-  private ClientCert createClientCert() {
-    // TODO create clientCert
-    return new ClientCert();
-  }
 
   @Value
   public static class DeviceData {
-    ClientCert clientCert;
+    ClientKeys clientKeys;
     String mqttTopic;
     Tuple2 mqttConnection;
   }
 
-  private static class ClientCert {
-  }
 }

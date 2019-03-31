@@ -30,3 +30,4 @@ ssl:
   keyStorePassword: "ub1Uwei8"
   trustStore: "cert-stores/keystore_clients.jks"
   trustStorePassword: "ub1Uwei8"
+  caKeyAlias: "server"
