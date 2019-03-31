@@ -14,13 +14,10 @@ import org.apache.activemq.security.AuthorizationPlugin;
 import org.apache.activemq.security.SimpleAuthorizationMap;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-
 @Component
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class TopicRegistry {
   public static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
-  private static final String TOPIC_READ_PRINCIPAL_GROUP = "read-group";
 
   AuthorizationWrapper wrapper;
   PushService pushService;
@@ -30,9 +27,9 @@ public class TopicRegistry {
     wrapper = new AuthorizationWrapper();
   }
 
-  public String createTopic(ClientKeys cert) {
+  public String createTopic(String clientId) {
     val topicName = MqttBrokerConfig.MQTT_MOCK_TOPIC;
-    ActiveMQTopic topic = new ActiveMQTopic(topicName);
+    wrapper.authorize(clientId, topicName);
 
     // TODO create mqtt topic and authorize clientCert for this topic
     //  for now, this creates the mocked topic
@@ -51,26 +48,32 @@ public class TopicRegistry {
   private static class AuthorizationWrapper {
 
     AuthorizationPlugin authorizationPlugin;
+    DestinationMap readACLs;
+    DestinationMap writeACLs;
 
     private AuthorizationWrapper() {
-      // TODO fix ACLs
-      DestinationMap writeACLs = getTopicWriteACLs();
-      DestinationMap readACLs = getTopicReadACLs();
+      readACLs = getTopicReadACLs();
+      writeACLs = getTopicWriteACLs();
       authorizationPlugin = new AuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, readACLs, writeACLs));
     }
 
-    private AuthorizationPlugin getAuthorizationPlugin() {
+    public AuthorizationPlugin getAuthorizationPlugin() {
       return authorizationPlugin;
+    }
+
+    public void authorize(String clientId, String topic) {
+      putTopic(readACLs, topic, clientId);
+      // TODO consumers need to write to advisory topics. disable this? how to handle this?
+      putTopic(writeACLs, withAdvisory(topic), clientId);
+    }
+
+    private String withAdvisory(String topic) {
+      return AdvisorySupport.TOPIC_CONSUMER_ADVISORY_TOPIC_PREFIX + topic;
     }
 
     private DestinationMap getTopicWriteACLs() {
       DestinationMap destinationMap = new DestinationMap();
       putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
-
-      // TODO consumers need to write to advisory topics. disable this? how to handle this?
-      putTopic(destinationMap,
-          AdvisorySupport.TOPIC_CONSUMER_ADVISORY_TOPIC_PREFIX + "*",
-          TOPIC_READ_PRINCIPAL_GROUP);
       return destinationMap;
     }
 
@@ -80,7 +83,6 @@ public class TopicRegistry {
       // allow writer reading
       putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
 
-      putTopic(destinationMap, "topic://foo", TOPIC_READ_PRINCIPAL_GROUP);
       return destinationMap;
     }
 
