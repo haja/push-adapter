@@ -19,10 +19,7 @@ package at.sbaresearch.microg.adapter.backend.gms.gcm;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
-import at.sbaresearch.microg.adapter.backend.gms.checkin.LastCheckinInfo;
-import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
-import at.sbaresearch.microg.adapter.backend.gms.common.Utils;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.RegisterRequest2;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.RegisterResponse2;
 import lombok.val;
@@ -31,8 +28,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
-
-import java.io.IOException;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
@@ -47,31 +42,6 @@ public class PushRegisterManager {
         .addConverterFactory(JacksonConverterFactory.create())
         .build()
         .create(PushRegisterClient.class);
-  }
-
-  public static RegisterResponse unregister(Context context, String packageName,
-      String pkgSignature, String sender, String info) {
-    GcmDatabase database = new GcmDatabase(context);
-    RegisterResponse response = new RegisterResponse();
-    try {
-      response = new RegisterRequest()
-          .build(Utils.getBuild(context))
-          .sender(sender)
-          .info(info)
-          .checkin(LastCheckinInfo.read(context))
-          .app(packageName, pkgSignature)
-          .delete(true)
-          .getResponse();
-    } catch (IOException e) {
-      Log.w(TAG, e);
-    }
-    if (!packageName.equals(response.deleted)) {
-      database.noteAppRegistrationError(packageName, response.responseText);
-    } else {
-      database.noteAppUnregistered(packageName, pkgSignature);
-    }
-    database.close();
-    return response;
   }
 
   public interface BundleCallback {
@@ -96,24 +66,11 @@ public class PushRegisterManager {
 
     GcmDatabase.App app = database.getApp(request.app);
     GcmPrefs prefs = GcmPrefs.get(context);
-    if (!request.delete) {
-      // TODO implement complex app registration logic?
-//      if (!prefs.isEnabled() ||
-//          (app != null && !app.allowRegister) ||
-//          LastCheckinInfo.read(context).lastCheckin <= 0 ||
-//          (app == null && prefs.isConfirmNewApps())) {
-//        Bundle bundle = new Bundle();
-//        bundle.putString(EXTRA_ERROR, ERROR_SERVICE_NOT_AVAILABLE);
-//        callback.onResult(bundle);
-//        return;
-//      }
-    } else {
-      if (database.getRegistrationsByApp(request.app).isEmpty()) {
-        Bundle bundle = new Bundle();
-        bundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
-        callback.onResult(bundle);
-        return;
-      }
+    if (database.getRegistrationsByApp(request.app).isEmpty()) {
+      Bundle bundle = new Bundle();
+      bundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
+      callback.onResult(bundle);
+      return;
     }
 
     val registerCall = pushRegisterClient.register(RegisterRequest2.fromOldRequest(request));
@@ -158,11 +115,7 @@ public class PushRegisterManager {
 
   private static void handleSuccessResponse(GcmDatabase database, RegisterRequest request,
       RegisterResponse response, String requestId, Bundle resultBundle) {
-    if (!request.delete) {
-      handleRegisterResponse(database, request, response, requestId, resultBundle);
-    } else {
-      handleDeleteResponse(database, request, response, requestId, resultBundle);
-    }
+    handleRegisterResponse(database, request, response, requestId, resultBundle);
 
     if (response.retryAfter != null && !response.retryAfter.contains(":")) {
       resultBundle.putLong(EXTRA_RETRY_AFTER, Long.parseLong(response.retryAfter));
@@ -178,18 +131,6 @@ public class PushRegisterManager {
     } else {
       database.noteAppRegistered(request.app, request.appSignature, response.token);
       resultBundle.putString(EXTRA_REGISTRATION_ID, attachRequestId(response.token, requestId));
-    }
-  }
-
-  private static void handleDeleteResponse(GcmDatabase database, RegisterRequest request,
-      RegisterResponse response, String requestId, Bundle resultBundle) {
-    if (!request.app.equals(response.deleted) && !request.app.equals(response.token)) {
-      database.noteAppRegistrationError(request.app, response.responseText);
-      resultBundle
-          .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-    } else {
-      database.noteAppUnregistered(request.app, request.appSignature);
-      resultBundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
     }
   }
 

@@ -26,8 +26,6 @@ public class RegisterResponse {
   public String token;
   @ResponseHeader("Retry-After")
   public String retryAfter;
-  @ResponseField("deleted")
-  public String deleted;
   @ResponseStatusText
   public String responseText;
 
@@ -36,7 +34,6 @@ public class RegisterResponse {
     return "RegisterResponse{" +
         "token='" + token + '\'' +
         ", retryAfter='" + retryAfter + '\'' +
-        ", deleted='" + deleted + '\'' +
         '}';
   }
 }

@@ -26,6 +26,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.content.WakefulBroadcastReceiver;
+import android.util.Log;
 
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
 
@@ -47,6 +48,7 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  * accessing your service.
  */
 public class InstanceIDListenerService extends Service {
+  private static String TAG = "InstanceIDListenerSrv";
 
   private BroadcastReceiver registrationReceiver = new BroadcastReceiver() {
     @Override
@@ -68,6 +70,7 @@ public class InstanceIDListenerService extends Service {
 
   private void handleIntent(Intent intent) {
     // TODO
+    Log.w(TAG, "handleIntent: not implemented; action: " + intent.getAction());
   }
 
   public IBinder onBind(Intent intent) {

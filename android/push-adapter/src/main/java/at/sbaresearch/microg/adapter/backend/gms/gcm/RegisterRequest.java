@@ -56,8 +56,6 @@ public class RegisterRequest extends Request {
   public String sender;
   @RequestContent({"X-GOOG.USER_AID", "device"})
   public long androidId;
-  @RequestContent("delete")
-  public boolean delete;
   public long securityToken;
   public String deviceName;
   public String buildVersion;
@@ -128,15 +126,6 @@ public class RegisterRequest extends Request {
     deviceName = build.device;
     buildVersion = build.id;
     sdkVersion = build.sdk;
-    return this;
-  }
-
-  public RegisterRequest delete() {
-    return delete(true);
-  }
-
-  public RegisterRequest delete(boolean delete) {
-    this.delete = delete;
     return this;
   }
 

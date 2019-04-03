@@ -94,6 +94,7 @@ public final class GcmConstants {
 
   public static final String INSTANCE_ID_SCOPE_GCM = "GCM";
 
+  // TODO change this urls?
   public static final String GCMID_INSTANCE_ID = "google.com/iid";
   public static final String GCMID_REFRESH = "gcm.googleapis.com/refresh";
 }

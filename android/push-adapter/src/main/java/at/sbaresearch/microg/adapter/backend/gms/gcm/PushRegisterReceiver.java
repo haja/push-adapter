@@ -22,7 +22,6 @@ import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.ACTION_C2DM_REGISTER;
-import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.ACTION_C2DM_UNREGISTER;
 
 public class PushRegisterReceiver extends WakefulBroadcastReceiver {
   private static final String TAG = "GmsGcmRegisterRcv";
@@ -31,12 +30,10 @@ public class PushRegisterReceiver extends WakefulBroadcastReceiver {
   public void onReceive(Context context, Intent intent) {
     Log.d(TAG, "onReceive: " + intent);
     Intent intent2 = new Intent(context, PushRegisterService.class);
-    if (intent.getExtras().get("delete") != null) {
-      intent2.setAction(ACTION_C2DM_UNREGISTER);
-    } else {
-      intent2.setAction(ACTION_C2DM_REGISTER);
+    intent2.setAction(ACTION_C2DM_REGISTER);
+    if (intent.getExtras() != null ) {
+      intent2.putExtras(intent.getExtras());
     }
-    intent2.putExtras(intent.getExtras());
     startWakefulService(context, intent2);
   }
 }

@@ -1,9 +1,9 @@
 package at.sbaresearch.microg.adapter.backend.gms.gcm;
 
-import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.ResponseField;
-import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.ResponseHeader;
-import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.ResponseStatusText;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.val;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.http.Body;
@@ -36,7 +36,6 @@ public interface PushRegisterClient {
   @NoArgsConstructor
   class RegisterResponse2 {
     String token;
-    String deleted;
 
     public static RegisterResponse toOldResponse(Response<RegisterResponse2> resp) {
       val old = new RegisterResponse();
@@ -44,7 +43,6 @@ public interface PushRegisterClient {
 
       val body = resp.body();
       if (body != null) {
-        old.deleted = body.deleted;
         old.token = body.token;
         old.retryAfter = null; // TODO retryAfter not implemented
       }

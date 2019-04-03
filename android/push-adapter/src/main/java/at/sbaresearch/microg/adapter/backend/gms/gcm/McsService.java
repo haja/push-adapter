@@ -37,6 +37,7 @@ public class McsService extends Service {
     super.onDestroy();
   }
 
+  // TODO relay intents through here
   private void handleInput(int type, Message message) {
     try {
       switch (type) {

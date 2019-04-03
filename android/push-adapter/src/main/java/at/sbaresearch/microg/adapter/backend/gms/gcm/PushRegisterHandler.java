@@ -119,7 +119,6 @@ class PushRegisterHandler extends Handler {
     String packageName = data.getString("pkg");
     Bundle subdata = data.getBundle("data");
     String sender = subdata.getString("sender");
-    boolean delete = subdata.get("delete") != null;
 
     try {
       PackageUtils.checkPackageUid(context, packageName, callingUid);
@@ -139,7 +138,6 @@ class PushRegisterHandler extends Handler {
             // TODO is checkin needed?
             .checkin(LastCheckinInfo.read(context))
             .app(packageName)
-            .delete(delete)
             .appid(subdata.getString("appid"), subdata.getString("gmp_app_id")),
         bundle -> sendReply(what, id, replyTo, bundle));
   }

@@ -45,7 +45,7 @@ public class RegistrationResource {
     val registrationData = mapFromRequest(req);
     val token = registrationService.registerApp(deviceId, registrationData);
 
-    return new AppRegistrationResponse(token, null);
+    return new AppRegistrationResponse(token);
   }
 
   private AppRegistration mapFromRequest(AppRegistrationRequest req) {
@@ -81,7 +81,6 @@ public class RegistrationResource {
   private class AppRegistrationResponse {
     @NonNull
     String token;
-    String deleted;
   }
 
   @Value

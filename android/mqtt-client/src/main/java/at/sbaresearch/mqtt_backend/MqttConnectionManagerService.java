@@ -41,7 +41,7 @@ public class MqttConnectionManagerService extends Service {
   public void onCreate() {
     super.onCreate();
 
-    android.os.Debug.waitForDebugger();
+    //android.os.Debug.waitForDebugger();
 
     //TrustKit.initializeWithNetworkSecurityConfiguration(this);
     //SSLSocketFactory sslSocketFactory = TrustKit.getInstance().getSSLSocketFactory(hostname);

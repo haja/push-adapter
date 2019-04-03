@@ -6,14 +6,7 @@ import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging;
 import at.sbaresearch.microg.adapter.sample.BackendRestClient.AppRegistrationRequest;
 import lombok.AllArgsConstructor;
-import lombok.val;
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
-import okhttp3.logging.HttpLoggingInterceptor;
-import okhttp3.logging.HttpLoggingInterceptor.Level;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.IOException;
 
