@@ -1,8 +1,11 @@
 package at.sbaresearch.mqtt4android.registration.crypto;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.experimental.FieldDefaults;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import lombok.extern.slf4j.Slf4j;
+import lombok.val;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.RFC4519Style;
@@ -20,16 +23,19 @@ import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.bc.BcECContentSignerBuilder;
 import org.springframework.stereotype.Component;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
-import java.time.LocalDate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
+@Slf4j
 public class ClientKeyFactory {
 
   private static final String SECURITY_PROVIDER = "BC";
@@ -60,6 +66,10 @@ public class ClientKeyFactory {
     val caAlg = toBCstructure(caKey);
 
     val cert = sign(caAlg, subjectPubKey, clientId);
+
+    val certificate = (X509Certificate) CertificateFactory.getInstance("X.509")
+        .generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+    log.info("certificate sigAlgName: {}", certificate.getSigAlgName());
 
     return new ClientKeys(keypair.getPrivate(), cert.toASN1Structure());
   }

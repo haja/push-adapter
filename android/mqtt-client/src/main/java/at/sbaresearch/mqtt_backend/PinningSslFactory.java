@@ -57,6 +57,8 @@ public class PinningSslFactory {
     try (InputStream caInput = inputStream) {
       Certificate cert = cf.generateCertificate(caInput);
       Log.d(TAG, "getCertificate: " + ((X509Certificate) cert).getSubjectDN());
+      // TODO this returns null, which throws a NPE in org.conscrypt.KeyManagerImpl
+      Log.d(TAG, "getCertificate sigAlgName: " + ((X509Certificate) cert).getSigAlgName());
       return cert;
     }
   }
