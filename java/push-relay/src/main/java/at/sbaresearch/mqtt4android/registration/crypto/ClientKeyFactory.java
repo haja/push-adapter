@@ -40,7 +40,7 @@ public class ClientKeyFactory {
 
   private static final String SECURITY_PROVIDER = "BC";
   private static final String KEY_ALGORITHM = "EC";
-  private static final String SIGN_ALGORITHM = "SHA3-512WITHECDSA";
+  private static final String SIGN_ALGORITHM = "SHA256withECDSA";
   private static final int KEYSIZE = 384;
 
   private static final DefaultSignatureAlgorithmIdentifierFinder sigAlgFinder =
