@@ -79,26 +79,26 @@ public class RegisterRequest extends Request {
     gmsVersion = Constants.MAX_REFERENCE_VERSION;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest checkin(
+  public RegisterRequest checkin(
       LastCheckinInfo lastCheckinInfo) {
     androidId = lastCheckinInfo.androidId;
     securityToken = lastCheckinInfo.securityToken;
     return this;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest app(String app) {
+  public RegisterRequest app(String app) {
     this.app = app;
     return this;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest app(
+  public RegisterRequest app(
       String app, String appSignature) {
     this.app = app;
     this.appSignature = appSignature;
     return this;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest app(
+  public RegisterRequest app(
       String app, String appSignature, int appVersion, String appVersionName) {
     this.app = app;
     this.appSignature = appSignature;
@@ -107,35 +107,35 @@ public class RegisterRequest extends Request {
     return this;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest appid(
+  public RegisterRequest appid(
       String appid, String gmpAppId) {
     this.appId = appid;
     this.gmpAppId = gmpAppId;
     return this;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest info(String info) {
+  public RegisterRequest info(String info) {
     this.info = info;
     return this;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest sender(String sender) {
+  public RegisterRequest sender(String sender) {
     this.sender = sender;
     return this;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest build(Build build) {
+  public RegisterRequest build(Build build) {
     deviceName = build.device;
     buildVersion = build.id;
     sdkVersion = build.sdk;
     return this;
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest delete() {
+  public RegisterRequest delete() {
     return delete(true);
   }
 
-  public at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest delete(boolean delete) {
+  public RegisterRequest delete(boolean delete) {
     this.delete = delete;
     return this;
   }
