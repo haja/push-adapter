@@ -29,7 +29,7 @@ public class PushRegisterReceiver extends WakefulBroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {
     Log.d(TAG, "onReceive: " + intent);
-    Intent intent2 = new Intent(context, PushRegisterService.class);
+    Intent intent2 = new Intent(context, RegisterAppService.class);
     intent2.setAction(ACTION_C2DM_REGISTER);
     if (intent.getExtras() != null ) {
       intent2.putExtras(intent.getExtras());

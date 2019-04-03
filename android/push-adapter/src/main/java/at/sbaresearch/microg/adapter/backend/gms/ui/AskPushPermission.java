@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.TextView;
 import at.sbaresearch.microg.adapter.backend.R;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterService;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterAppService;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
@@ -63,7 +63,7 @@ public class AskPushPermission extends FragmentActivity {
           new Thread(new Runnable() {
             @Override
             public void run() {
-              PushRegisterService
+              RegisterAppService
                   .registerAndReply(AskPushPermission.this, database, intent, packageName,
                       requestId);
             }
@@ -77,7 +77,7 @@ public class AskPushPermission extends FragmentActivity {
           if (answered) return;
           database.noteAppKnown(packageName, false);
           answered = true;
-          PushRegisterService
+          RegisterAppService
               .replyNotAvailable(AskPushPermission.this, intent, packageName, requestId);
           finish();
         }
@@ -91,7 +91,7 @@ public class AskPushPermission extends FragmentActivity {
   protected void onStop() {
     super.onStop();
     if (!answered) {
-      PushRegisterService.replyNotAvailable(AskPushPermission.this, intent, packageName, requestId);
+      RegisterAppService.replyNotAvailable(AskPushPermission.this, intent, packageName, requestId);
       answered = true;
     }
     database.close();

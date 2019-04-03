@@ -56,6 +56,7 @@ class ReceiveCallback implements MqttCallback {
     intent.putExtra(API.id, payload.id);
     intent.putExtra(API.payload, payload.payload);
 
+    // TODO enforce some permission here? enforce package name here
     context.sendBroadcast(intent);
   }
 

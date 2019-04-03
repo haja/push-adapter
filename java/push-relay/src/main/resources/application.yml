@@ -23,7 +23,7 @@ spring:
       - "at.sbaresearch.mqtt4android=debug"
 
 mqtt:
-  hostname: "10.0.2.2"
+  hostname: "trigger.lan"
 
 ssl:
   keyStore: "cert-stores/keystore.jks"

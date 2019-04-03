@@ -25,20 +25,25 @@ public class RegistrationResource {
 
   // TODO are parameters needed at all?
   @PostMapping(path = "/device", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public DeviceData registerDevice(@RequestBody DeviceReqistrationRequest req) throws Exception {
+  public DeviceRegisterDto registerDevice(@RequestBody DeviceRegistrationRequest req) throws Exception {
     // TODO what data do we need from the client?
-    return deviceService.registerDevice();
+    return toDeviceRegisterDto(deviceService.registerDevice());
+  }
+
+  private DeviceRegisterDto toDeviceRegisterDto(DeviceData data) {
+    val conn = data.getMqttConnection();
+    val keys = data.getClientKeys();
+    return new DeviceRegisterDto(conn._1, conn._2,
+        data.getMqttTopic(),
+        keys.getEncodedPrivateKey(),
+        keys.getEncodedCert());
   }
 
   // TODO get deviceId from client TLS cert. how to do this with spring?
   // TODO actually, this is registerApp; rename endpoint to "app" or so
   @PostMapping(path = "/new", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req)
-      throws Exception {
+  public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req) {
     log.info("register app: {}", req);
-
-    // TODO mock with register device for now
-    deviceService.registerDevice();
 
     // TODO deviceID should be extracted from clientCert the adapter-backend got on device registration
     val deviceId = new DeviceId("1234foobar");
@@ -84,8 +89,20 @@ public class RegistrationResource {
   }
 
   @Value
-  public static class DeviceReqistrationRequest {
-
+  public static class DeviceRegistrationRequest {
+    String dummy;
   }
 
+  @Value
+  private class DeviceRegisterDto {
+    @NonNull
+    String host;
+    int port;
+    @NonNull
+    String mqttTopic;
+    @NonNull
+    byte[] encodedPrivateKey;
+    @NonNull
+    byte[] encodedCert;
+  }
 }

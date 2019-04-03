@@ -6,12 +6,9 @@ import at.sbaresearch.mqtt4android.relay.MqttBrokerConfig;
 import at.sbaresearch.mqtt4android.relay.TopicRegistry;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 
 @AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
@@ -29,10 +26,12 @@ public class DeviceService {
     val clientKeys = clientKeyFactory.createSignedKey(clientId);
     val topic = topicRegistry.createTopic(clientId);
     val mqttSettings = getMqttSettings();
-    return new DeviceData(clientKeys, topic, mqttSettings);
+    DeviceData deviceData = new DeviceData(clientKeys, topic, mqttSettings);
+    log.info("device data generated: {}", deviceData);
+    return deviceData;
   }
 
-  private Tuple2<String, String> getMqttSettings() {
+  private Tuple2<String, Integer> getMqttSettings() {
     return Tuple.of(mqttHostname, MqttBrokerConfig.mqttPort);
   }
 
@@ -41,7 +40,7 @@ public class DeviceService {
   public static class DeviceData {
     ClientKeys clientKeys;
     String mqttTopic;
-    Tuple2 mqttConnection;
+    Tuple2<String, Integer> mqttConnection;
   }
 
 }

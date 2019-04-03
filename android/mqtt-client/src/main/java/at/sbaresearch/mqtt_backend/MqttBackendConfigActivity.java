@@ -82,17 +82,6 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     }
   };
 
-  public void connect(final View view) {
-    // Snackbar.make(view, msg, Snackbar.LENGTH_INDEFINITE)
-        // .setAction("Action", null).show();
-    if (mqttBound) {
-      mqttConnectionManagerService.connect();
-    } else {
-      Snackbar.make(view, "cannot connect, service not bound", Snackbar.LENGTH_LONG)
-          .setAction("Action", null).show();
-    }
-
-  }
   public void disconnect(final View view) {
     if (mqttBound) {
       mqttConnectionManagerService.disconnect();

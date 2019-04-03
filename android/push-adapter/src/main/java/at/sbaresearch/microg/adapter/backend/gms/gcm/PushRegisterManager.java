@@ -19,9 +19,13 @@ package at.sbaresearch.microg.adapter.backend.gms.gcm;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import at.sbaresearch.microg.adapter.backend.MqttClientAdapter;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.RegisterRequest2;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.RegisterResponse2;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmPrefs.MqttSettings;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.AppRegisterRequest;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.AppRegisterResponse;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.DeviceRegisterRequest;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.DeviceRegisterResponse;
 import lombok.val;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -48,13 +52,40 @@ public class PushRegisterManager {
     void onResult(Bundle bundle);
   }
 
-  public static void completeRegisterRequest(Context context, GcmDatabase database,
-      RegisterRequest request, BundleCallback callback) {
-    completeRegisterRequest(context, database, null, request, callback);
+  public static void registerDevice(Context context) {
+    val registerCall =  pushRegisterClient.registerDevice(new DeviceRegisterRequest("foobar"));
+    registerCall.enqueue(new Callback<DeviceRegisterResponse>() {
+      @Override
+      public void onResponse(Call<DeviceRegisterResponse> call, Response<DeviceRegisterResponse> response) {
+        Log.i(TAG, "onDeviceRegResponse: " + response.code());
+        val resp = response.body();
+        if(resp == null) {
+          Log.w(TAG, "deviceResponse was null");
+          return;
+        }
+
+        val prefs = GcmPrefs.get(context);
+        val settings = fromRequest(resp.host, resp.port, resp.mqttTopic,
+            resp.encodedPrivateKey, resp.encodedCert);
+        prefs.setMqttSettings(settings);
+
+        MqttClientAdapter.ensureBackendConnection(context);
+      }
+
+      private MqttSettings fromRequest(String host, Integer port, String topic,
+          byte[] encodedPrivateKey, byte[] encodedCert) {
+        return new MqttSettings(host, port, topic, encodedPrivateKey, encodedCert);
+      }
+
+      @Override
+      public void onFailure(Call<DeviceRegisterResponse> call, Throwable e) {
+        Log.w(TAG, "onDeviceReg failed", e);
+      }
+    });
   }
 
   public static void completeRegisterRequest(Context context, final GcmDatabase database,
-      final String requestId, final RegisterRequest request, final BundleCallback callback) {
+      final RegisterRequest request, final BundleCallback callback) {
     if (request.app != null) {
       if (request.appSignature == null)
         request.appSignature = PackageUtils.firstSignatureDigest(context, request.app);
@@ -68,24 +99,24 @@ public class PushRegisterManager {
     GcmPrefs prefs = GcmPrefs.get(context);
     if (database.getRegistrationsByApp(request.app).isEmpty()) {
       Bundle bundle = new Bundle();
-      bundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, requestId));
+      bundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, null));
       callback.onResult(bundle);
       return;
     }
 
-    val registerCall = pushRegisterClient.register(RegisterRequest2.fromOldRequest(request));
-    registerCall.enqueue(new Callback<RegisterResponse2>() {
+    val registerCall = pushRegisterClient.registerApp(AppRegisterRequest.fromOldRequest(request));
+    registerCall.enqueue(new Callback<AppRegisterResponse>() {
       @Override
-      public void onResponse(Call<RegisterResponse2> call, Response<RegisterResponse2> response) {
-        val old = RegisterResponse2.toOldResponse(response);
+      public void onResponse(Call<AppRegisterResponse> call, Response<AppRegisterResponse> response) {
+        val old = AppRegisterResponse.toOldResponse(response);
         Log.i(TAG, "onResponse: " + response.code());
-        callback.onResult(handleResponse(database, request, old, requestId));
+        callback.onResult(handleResponse(database, request, old, null));
       }
 
       @Override
-      public void onFailure(Call<RegisterResponse2> call, Throwable e) {
+      public void onFailure(Call<AppRegisterResponse> call, Throwable e) {
         Log.w(TAG, e);
-        callback.onResult(handleResponse(database, request, e, requestId));
+        callback.onResult(handleResponse(database, request, e, null));
       }
     });
   }

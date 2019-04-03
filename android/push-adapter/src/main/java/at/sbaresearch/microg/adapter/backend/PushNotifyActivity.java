@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterManager;
 
 import java.util.Arrays;
 
@@ -27,15 +28,10 @@ public class PushNotifyActivity extends AppCompatActivity {
     setContentView(R.layout.activity_push_notify);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
+  }
 
-    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-    fab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-      }
-    });
-
+  public void registerDevice(View view) {
+    PushRegisterManager.registerDevice(this);
   }
 
   public void reqPermission(View view) {
@@ -91,20 +87,6 @@ public class PushNotifyActivity extends AppCompatActivity {
     }
 
     return super.onOptionsItemSelected(item);
-  }
-
-  /**
-   * TODO remove this method, call on other class
-   */
-  @Deprecated
-  public void sendIntent(View view) {
-    // TODO use micro-g implementation for relay of intents
-    Intent intent = new Intent(ACTION_C2DM_RECEIVE);
-    intent.putExtra(EXTRA_FROM, "testPushApp");
-    // TODO set package for application
-    String clientPackageName = "at.sbaresearch.microg.adapter.sample";
-    intent.setPackage(clientPackageName);
-    sendBroadcast(intent);
   }
 
 }

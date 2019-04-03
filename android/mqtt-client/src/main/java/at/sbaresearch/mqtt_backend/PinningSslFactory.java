@@ -1,13 +1,14 @@
 package at.sbaresearch.mqtt_backend;
 
 import android.content.Context;
+import android.support.v4.util.Preconditions;
 import android.util.Log;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.*;
@@ -15,7 +16,10 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.security.spec.*;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Objects;
 
 public class PinningSslFactory {
 
@@ -24,8 +28,9 @@ public class PinningSslFactory {
   private final TrustManagerFactory trustManagerFactory;
   private final KeyManagerFactory keyManagerFactory;
 
-  PinningSslFactory(Context applicationContext) throws Exception {
-    Certificate ca = getCertificate(applicationContext.getResources().openRawResource(R.raw.server));
+  PinningSslFactory(Context applicationContext, ConnectionSettings settings) throws Exception {
+    Certificate ca =
+        getCertificate(applicationContext.getResources().openRawResource(R.raw.server));
     KeyStore caKeyStore = from(ca, "ca");
 
     // Create a TrustManager that trusts the CAs in our KeyStore
@@ -33,23 +38,26 @@ public class PinningSslFactory {
     trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
     trustManagerFactory.init(caKeyStore);
 
-    // TODO load client key from memory
-    Key clientKey = getKey(applicationContext.getResources().openRawResource(R.raw.client_key));
-    Certificate[] clientCert = new Certificate[] {
-        getCertificate(applicationContext.getResources().openRawResource(R.raw.client_cert))
+    Key clientKey = getKey(settings.getPrivKey());
+    Certificate[] clientCert = new Certificate[]{
+        getCertificate(settings.getCert())
     };
     KeyStore clientStore = from(clientKey, "client", clientCert);
     keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
     keyManagerFactory.init(clientStore, null);
   }
 
+  private Certificate getCertificate(byte[] cert) throws CertificateException, IOException {
+    return getCertificate(new ByteArrayInputStream(cert));
+  }
+
   private Certificate getCertificate(final InputStream inputStream)
       throws CertificateException, IOException {
     CertificateFactory cf = CertificateFactory.getInstance("X.509");
     try (InputStream caInput = inputStream) {
-      Certificate ca = cf.generateCertificate(caInput);
-      Log.d(TAG, "getCertificate: ca=" + ((X509Certificate) ca).getSubjectDN());
-      return ca;
+      Certificate cert = cf.generateCertificate(caInput);
+      Log.d(TAG, "getCertificate: " + ((X509Certificate) cert).getSubjectDN());
+      return cert;
     }
   }
 
@@ -60,26 +68,17 @@ public class PinningSslFactory {
     return keyStore;
   }
 
-  private Key getKey(InputStream inputStream)
-      throws NoSuchAlgorithmException, IOException, InvalidKeySpecException {
+  private Key getKey(byte[] encodedKey)
+      throws NoSuchAlgorithmException, InvalidKeySpecException {
     KeyFactory kf = KeyFactory.getInstance("EC");
-    try (InputStream in = inputStream) {
-      byte[] bytes = toByteArray(in);
-      KeySpec spec = new PKCS8EncodedKeySpec(bytes);
-      return kf.generatePrivate(spec);
-    }
-  }
-
-  private byte[] toByteArray(InputStream in) throws IOException {
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    while (in.available() > 0) {
-      bos.write(in.read());
-    }
-    return bos.toByteArray();
+    KeySpec spec = new PKCS8EncodedKeySpec(encodedKey);
+    return kf.generatePrivate(spec);
   }
 
   private KeyStore from(Key key, String alias, Certificate[] chain)
       throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
+    Objects.requireNonNull(key, "key null");
+    Objects.requireNonNull(chain, "chain null");
     KeyStore keyStore = createKeyStore();
     keyStore.setKeyEntry(alias, key, null, chain);
     return keyStore;

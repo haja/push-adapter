@@ -43,6 +43,10 @@ dependencies {
 
     //compile 'com.datatheorem.android.trustkit:trustkit:1.1.0'
     implementation files('libs/trustkit-debug.aar')
+    
+    compileOnly "org.projectlombok:lombok:$project.lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$project.lombokVersion"
+
 
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'

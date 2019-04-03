@@ -129,7 +129,7 @@ class PushRegisterHandler extends Handler {
 
     // TODO: We should checkin and/or ask for permission here.
 
-    Log.d(TAG, "about to send register request");
+    Log.d(TAG, "about to send app register request");
     // TODO fix http requests
     PushRegisterManager.completeRegisterRequest(context, database,
         new RegisterRequest()

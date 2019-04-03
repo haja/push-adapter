@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Push Notifier</string>
+    <string name="app_name">Push Adapter</string>
     <string name="action_settings">Settings</string>
     <string name="permlab_send_push">send push notifications</string>
     <string name="permdesc_send_push">send push notifications description</string>

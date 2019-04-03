@@ -18,10 +18,13 @@ package at.sbaresearch.microg.adapter.backend.gms.gcm;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
+import android.util.Base64;
 import android.util.Log;
+import lombok.Value;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,6 +45,12 @@ public class GcmPrefs implements SharedPreferences.OnSharedPreferenceChangeListe
   public static final String PREF_LEARNT_MOBILE = "gcm_learnt_mobile";
   public static final String PREF_LEARNT_WIFI = "gcm_learnt_wifi";
   public static final String PREF_LEARNT_OTHER = "gcm_learnt_other";
+
+  public static final String PREF_MQTT_HOST = "mqtt_host";
+  public static final String PREF_MQTT_PORT = "mqtt_port";
+  public static final String PREF_MQTT_TOPIC = "mqtt_topic";
+  public static final String PREF_MQTT_KEY = "mqtt_key";
+  public static final String PREF_MQTT_CERT = "mqtt_cert";
 
   private static GcmPrefs INSTANCE;
 
@@ -218,5 +227,35 @@ public class GcmPrefs implements SharedPreferences.OnSharedPreferenceChangeListe
   public void clearLastPersistedId() {
     lastPersistedId = "";
     defaultPreferences.edit().putString(PREF_LAST_PERSISTENT_ID, lastPersistedId).apply();
+  }
+
+  public void setMqttSettings(MqttSettings settings) {
+    Editor editor = defaultPreferences.edit();
+    editor.putString(PREF_MQTT_HOST, settings.host);
+    editor.putInt(PREF_MQTT_PORT, settings.port);
+    editor.putString(PREF_MQTT_TOPIC, settings.topic);
+    editor.putString(PREF_MQTT_KEY, Base64.encodeToString(settings.privKey, Base64.NO_WRAP));
+    editor.putString(PREF_MQTT_CERT, Base64.encodeToString(settings.cert, Base64.NO_WRAP));
+    // we want to read them immediately after save
+    editor.commit();
+  }
+
+  public MqttSettings getMqttSettings() {
+    return new MqttSettings(
+        defaultPreferences.getString(PREF_MQTT_HOST, null),
+        defaultPreferences.getInt(PREF_MQTT_PORT, 0),
+        defaultPreferences.getString(PREF_MQTT_TOPIC, null),
+        Base64.decode(defaultPreferences.getString(PREF_MQTT_KEY, null), Base64.NO_WRAP),
+        Base64.decode(defaultPreferences.getString(PREF_MQTT_CERT, null), Base64.NO_WRAP)
+    );
+  }
+
+  @Value
+  public static class MqttSettings {
+    String host;
+    int port;
+    String topic;
+    byte[] privKey;
+    byte[] cert;
   }
 }

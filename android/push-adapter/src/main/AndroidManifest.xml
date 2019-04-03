@@ -89,7 +89,7 @@
         </service>
 
         <service
-            android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterService"
+            android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterAppService"
             android:permission="at.sbaresearch.android.c2dm.permission.RECEIVE">
             <intent-filter>
                 <action android:name="at.sbaresearch.android.c2dm.intent.REGISTER"/>
@@ -106,6 +106,7 @@
         </receiver>
 
         <service android:name=".gms.gcm.McsService"/>
+        <service android:name=".gms.gcm.RegisterDeviceService" />
 
         <receiver
             android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.SendReceiver"

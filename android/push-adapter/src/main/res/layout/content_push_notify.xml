@@ -12,7 +12,7 @@
     <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Hello World!"
+            android:text="Hi!"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -28,9 +28,9 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="send test intent"
-        android:onClick="sendIntent"
-        android:id="@+id/button_intent"
+        android:text="register device"
+        android:onClick="registerDevice"
+        android:id="@+id/button_register"
         app:layout_constraintTop_toBottomOf="@+id/button_req_perm" />
 
 </android.support.constraint.ConstraintLayout>

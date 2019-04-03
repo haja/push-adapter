@@ -37,7 +37,7 @@ public class MqttBrokerConfig {
   public static final String DUMMY_TOPIC = "dummy";
   private static final String TOPIC_WRITE_USERNAME = "system";
   private final String embeddedBrokerName = "embeddedManual";
-  public static final String mqttPort = "61613";
+  public static final int mqttPort = 61613;
   public static final String externalIp = "0.0.0.0";
 
   @Bean

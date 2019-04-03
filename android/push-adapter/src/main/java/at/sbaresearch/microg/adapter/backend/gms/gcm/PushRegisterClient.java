@@ -1,9 +1,6 @@
 package at.sbaresearch.microg.adapter.backend.gms.gcm;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.val;
+import lombok.*;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.http.Body;
@@ -13,12 +10,15 @@ public interface PushRegisterClient {
   String SERVICE_URL = "http://10.0.2.2:9876";
 
   @POST("registration/new")
-  Call<RegisterResponse2> register(@Body RegisterRequest2 request);
+  Call<AppRegisterResponse> registerApp(@Body AppRegisterRequest request);
+
+  @POST("registration/device")
+  Call<DeviceRegisterResponse> registerDevice(@Body DeviceRegisterRequest request);
 
   @Data
   @AllArgsConstructor
   @NoArgsConstructor
-  class RegisterRequest2 {
+  class AppRegisterRequest {
     String app;
     String cert;
     int appVer;
@@ -26,18 +26,18 @@ public interface PushRegisterClient {
     String info;
 
     // TODO use new requests only
-    public static RegisterRequest2 fromOldRequest(RegisterRequest old) {
-      return new RegisterRequest2(old.app, old.appSignature, old.appVersion, old.appVersionName,
+    public static AppRegisterRequest fromOldRequest(RegisterRequest old) {
+      return new AppRegisterRequest(old.app, old.appSignature, old.appVersion, old.appVersionName,
           old.info);
     }
   }
 
   @Data
   @NoArgsConstructor
-  class RegisterResponse2 {
+  class AppRegisterResponse {
     String token;
 
-    public static RegisterResponse toOldResponse(Response<RegisterResponse2> resp) {
+    public static RegisterResponse toOldResponse(Response<AppRegisterResponse> resp) {
       val old = new RegisterResponse();
       old.responseText = resp.message();
 
@@ -50,4 +50,26 @@ public interface PushRegisterClient {
     }
   }
 
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  class DeviceRegisterRequest {
+    String dummy = "dummy";
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  class DeviceRegisterResponse {
+    @NonNull
+    String host;
+    @NonNull
+    Integer port;
+    @NonNull
+    String mqttTopic;
+    @NonNull
+    byte[] encodedPrivateKey;
+    @NonNull
+    byte[] encodedCert;
+  }
 }

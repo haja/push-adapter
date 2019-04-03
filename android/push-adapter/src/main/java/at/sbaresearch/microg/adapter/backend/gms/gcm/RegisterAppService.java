@@ -35,14 +35,14 @@ import at.sbaresearch.microg.adapter.backend.gms.ui.AskPushPermission;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
-public class PushRegisterService extends IntentService {
-  private static final String TAG = "GmsGcmRegisterSvc";
+public class RegisterAppService extends IntentService {
+  private static final String TAG = "RegisterAppSvc";
   private static final String EXTRA_SKIP_TRY_CHECKIN = "skip_checkin";
 
   private GcmDatabase database;
   private static boolean requestPending = false;
 
-  public PushRegisterService() {
+  public RegisterAppService() {
     super(TAG);
     setIntentRedelivery(false);
   }
@@ -76,14 +76,14 @@ public class PushRegisterService extends IntentService {
 
     try {
       if (ACTION_C2DM_REGISTER.equals(intent.getAction())) {
-        register(intent, requestId);
+        registerApp(intent, requestId);
       }
     } catch (Exception e) {
       Log.w(TAG, e);
     }
   }
 
-  private void register(final Intent intent, String requestId) {
+  private void registerApp(final Intent intent, String requestId) {
     PendingIntent pendingIntent = intent.getParcelableExtra(EXTRA_APP);
     final String packageName = PackageUtils.packageFromPendingIntent(pendingIntent);
 
@@ -125,7 +125,8 @@ public class PushRegisterService extends IntentService {
           Intent outIntent = new Intent(ACTION_C2DM_REGISTRATION);
           outIntent.putExtras(bundle);
           Log.d(TAG, "register[res]: " + outIntent.toString() + " extras=" + outIntent.getExtras());
-          MqttClientAdapter.ensureBackendConnection(context);
+          // TODO is this needed?
+          //MqttClientAdapter.ensureBackendConnection(context);
           sendReply(context, intent, packageName, outIntent);
         });
   }

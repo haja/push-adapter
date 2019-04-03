@@ -10,19 +10,15 @@ import android.util.Log;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.*;
 
+import java.util.Objects;
 
 public class MqttConnectionManagerService extends Service {
 
-  private static final String TAG = "MqttConnectionManager";
+  private static final String TAG = "MqttConnectionMgrSrvc";
 
   private MqttAndroidClient mqttAndroidClient;
   // TODO receive connection details on connect intent
   private String clientId = "test1";
-  private final String hostname = "trigger.lan";
-  private final String server = "ssl://" + hostname + ":61613";
-  private String user = "admin";
-  private String pw = "password";
-  private String topic = "foo";
 
   private MqttCallback recvCallback;
 
@@ -30,10 +26,7 @@ public class MqttConnectionManagerService extends Service {
   private IBinder binder = new MqttConnectionBinder();
 
   public MqttConnectionManagerService() {
-
     mqttConnectOptions = new MqttConnectOptions();
-    mqttConnectOptions.setUserName(user);
-    mqttConnectOptions.setPassword(pw.toCharArray());
     mqttConnectOptions.setAutomaticReconnect(true);
   }
 
@@ -42,21 +35,13 @@ public class MqttConnectionManagerService extends Service {
     super.onCreate();
 
     //android.os.Debug.waitForDebugger();
-
-    //TrustKit.initializeWithNetworkSecurityConfiguration(this);
-    //SSLSocketFactory sslSocketFactory = TrustKit.getInstance().getSSLSocketFactory(hostname);
-    //mqttConnectOptions.setSocketFactory(sslSocketFactory);
-    try {
-      mqttConnectOptions.setSocketFactory(new PinningSslFactory(getApplicationContext()).getSocketFactory());
-    } catch (Exception e) {
-      Log.e(TAG, "onCreate: sslSocketFactorySetup failed", e);
-      throw new RuntimeException(e);
-    }
   }
 
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
-    this.connect();
+    Log.i(TAG, "onStartCommand: intent: " + intent);
+    ConnectionSettings s = ConnectionSettings.fromBundle(Objects.requireNonNull(intent.getExtras()));
+    this.connect(s);
     return START_STICKY;
   }
 
@@ -71,12 +56,14 @@ public class MqttConnectionManagerService extends Service {
     disconnect();
   }
 
-  public void connect() {
+  private void connect(ConnectionSettings sett) {
     Log.d(TAG, "connect called");
 
-    ensureClientExists();
+    setupSsl(sett);
+
+    ensureClientExists(sett);
     if (!this.mqttAndroidClient.isConnected()) {
-      Log.d(TAG, "connecting to " + this.server);
+      Log.d(TAG, "connecting to " + sett.getServerUrl());
 
       recvCallback = new ReceiveCallback(this);
       mqttAndroidClient.setCallback(recvCallback);
@@ -88,7 +75,7 @@ public class MqttConnectionManagerService extends Service {
           // Snackbar.make(view, "connection established", Snackbar.LENGTH_SHORT)
           // .setAction("Action", null).show();
           try {
-            mqttAndroidClient.subscribe(topic, 0);
+            mqttAndroidClient.subscribe(sett.getTopic(), 0);
           } catch (MqttException e) {
             String msgFail = "subscribe failed: " + e.getMessage();
             Log.e(TAG, msgFail);
@@ -112,9 +99,18 @@ public class MqttConnectionManagerService extends Service {
     }
   }
 
-  private void ensureClientExists() {
+  private void setupSsl(ConnectionSettings settings) {
+    try {
+      mqttConnectOptions.setSocketFactory(new PinningSslFactory(getApplicationContext(), settings).getSocketFactory());
+    } catch (Exception e) {
+      Log.e(TAG, "onCreate: sslSocketFactorySetup failed", e);
+      throw new RuntimeException(e);
+    }
+  }
+
+  private void ensureClientExists(ConnectionSettings sett) {
     if (mqttAndroidClient == null) {
-      mqttAndroidClient = new MqttAndroidClient(this, server, clientId);
+      mqttAndroidClient = new MqttAndroidClient(this, sett.getServerUrl(), clientId);
     }
   }
 
