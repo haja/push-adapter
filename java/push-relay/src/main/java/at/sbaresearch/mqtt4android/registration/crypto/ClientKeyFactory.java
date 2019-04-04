@@ -1,7 +1,7 @@
 package at.sbaresearch.mqtt4android.registration.crypto;
 
+import io.vavr.control.Option;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -21,19 +21,26 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.bc.BcECContentSignerBuilder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.vavr.API.*;
+
 @Component
-@AllArgsConstructor
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 public class ClientKeyFactory {
@@ -48,28 +55,33 @@ public class ClientKeyFactory {
   private static final DefaultDigestAlgorithmIdentifierFinder digAlgFinder =
       new DefaultDigestAlgorithmIdentifierFinder();
 
-  static {
-    X500NameBuilder builder = new X500NameBuilder(RFC4519Style.INSTANCE);
-    builder.addRDN(RFC4519Style.cn, "relay");
-    ISSUER = builder.build();
-  }
-  private static final X500Name ISSUER;
-
-  PrivateKey caKey;
+  AsymmetricKeyParameter caKey;
+  X509CertificateHolder caCert;
+  Option<File> keyPath;
 
   // TODO save and reload serial generator state
   AtomicInteger serialGenerator = new AtomicInteger(1);
 
+  public ClientKeyFactory(PrivateKey caKey, java.security.cert.Certificate caCert,
+      @Value("${ssl.writeKeysPath}") String keyPath)
+      throws IOException, CertificateEncodingException {
+    this.caKey = toBCstructure(caKey);
+    this.caCert = toBCstructure(caCert);
+
+    if (!StringUtils.isEmpty(keyPath)) {
+      this.keyPath = Some(new File(keyPath));
+    } else {
+      this.keyPath = None();
+    }
+  }
+
   public ClientKeys createSignedKey(String clientId) throws Exception {
     KeyPair keypair = generateKeyPair();
     val subjectPubKey = toBCstructure(keypair.getPublic());
-    val caAlg = toBCstructure(caKey);
 
-    val cert = sign(caAlg, subjectPubKey, clientId);
+    val cert = sign(subjectPubKey, clientId);
 
-    val certificate = (X509Certificate) CertificateFactory.getInstance("X.509")
-        .generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
-    log.info("certificate sigAlgName: {}", certificate.getSigAlgName());
+    debugWriteKeys(keypair, cert);
 
     return new ClientKeys(keypair.getPrivate(), cert.toASN1Structure());
   }
@@ -81,22 +93,13 @@ public class ClientKeyFactory {
     return keyGen.genKeyPair();
   }
 
-  private AsymmetricKeyParameter toBCstructure(PublicKey key) throws IOException {
-    return PublicKeyFactory.createKey(key.getEncoded());
-  }
-
-  private AsymmetricKeyParameter toBCstructure(PrivateKey key) throws IOException {
-    return PrivateKeyFactory.createKey(key.getEncoded());
-
-  }
-
-  // TODO pubkey and privKey are of same type, can we change this?
-  private X509CertificateHolder sign(AsymmetricKeyParameter caKey, AsymmetricKeyParameter pubKeyInfo,
+  private X509CertificateHolder sign(AsymmetricKeyParameter pubKeyInfo,
       String clientId)
       throws Exception {
 
     // TODO does this work?
 
+    // TODO this can be done in ctor
     AlgorithmIdentifier sigAlg = sigAlgFinder.find(SIGN_ALGORITHM);
     ContentSigner sigGen =
         new BcECContentSignerBuilder(sigAlg, digAlgFinder.find(sigAlg)).build(caKey);
@@ -104,7 +107,7 @@ public class ClientKeyFactory {
     Date startDate = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
     Date endDate = new Date(System.currentTimeMillis() + 365L * 24 * 60 * 60 * 1000);
     X509v3CertificateBuilder certGen = new BcX509v3CertificateBuilder(
-        ISSUER,
+        caCert,
         BigInteger.valueOf(serialGenerator.incrementAndGet()),
         startDate, endDate,
         toX500Name(clientId), pubKeyInfo);
@@ -112,10 +115,48 @@ public class ClientKeyFactory {
     return certGen.build(sigGen);
   }
 
+  /**
+   * write out keys and certificates of clients to allow ssl testing/debugging (e.g. with openssl s_client).
+   *
+   * enable this with config parameter.
+   */
+  private void debugWriteKeys(KeyPair keypair, X509CertificateHolder cert) {
+    keyPath.forEach(path -> {
+      log.warn("writing key+certificate to filesystem at {}", path);
+      val certPath = new File(path, "cert-" + serialGenerator.get());
+      try(val fos = new FileOutputStream(certPath)) {
+        val certificate = (X509Certificate) CertificateFactory.getInstance("X.509")
+            .generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+        fos.write(certificate.getEncoded());
+      } catch (IOException | CertificateException e) {
+        e.printStackTrace();
+      }
+      val keyPath = new File(path, "key-" + serialGenerator.get());
+      try(val fos = new FileOutputStream(keyPath)) {
+        fos.write(keypair.getPrivate().getEncoded());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    });
+  }
+
   private X500Name toX500Name(String clientId) {
     X500NameBuilder builder = new X500NameBuilder(RFC4519Style.INSTANCE);
     builder.addRDN(RFC4519Style.cn, clientId);
     return builder.build();
+  }
+
+  private AsymmetricKeyParameter toBCstructure(PublicKey key) throws IOException {
+    return PublicKeyFactory.createKey(key.getEncoded());
+  }
+
+  private AsymmetricKeyParameter toBCstructure(PrivateKey key) throws IOException {
+    return PrivateKeyFactory.createKey(key.getEncoded());
+  }
+
+  private X509CertificateHolder toBCstructure(java.security.cert.Certificate cert)
+      throws CertificateEncodingException, IOException {
+    return new X509CertificateHolder(cert.getEncoded());
   }
 
   @Getter

@@ -26,8 +26,12 @@ mqtt:
   hostname: "trigger.lan"
 
 ssl:
-  keyStore: "cert-stores/keystore.jks"
-  keyStorePassword: "ub1Uwei8"
-  trustStore: "cert-stores/keystore_clients.jks"
-  trustStorePassword: "ub1Uwei8"
-  caKeyAlias: "server"
+  keyStore: "cert-stores/keystore.p12"
+  keyStorePassword: "asdfff"
+  keyStoreType: "PKCS12"
+  trustStore: "cert-stores/castore.p12"
+  trustStorePassword: "asdfff"
+  trustStoreType: "PKCS12"
+  caKeyAlias: "ca"
+  # leave empty to disable this debugging feature; dir must exist
+  writeKeysPath:

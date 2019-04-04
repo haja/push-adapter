@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -19,31 +20,42 @@ import javax.net.ssl.TrustManagerFactory;
 import java.net.URL;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.cert.Certificate;
 
 @Configuration
 @EnableConfigurationProperties(SslConfig.class)
 public class SecurityConfig {
 
-  @Bean
+  @Bean(name = "keyStore")
   public KeyStore keyStore(SslConfig ssl) throws Exception {
     return getKeyStore(ssl);
   }
 
-  @Bean
-  public PrivateKey caKey(KeyStore keyStore, SslConfig ssl) throws Exception {
-    val pwd = ssl.keyStorePassword;
-    val pwdAsChar = pwd == null ? null : pwd.toCharArray();
-    return (PrivateKey) keyStore.getKey(ssl.caKeyAlias, pwdAsChar);
+  @Bean(name = "trustStore")
+  public KeyStore trustStore(SslConfig ssl) throws Exception {
+    return getTrustStore(ssl);
   }
 
   @Bean
-  public KeyManager[] keyManager(KeyStore keyStore, SslConfig ssl) {
+  public PrivateKey caKey(@Qualifier("trustStore") KeyStore trustStore, SslConfig ssl) throws Exception {
+    val pwd = ssl.trustStorePassword;
+    val pwdAsChar = pwd == null ? null : pwd.toCharArray();
+    return (PrivateKey) trustStore.getKey(ssl.caKeyAlias, pwdAsChar);
+  }
+
+  @Bean
+  public Certificate caCert(@Qualifier("trustStore") KeyStore trustStore, SslConfig ssl) throws Exception {
+    return trustStore.getCertificate(ssl.caKeyAlias);
+  }
+
+  @Bean
+  public KeyManager[] keyManager(@Qualifier("keyStore") KeyStore keyStore, SslConfig ssl) {
     return getKeyManagerFactory(keyStore, ssl).getKeyManagers();
   }
 
   @Bean
-  public TrustManager[] trustManager(SslConfig ssl) {
-    return getTrustManagerFactory(ssl).getTrustManagers();
+  public TrustManager[] trustManager(@Qualifier("trustStore") KeyStore trustStore) {
+    return getTrustManagerFactory(trustStore).getTrustManagers();
   }
 
   private KeyManagerFactory getKeyManagerFactory(KeyStore keyStore, SslConfig ssl) {
@@ -65,12 +77,11 @@ public class SecurityConfig {
   private KeyStore getKeyStore(SslConfig ssl)
       throws Exception {
     return loadKeyStore(ssl.getKeyStoreProvider(),
-        ssl.getKeyStore(), ssl.getKeyStorePassword());
+        ssl.getKeyStore(), ssl.getKeyStorePassword(), ssl.getKeyStoreType());
   }
 
-  private TrustManagerFactory getTrustManagerFactory(SslConfig ssl) {
+  private TrustManagerFactory getTrustManagerFactory(KeyStore store) {
     try {
-      KeyStore store = getTrustStore(ssl);
       TrustManagerFactory trustManagerFactory = TrustManagerFactory
           .getInstance(TrustManagerFactory.getDefaultAlgorithm());
       trustManagerFactory.init(store);
@@ -83,15 +94,14 @@ public class SecurityConfig {
   private KeyStore getTrustStore(SslConfig ssl)
       throws Exception {
     return loadKeyStore(ssl.getTrustStoreProvider(),
-        ssl.getTrustStore(), ssl.getTrustStorePassword());
+        ssl.getTrustStore(), ssl.getTrustStorePassword(), ssl.getTrustStoreType());
   }
 
-  private KeyStore loadKeyStore(String provider, String resource, String password)
+  private KeyStore loadKeyStore(String provider, String resource, String password, String type)
       throws Exception {
     if (resource == null) {
       throw new SecurityConfigException("keyStore resource is null");
     }
-    val type = "JKS";
     KeyStore store = (provider != null) ? KeyStore.getInstance(type, provider)
         : KeyStore.getInstance(type);
     URL url = ResourceUtils.getURL(resource);
@@ -107,6 +117,7 @@ public class SecurityConfig {
     String keyStore;
     String keyStorePassword;
     String keyStoreProvider;
+    String keyStoreType;
 
     String caKeyAlias;
     String keyPassword;
@@ -114,6 +125,7 @@ public class SecurityConfig {
     String trustStore;
     String trustStorePassword;
     String trustStoreProvider;
+    String trustStoreType;
   }
 
   private class SecurityConfigException extends RuntimeException {
