@@ -33,5 +33,6 @@ ssl:
   trustStorePassword: "asdfff"
   trustStoreType: "PKCS12"
   caKeyAlias: "ca"
-  # leave empty to disable this debugging feature; dir must exist
-  writeKeysPath:
+  debug:
+    # leave empty to disable this debugging feature; dir must exist
+    writeKeysPath:

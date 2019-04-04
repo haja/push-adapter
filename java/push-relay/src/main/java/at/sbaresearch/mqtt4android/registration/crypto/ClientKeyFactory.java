@@ -63,7 +63,7 @@ public class ClientKeyFactory {
   AtomicInteger serialGenerator = new AtomicInteger(1);
 
   public ClientKeyFactory(PrivateKey caKey, java.security.cert.Certificate caCert,
-      @Value("${ssl.writeKeysPath}") String keyPath)
+      @Value("${ssl.debug.writeKeysPath}") String keyPath)
       throws IOException, CertificateEncodingException {
     this.caKey = toBCstructure(caKey);
     this.caCert = toBCstructure(caCert);
