@@ -1,4 +1,4 @@
-package at.sbaresearch.mqtt4android;
+package at.sbaresearch.mqtt4android.jackson;
 
 public class TestPojo {
   private final String prop;

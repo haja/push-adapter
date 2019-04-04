@@ -9,6 +9,7 @@ import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.broker.SslContext;
 import org.apache.activemq.security.AuthenticationUser;
 import org.apache.activemq.security.SimpleAuthenticationPlugin;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.jms.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +38,6 @@ public class MqttBrokerConfig {
   public static final String DUMMY_TOPIC = "dummy";
   private static final String TOPIC_WRITE_USERNAME = "system";
   private final String embeddedBrokerName = "embeddedManual";
-  public static final int mqttPort = 61613;
   public static final String externalIp = "0.0.0.0";
 
   @Bean
@@ -94,6 +94,7 @@ public class MqttBrokerConfig {
 
   @Bean
   public BrokerService brokerService(
+      @Value("${mqtt.port}") int mqttPort,
       JaasCertOnlyOrSimpleAuthenticationPlugin certAuthenticationPlugin,
       TopicRegistry topicRegistry,
       SslContext sslContext)

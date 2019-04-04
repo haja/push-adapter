@@ -24,6 +24,7 @@ spring:
 
 mqtt:
   hostname: "trigger.lan"
+  port: 61613
 
 ssl:
   keyStore: "cert-stores/keystore.p12"

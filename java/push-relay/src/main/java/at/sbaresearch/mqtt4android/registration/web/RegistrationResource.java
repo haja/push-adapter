@@ -66,6 +66,7 @@ public class RegistrationResource {
   }
 
   @Value
+  @Builder(builderMethodName = "testWith")
   public static class AppRegistrationRequest {
     String app;
     String cert;
@@ -89,12 +90,13 @@ public class RegistrationResource {
   }
 
   @Value
+  @Builder(builderMethodName = "testWith")
   public static class DeviceRegistrationRequest {
     String dummy;
   }
 
   @Value
-  private class DeviceRegisterDto {
+  public static class DeviceRegisterDto {
     @NonNull
     String host;
     int port;

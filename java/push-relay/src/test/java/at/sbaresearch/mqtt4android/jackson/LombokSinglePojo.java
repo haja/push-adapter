@@ -1,4 +1,4 @@
-package at.sbaresearch.mqtt4android;
+package at.sbaresearch.mqtt4android.jackson;
 
 import lombok.Value;
 

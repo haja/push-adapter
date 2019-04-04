@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DeviceService {
 
   String mqttHostname;
+  int mqttPort;
   ClientKeyFactory clientKeyFactory;
   TopicRegistry topicRegistry;
 
@@ -32,7 +33,7 @@ public class DeviceService {
   }
 
   private Tuple2<String, Integer> getMqttSettings() {
-    return Tuple.of(mqttHostname, MqttBrokerConfig.mqttPort);
+    return Tuple.of(mqttHostname, mqttPort);
   }
 
 

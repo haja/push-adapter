@@ -11,9 +11,10 @@ public class RegistrationConfig {
 
   @Bean
   public DeviceService deviceService(@Value("${mqtt.hostname}") String mqttHostname,
+      @Value("${mqtt.port}") int mqttPort,
       ClientKeyFactory clientKeyFactory,
       TopicRegistry topicRegistry) {
-    return new DeviceService(mqttHostname, clientKeyFactory, topicRegistry);
+    return new DeviceService(mqttHostname, mqttPort, clientKeyFactory, topicRegistry);
   }
 
 }

@@ -1,4 +1,4 @@
-package at.sbaresearch.mqtt4android;
+package at.sbaresearch.mqtt4android.jackson;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
