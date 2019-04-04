@@ -1,5 +1,12 @@
 # Next steps for implementation
 
+TESTS: some integration test?
+    start relay backend with some application config.
+    use bishbosh as mqtt client.
+    do http calls from bash script, then subscribe with returned keys.
+    then http call from backend-sample to deliver message
+    assert if message gets delivered
+
 ## overall
 - handle device registration
 - generate client certs and mqtt-topic for client
