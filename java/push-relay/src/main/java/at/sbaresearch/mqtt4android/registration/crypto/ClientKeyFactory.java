@@ -20,6 +20,7 @@ import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcECContentSignerBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -55,18 +56,24 @@ public class ClientKeyFactory {
   private static final DefaultDigestAlgorithmIdentifierFinder digAlgFinder =
       new DefaultDigestAlgorithmIdentifierFinder();
 
-  AsymmetricKeyParameter caKey;
   X509CertificateHolder caCert;
   Option<File> keyPath;
+  ContentSigner contentSigner;
 
-  // TODO save and reload serial generator state
+  // TODO save and reload serial generator state from file?
   AtomicInteger serialGenerator = new AtomicInteger(1);
 
-  public ClientKeyFactory(PrivateKey caKey, java.security.cert.Certificate caCert,
-      @Value("${ssl.debug.writeKeysPath}") String keyPath)
-      throws IOException, CertificateEncodingException {
-    this.caKey = toBCstructure(caKey);
+  public ClientKeyFactory(
+      PrivateKey caKey, java.security.cert.Certificate caCert,
+      @Value("${ssl.debug.writeKeysPath}") String keyPath
+  )
+      throws IOException, CertificateEncodingException, OperatorCreationException {
+    AsymmetricKeyParameter caKey1 = toBCstructure(caKey);
     this.caCert = toBCstructure(caCert);
+
+    AlgorithmIdentifier sigAlg = sigAlgFinder.find(SIGN_ALGORITHM);
+    contentSigner = new BcECContentSignerBuilder(sigAlg, digAlgFinder.find(sigAlg))
+        .build(caKey1);
 
     if (!StringUtils.isEmpty(keyPath)) {
       this.keyPath = Some(new File(keyPath));
@@ -82,12 +89,10 @@ public class ClientKeyFactory {
     val cert = sign(subjectPubKey, clientId);
 
     debugWriteKeys(keypair, cert);
-
     return new ClientKeys(keypair.getPrivate(), cert.toASN1Structure());
   }
 
   private KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
-    // TODO do this with BC?
     val keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM, SECURITY_PROVIDER);
     keyGen.initialize(KEYSIZE, new SecureRandom());
     return keyGen.genKeyPair();
@@ -96,14 +101,6 @@ public class ClientKeyFactory {
   private X509CertificateHolder sign(AsymmetricKeyParameter pubKeyInfo,
       String clientId)
       throws Exception {
-
-    // TODO does this work?
-
-    // TODO this can be done in ctor
-    AlgorithmIdentifier sigAlg = sigAlgFinder.find(SIGN_ALGORITHM);
-    ContentSigner sigGen =
-        new BcECContentSignerBuilder(sigAlg, digAlgFinder.find(sigAlg)).build(caKey);
-
     Date startDate = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
     Date endDate = new Date(System.currentTimeMillis() + 365L * 24 * 60 * 60 * 1000);
     X509v3CertificateBuilder certGen = new BcX509v3CertificateBuilder(
@@ -111,20 +108,19 @@ public class ClientKeyFactory {
         BigInteger.valueOf(serialGenerator.incrementAndGet()),
         startDate, endDate,
         toX500Name(clientId), pubKeyInfo);
-
-    return certGen.build(sigGen);
+    return certGen.build(contentSigner);
   }
 
   /**
    * write out keys and certificates of clients to allow ssl testing/debugging (e.g. with openssl s_client).
-   *
+   * <p>
    * enable this with config parameter.
    */
   private void debugWriteKeys(KeyPair keypair, X509CertificateHolder cert) {
     keyPath.forEach(path -> {
       log.warn("writing key+certificate to filesystem at {}", path);
       val certPath = new File(path, "cert-" + serialGenerator.get());
-      try(val fos = new FileOutputStream(certPath)) {
+      try (val fos = new FileOutputStream(certPath)) {
         val certificate = (X509Certificate) CertificateFactory.getInstance("X.509")
             .generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
         fos.write(certificate.getEncoded());
@@ -132,7 +128,7 @@ public class ClientKeyFactory {
         e.printStackTrace();
       }
       val keyPath = new File(path, "key-" + serialGenerator.get());
-      try(val fos = new FileOutputStream(keyPath)) {
+      try (val fos = new FileOutputStream(keyPath)) {
         fos.write(keypair.getPrivate().getEncoded());
       } catch (IOException e) {
         e.printStackTrace();
