@@ -37,10 +37,15 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // TODO extract 'shared' path to parent build file
+    implementation fileTree(dir: '../../shared/libs', include: ['*.jar'])
+    // TODO or should we use a local maven repo? how to include it?
+    //implementation 'at.sbaresearch.mqtt4android:pinning-tls-lib:1.0-SNAPSHOT'
 
     api 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
     api 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
 
+    // TODO trustKit is not needed / should target high enough API level / implementing own pinning
     //compile 'com.datatheorem.android.trustkit:trustkit:1.1.0'
     implementation files('libs/trustkit-debug.aar')
 

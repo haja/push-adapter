@@ -1,8 +1,4 @@
-package at.sbaresearch.mqtt_backend;
-
-import android.content.Context;
-import android.support.v4.util.Preconditions;
-import android.util.Log;
+package at.sbaresearch.mqtt4android.pinning;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
@@ -15,22 +11,19 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Objects;
 
+// TODO how to annotate that this is "Public API"?
 public class PinningSslFactory {
-
-  private static final String TAG = "PinningSslFactory";
 
   private final TrustManagerFactory trustManagerFactory;
   private final KeyManagerFactory keyManagerFactory;
 
-  PinningSslFactory(Context applicationContext, ConnectionSettings settings) throws Exception {
-    Certificate ca =
-        getCertificate(applicationContext.getResources().openRawResource(R.raw.server));
+  public PinningSslFactory(ConnectionSettings settings, InputStream caStream) throws Exception {
+    Certificate ca = getCertificate(caStream);
     KeyStore caKeyStore = from(ca, "ca");
 
     // Create a TrustManager that trusts the CAs in our KeyStore
@@ -55,11 +48,7 @@ public class PinningSslFactory {
       throws CertificateException, IOException {
     CertificateFactory cf = CertificateFactory.getInstance("X.509");
     try (InputStream caInput = inputStream) {
-      Certificate cert = cf.generateCertificate(caInput);
-      Log.d(TAG, "getCertificate: " + ((X509Certificate) cert).getSubjectDN());
-      // TODO this returns null, which throws a NPE in org.conscrypt.KeyManagerImpl
-      Log.d(TAG, "getCertificate sigAlgName: " + ((X509Certificate) cert).getSigAlgName());
-      return cert;
+      return cf.generateCertificate(caInput);
     }
   }
 

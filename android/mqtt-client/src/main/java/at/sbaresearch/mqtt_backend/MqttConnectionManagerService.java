@@ -4,13 +4,18 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
+import at.sbaresearch.mqtt4android.pinning.ConnectionSettings;
+import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.*;
 
 import java.util.Objects;
+
+import static at.sbaresearch.mqtt_backend.API.*;
 
 public class MqttConnectionManagerService extends Service {
 
@@ -30,6 +35,16 @@ public class MqttConnectionManagerService extends Service {
     mqttConnectOptions.setAutomaticReconnect(true);
   }
 
+  static ConnectionSettings fromBundle(Bundle bundle) {
+    return new ConnectionSettings(
+        bundle.getString(INTENT_MQTT_CONNECT_HOST),
+        bundle.getInt(INTENT_MQTT_CONNECT_PORT),
+        bundle.getString(INTENT_MQTT_CONNECT_TOPIC),
+        bundle.getByteArray(INTENT_MQTT_CONNECT_CLIENT_KEY),
+        bundle.getByteArray(INTENT_MQTT_CONNECT_CLIENT_CERT)
+    );
+  }
+
   @Override
   public void onCreate() {
     super.onCreate();
@@ -40,7 +55,7 @@ public class MqttConnectionManagerService extends Service {
   @Override
   public int onStartCommand(Intent intent, int flags, int startId) {
     Log.i(TAG, "onStartCommand: intent: " + intent);
-    ConnectionSettings s = ConnectionSettings.fromBundle(Objects.requireNonNull(intent.getExtras()));
+    ConnectionSettings s = fromBundle(Objects.requireNonNull(intent.getExtras()));
     this.connect(s);
     return START_STICKY;
   }
@@ -101,7 +116,8 @@ public class MqttConnectionManagerService extends Service {
 
   private void setupSsl(ConnectionSettings settings) {
     try {
-      mqttConnectOptions.setSocketFactory(new PinningSslFactory(getApplicationContext(), settings).getSocketFactory());
+      mqttConnectOptions.setSocketFactory(new PinningSslFactory(settings,
+          getApplicationContext().getResources().openRawResource(R.raw.server)).getSocketFactory());
     } catch (Exception e) {
       Log.e(TAG, "onCreate: sslSocketFactorySetup failed", e);
       throw new RuntimeException(e);
