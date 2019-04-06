@@ -34,7 +34,6 @@ import java.util.List;
 @EnableJms
 public class MqttBrokerConfig {
 
-  public static final String MQTT_MOCK_TOPIC = "foo";
   public static final String DUMMY_TOPIC = "dummy";
   private static final String TOPIC_WRITE_USERNAME = "system";
   private final String embeddedBrokerName = "embeddedManual";

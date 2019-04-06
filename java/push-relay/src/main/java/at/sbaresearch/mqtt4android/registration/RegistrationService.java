@@ -1,9 +1,11 @@
 package at.sbaresearch.mqtt4android.registration;
 
+import at.sbaresearch.mqtt4android.common.SecureRngGenerator;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
+import lombok.val;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,14 +13,19 @@ import org.springframework.stereotype.Component;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class RegistrationService {
 
+  private static int TOKEN_LENGTH = 32;
+
   RegistrationStore registrationStore;
+  SecureRngGenerator rng;
 
   public String registerApp(DeviceId device, AppRegistration registration) {
-    // TODO mocked for now
-    // TODO legitimate client to receive notifications for this app
-    registrationStore.register();
+    // TODO verify app cert?
 
-    return "mockedRegToken";
+    val token = rng.randomString(TOKEN_LENGTH);
+    // TODO save app as well, so if re-registering old values for the same app can be dropped
+    registrationStore.register(token, device.id);
+
+    return token;
   }
 
   @Value

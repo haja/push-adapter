@@ -8,15 +8,19 @@ import at.sbaresearch.mqtt4android.registration.RegistrationService.DeviceId;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/registration")
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 @AllArgsConstructor
 public class RegistrationResource {
+
+  public static final String REGISTRATION_DEVICE = "/registration/device";
+  public static final String REGISTRATION_APP = "/registration/new";
 
   RegistrationService registrationService;
   DeviceService deviceService;
@@ -24,7 +28,7 @@ public class RegistrationResource {
   // TODO exception handling
 
   // TODO are parameters needed at all?
-  @PostMapping(path = "/device", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  @PostMapping(path = REGISTRATION_DEVICE, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public DeviceRegisterDto registerDevice(@RequestBody DeviceRegistrationRequest req) throws Exception {
     // TODO what data do we need from the client?
     return toDeviceRegisterDto(deviceService.registerDevice());
@@ -41,16 +45,20 @@ public class RegistrationResource {
 
   // TODO get deviceId from client TLS cert. how to do this with spring?
   // TODO actually, this is registerApp; rename endpoint to "app" or so
-  @PostMapping(path = "/new", consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
-  public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req) {
-    log.info("register app: {}", req);
+  @PostMapping(path = REGISTRATION_APP, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
+  public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req,
+      @AuthenticationPrincipal User user) {
+    log.info("register app: {} for user: {}", req, user);
 
-    // TODO deviceID should be extracted from clientCert the adapter-backend got on device registration
-    val deviceId = new DeviceId("1234foobar");
+    val deviceId = toDeviceId(user);
     val registrationData = mapFromRequest(req);
     val token = registrationService.registerApp(deviceId, registrationData);
 
     return new AppRegistrationResponse(token);
+  }
+
+  private DeviceId toDeviceId(User user) {
+    return new DeviceId(user.getName());
   }
 
   private AppRegistration mapFromRequest(AppRegistrationRequest req) {

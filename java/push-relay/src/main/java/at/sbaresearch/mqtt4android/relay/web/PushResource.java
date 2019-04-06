@@ -8,11 +8,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/push")
+@RequestMapping(PushResource.PUSH)
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 @AllArgsConstructor
 public class PushResource {
+
+  public static final String PUSH = "/push";
 
   PushService pushService;
 
@@ -20,7 +22,6 @@ public class PushResource {
   public void sendMessage(@PathVariable String registrationId, @RequestBody String message) {
     log.info("*** push message {} for registrationId {} received", message, registrationId);
 
-    // TODO get device
-    pushService.pushMessage(message);
+    pushService.pushMessage(registrationId, message);
   }
 }

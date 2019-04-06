@@ -20,7 +20,7 @@ public class AppRegistrationTest extends AppTest {
     val reg = resource.registerDevice(deviceReq().build());
 
     // TODO request app registration through HTTPS with client cert
-    resource.registerApp(appReq().build());
+    //resource.registerApp(appReq().build());
     fail("not implemented");
   }
 

@@ -12,6 +12,7 @@ import org.fusesource.mqtt.client.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -60,10 +61,10 @@ public class DeviceRegistrationTest extends AppTest {
     val settings = toSettings(reg);
 
     withConnection(setupClient(reg, settings), connection -> {
-      await(connection.connect());
       subscribe(connection, settings);
 
-      val appResp = registrationResource.registerApp(appReq().build());
+      val mockUser = registrationToUser(reg);
+      val appResp = registrationResource.registerApp(appReq().build(), mockUser);
 
       String messageContent = "some push content";
       pushResource.sendMessage(appResp.getToken(), messageContent);
@@ -74,9 +75,17 @@ public class DeviceRegistrationTest extends AppTest {
     });
   }
 
+  private User registrationToUser(DeviceRegisterDto reg) {
+    // TODO go through spring security?
+    val usr = new User();
+    usr.setName(reg.getMqttTopic());
+    return usr;
+  }
+
   private void withConnection(final MQTT client, CheckedConsumer<FutureConnection> withConnection)
       throws Throwable {
     val connection = client.futureConnection();
+    connection.connect().await(2L, TimeUnit.SECONDS);
     try {
       withConnection.accept(connection);
     } finally {
@@ -116,6 +125,6 @@ public class DeviceRegistrationTest extends AppTest {
   }
 
   private <T> T await(final Future<T> future) throws Exception {
-    return future.await(2L, TimeUnit.SECONDS);
+    return future.await(500L, TimeUnit.MILLISECONDS);
   }
 }
