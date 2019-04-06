@@ -22,18 +22,40 @@ spring:
       - ".=info"
       - "at.sbaresearch.mqtt4android=debug"
 
+server:
+  port: 9876
+  ssl:
+    # must be the same values as for ssl.*
+    key-store: "cert-stores/keystore.p12"
+    key-store-password: "asdfff"
+    key-password: "asdfff"
+    key-store-type: "PKCS12"
+    trust-store: "cert-stores/truststore.p12"
+    trust-store-password: "asdfff"
+    trust-store-type: "PKCS12"
+    key-alias: "server"
+    # client-auth: want
+
 mqtt:
   hostname: "trigger.lan"
   port: 61613
 
 ssl:
-  keyStore: "cert-stores/keystore.p12"
-  keyStorePassword: "asdfff"
-  keyStoreType: "PKCS12"
-  trustStore: "cert-stores/castore.p12"
-  trustStorePassword: "asdfff"
-  trustStoreType: "PKCS12"
+  key:
+    store: "cert-stores/keystore.p12"
+    storePassword: "asdfff"
+    storeType: "PKCS12"
+
+  trust:
+    store: "cert-stores/truststore.p12"
+    storePassword: "asdfff"
+    storeType: "PKCS12"
+
   caKeyAlias: "ca"
+  ca:
+    store: "cert-stores/castore.p12"
+    storePassword: "asdfff"
+    storeType: "PKCS12"
   debug:
     # leave empty to disable this debugging feature; dir must exist
     writeKeysPath:

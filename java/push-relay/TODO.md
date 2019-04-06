@@ -22,8 +22,8 @@ write script to do the following:
 - generate server CA
 - generate server key
 - setup server keystore with server key
-- setup server truststore with server CA (to trust this CA)
+- setup server truststore with server CA cert only (to trust this CA); tomcat requires that the keystore entry is a certificate ONLY (without key)
+- setup server castore with server CA keys (to generate client keys)
 - setup mqtt-client truststore to trust server key or CA
 
-furthermore, mqtt-client needs to use client keys properly (WIP)
 

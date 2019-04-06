@@ -7,6 +7,7 @@ import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.DeviceR
 import at.sbaresearch.mqtt4android.relay.web.PushResource;
 import io.vavr.CheckedConsumer;
 import lombok.val;
+import org.assertj.core.api.SoftAssertions;
 import org.fusesource.mqtt.client.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,10 +42,15 @@ public class DeviceRegistrationTest extends AppTest {
   }
 
   @Test
-  public void testRegistrationTwice_shouldReturnDifferentTopic() throws Exception {
+  public void testRegistrationTwice_shouldReturnDifferentTopicAndCredentials() throws Exception {
     val reg = registrationResource.registerDevice(deviceReq().build());
     val reg2 = registrationResource.registerDevice(deviceReq().build());
-    assertThat(reg.getMqttTopic()).isNotEqualToIgnoringCase(reg2.getMqttTopic());
+
+    SoftAssertions.assertSoftly(softly -> {
+      softly.assertThat(reg.getMqttTopic()).isNotEqualToIgnoringCase(reg2.getMqttTopic());
+      softly.assertThat(reg.getEncodedCert()).isNotEqualTo(reg2.getEncodedCert());
+      softly.assertThat(reg.getEncodedPrivateKey()).isNotEqualTo(reg2.getEncodedPrivateKey());
+    });
   }
 
   // TODO this test depends on our external hostname as configured in application-it.yml

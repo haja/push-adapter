@@ -28,24 +28,29 @@ public class SecurityConfig {
 
   @Bean(name = "keyStore")
   public KeyStore keyStore(SslConfig ssl) throws Exception {
-    return getKeyStore(ssl);
+    return getStore(ssl.key);
   }
 
   @Bean(name = "trustStore")
   public KeyStore trustStore(SslConfig ssl) throws Exception {
-    return getTrustStore(ssl);
+    return getStore(ssl.trust);
+  }
+
+  @Bean(name = "caStore")
+  public KeyStore caStore(SslConfig ssl) throws Exception {
+    return getStore(ssl.ca);
   }
 
   @Bean
-  public PrivateKey caKey(@Qualifier("trustStore") KeyStore trustStore, SslConfig ssl) throws Exception {
-    val pwd = ssl.trustStorePassword;
+  public PrivateKey caKey(@Qualifier("caStore") KeyStore caStore, SslConfig ssl) throws Exception {
+    val pwd = ssl.ca.storePassword;
     val pwdAsChar = pwd == null ? null : pwd.toCharArray();
-    return (PrivateKey) trustStore.getKey(ssl.caKeyAlias, pwdAsChar);
+    return (PrivateKey) caStore.getKey(ssl.caKeyAlias, pwdAsChar);
   }
 
   @Bean(name = "caCert")
-  public Certificate caCert(@Qualifier("trustStore") KeyStore trustStore, SslConfig ssl) throws Exception {
-    return trustStore.getCertificate(ssl.caKeyAlias);
+  public Certificate caCert(@Qualifier("caStore") KeyStore caStore, SslConfig ssl) throws Exception {
+    return caStore.getCertificate(ssl.caKeyAlias);
   }
 
   @Bean
@@ -64,20 +69,14 @@ public class SecurityConfig {
           .getInstance(KeyManagerFactory.getDefaultAlgorithm());
       char[] keyPassword = (ssl.getKeyPassword() != null)
           ? ssl.getKeyPassword().toCharArray() : null;
-      if (keyPassword == null && ssl.getKeyStorePassword() != null) {
-        keyPassword = ssl.getKeyStorePassword().toCharArray();
+      if (keyPassword == null && ssl.key.getStorePassword() != null) {
+        keyPassword = ssl.key.getStorePassword().toCharArray();
       }
       keyManagerFactory.init(keyStore, keyPassword);
       return keyManagerFactory;
     } catch (Exception ex) {
       throw new SecurityConfigException(ex);
     }
-  }
-
-  private KeyStore getKeyStore(SslConfig ssl)
-      throws Exception {
-    return loadKeyStore(ssl.getKeyStoreProvider(),
-        ssl.getKeyStore(), ssl.getKeyStorePassword(), ssl.getKeyStoreType());
   }
 
   private TrustManagerFactory getTrustManagerFactory(KeyStore store) {
@@ -91,10 +90,9 @@ public class SecurityConfig {
     }
   }
 
-  private KeyStore getTrustStore(SslConfig ssl)
-      throws Exception {
-    return loadKeyStore(ssl.getTrustStoreProvider(),
-        ssl.getTrustStore(), ssl.getTrustStorePassword(), ssl.getTrustStoreType());
+  private KeyStore getStore(StoreConfig cfg) throws Exception {
+    return loadKeyStore(cfg.getStoreProvider(),
+        cfg.getStore(), cfg.getStorePassword(), cfg.getStoreType());
   }
 
   private KeyStore loadKeyStore(String provider, String resource, String password, String type)
@@ -114,19 +112,24 @@ public class SecurityConfig {
   @Setter
   @FieldDefaults(level = AccessLevel.PRIVATE)
   public static class SslConfig {
-    String keyStore;
-    String keyStorePassword;
-    String keyStoreProvider;
-    String keyStoreType;
+    StoreConfig key;
     String serverCertAlias;
-
-    String caKeyAlias;
     String keyPassword;
 
-    String trustStore;
-    String trustStorePassword;
-    String trustStoreProvider;
-    String trustStoreType;
+    StoreConfig trust;
+
+    StoreConfig ca;
+    String caKeyAlias;
+  }
+
+  @Getter
+  @Setter
+  @FieldDefaults(level = AccessLevel.PRIVATE)
+  public static class StoreConfig {
+    String store;
+    String storePassword;
+    String storeProvider;
+    String storeType;
   }
 
   private class SecurityConfigException extends RuntimeException {

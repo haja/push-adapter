@@ -26,12 +26,12 @@ public class TopicRegistry {
   }
 
   public String createTopic(String clientId) {
-    val topicName = MqttBrokerConfig.MQTT_MOCK_TOPIC;
-    wrapper.authorize(clientId, topicName);
+    // TODO see comment about topic name on wrapper.authorize
+    wrapper.authorize(clientId, clientId);
 
     // TODO this ensures all advisory topics are created by the system user
     pushService.pushToDummyTopic();
-    return topicName;
+    return clientId;
   }
 
   public BrokerPlugin getAuthorizationPlugin() {
@@ -58,6 +58,13 @@ public class TopicRegistry {
       return authorizationPlugin;
     }
 
+    // TODO here we hold state that must be persisted across server restarts.
+    //  maybe we can do better; instead of explicit auth map:
+    //  hashing clientId and some info private to the server (ca key?)
+    //  or sign the clientId with our ca and verify this here
+    //  OR:
+    //  why must clientId and topic be different? we control clientId anyways.
+    //  just verify that clientId matches topicName. clientId is extracted from cert
     public void authorize(String clientId, String topic) {
       putTopic(readACLs, topic, clientId);
       // TODO consumer needs to be able to "auto-create" the topic and advisory
