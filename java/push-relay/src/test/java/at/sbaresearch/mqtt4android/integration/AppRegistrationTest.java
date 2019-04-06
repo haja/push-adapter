@@ -16,6 +16,7 @@ public class AppRegistrationTest extends AppTest {
 
   @Test
   public void testAppRegistration_shouldSucceed() throws Exception {
+    // TODO setup registered device
     val reg = resource.registerDevice(deviceReq().build());
 
     // TODO request app registration through HTTPS with client cert

@@ -1,0 +1,16 @@
+mqtt:
+  hostname: "trigger.lan"
+  port: 61613
+
+ssl:
+  keyStore: "classpath:cert-it/keystore.p12"
+  keyStorePassword: "asdfff"
+  keyStoreType: "PKCS12"
+  serverCertAlias: "server"
+  trustStore: "classpath:cert-it/castore.p12"
+  trustStorePassword: "asdfff"
+  trustStoreType: "PKCS12"
+  caKeyAlias: "ca"
+  debug:
+    # leave empty to disable this debugging feature; dir must exist
+    writeKeysPath:

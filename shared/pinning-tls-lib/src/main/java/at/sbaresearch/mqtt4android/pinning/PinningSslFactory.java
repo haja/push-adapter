@@ -1,5 +1,10 @@
 package at.sbaresearch.mqtt4android.pinning;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.experimental.FieldDefaults;
+import lombok.val;
+
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -16,28 +21,33 @@ import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Objects;
 
-// TODO how to annotate that this is "Public API"?
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class PinningSslFactory {
 
-  private final TrustManagerFactory trustManagerFactory;
-  private final KeyManagerFactory keyManagerFactory;
+  @Getter
+  SSLContext sslContext;
 
   public PinningSslFactory(ConnectionSettings settings, InputStream caStream) throws Exception {
-    Certificate ca = getCertificate(caStream);
-    KeyStore caKeyStore = from(ca, "ca");
+    val ca = getCertificate(caStream);
+    val caKeyStore = from(ca, "ca");
 
     // Create a TrustManager that trusts the CAs in our KeyStore
-    String tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-    trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
+    val tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+    val trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
     trustManagerFactory.init(caKeyStore);
 
-    Key clientKey = getKey(settings.getPrivKey());
+    val clientKey = getKey(settings.getPrivKey());
     Certificate[] clientCert = new Certificate[]{
         getCertificate(settings.getCert())
     };
-    KeyStore clientStore = from(clientKey, "client", clientCert);
-    keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+    val clientStore = from(clientKey, "client", clientCert);
+    val keyManagerFactory =
+        KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
     keyManagerFactory.init(clientStore, null);
+
+    // TODO do we need to expose sslContext for java relay tests?
+    sslContext = SSLContext.getInstance("TLS");
+    sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
   }
 
   private Certificate getCertificate(byte[] cert) throws CertificateException, IOException {
@@ -77,15 +87,13 @@ public class PinningSslFactory {
 
   private KeyStore createKeyStore()
       throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
-    String keyStoreType = KeyStore.getDefaultType();
-    KeyStore keyStore = KeyStore.getInstance(keyStoreType);
+    val keyStoreType = KeyStore.getDefaultType();
+    val keyStore = KeyStore.getInstance(keyStoreType);
     keyStore.load(null, null);
     return keyStore;
   }
 
   public SocketFactory getSocketFactory() throws Exception {
-    SSLContext context = SSLContext.getInstance("TLS");
-    context.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
-    return context.getSocketFactory();
+    return sslContext.getSocketFactory();
   }
 }

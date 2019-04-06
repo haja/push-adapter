@@ -43,7 +43,7 @@ public class SecurityConfig {
     return (PrivateKey) trustStore.getKey(ssl.caKeyAlias, pwdAsChar);
   }
 
-  @Bean
+  @Bean(name = "caCert")
   public Certificate caCert(@Qualifier("trustStore") KeyStore trustStore, SslConfig ssl) throws Exception {
     return trustStore.getCertificate(ssl.caKeyAlias);
   }
@@ -118,6 +118,7 @@ public class SecurityConfig {
     String keyStorePassword;
     String keyStoreProvider;
     String keyStoreType;
+    String serverCertAlias;
 
     String caKeyAlias;
     String keyPassword;

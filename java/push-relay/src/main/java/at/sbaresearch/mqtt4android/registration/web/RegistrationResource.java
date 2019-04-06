@@ -84,7 +84,7 @@ public class RegistrationResource {
 
   // TODO this should be a static class
   @Value
-  private class AppRegistrationResponse {
+  public class AppRegistrationResponse {
     @NonNull
     String token;
   }
