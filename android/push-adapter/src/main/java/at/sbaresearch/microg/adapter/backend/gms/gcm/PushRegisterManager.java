@@ -26,7 +26,9 @@ import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.AppRegis
 import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.AppRegisterResponse;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.DeviceRegisterRequest;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.DeviceRegisterResponse;
+import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
 import lombok.val;
+import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -41,9 +43,16 @@ public class PushRegisterManager {
   private static PushRegisterClient pushRegisterClient;
 
   static {
+    // TODO normal okhttp pinning does not work with self signed certs
+    val factory = new PinningSslFactory()
+    val client = new OkHttpClient.Builder()
+        // TODO set socket factory
+        .sslSocketFactory()
+        .build();
     pushRegisterClient = new Retrofit.Builder()
         .baseUrl(PushRegisterClient.SERVICE_URL)
         .addConverterFactory(JacksonConverterFactory.create())
+        .client(client)
         .build()
         .create(PushRegisterClient.class);
   }

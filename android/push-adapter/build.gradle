@@ -36,6 +36,11 @@ dependencies {
     implementation "com.squareup.retrofit2:retrofit:$project.retrofitVersion"
     implementation "com.squareup.retrofit2:converter-jackson:$project.retrofitVersion"
     implementation "com.squareup.okhttp3:logging-interceptor:$project.retrofitLoggingVersion"
+    
+    // TODO extract 'shared' path to parent build file
+    implementation fileTree(dir: '../../shared/libs', include: ['*.jar'])
+    // TODO or should we use a local maven repo? how to include it?
+    //implementation 'at.sbaresearch.mqtt4android:pinning-tls-lib:1.0-SNAPSHOT'
 
     compileOnly "org.projectlombok:lombok:$project.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$project.lombokVersion"

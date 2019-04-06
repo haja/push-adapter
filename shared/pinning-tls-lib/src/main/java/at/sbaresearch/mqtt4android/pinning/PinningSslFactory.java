@@ -6,9 +6,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.val;
 
 import javax.net.SocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.*;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,16 +24,27 @@ public class PinningSslFactory {
 
   @Getter
   SSLContext sslContext;
+  @Getter
+  TrustManager[] trustManagers;
 
   public PinningSslFactory(ConnectionSettings settings, InputStream caStream) throws Exception {
-    val ca = getCertificate(caStream);
-    val caKeyStore = from(ca, "ca");
+    trustManagers = setupTrust(caStream);
+    val keyManager = setupClientKeys(settings);
 
-    // Create a TrustManager that trusts the CAs in our KeyStore
-    val tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-    val trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
-    trustManagerFactory.init(caKeyStore);
+    sslContext = SSLContext.getInstance("TLS");
+    sslContext.init(keyManager, trustManagers, null);
+  }
 
+  public PinningSslFactory(InputStream caStream) throws Exception {
+    trustManagers = setupTrust(caStream);
+
+    sslContext = SSLContext.getInstance("TLS");
+    sslContext.init(null, trustManagers, null);
+  }
+
+  private KeyManager[] setupClientKeys(ConnectionSettings settings)
+      throws NoSuchAlgorithmException, InvalidKeySpecException, CertificateException, IOException,
+             KeyStoreException, UnrecoverableKeyException {
     val clientKey = getKey(settings.getPrivKey());
     Certificate[] clientCert = new Certificate[]{
         getCertificate(settings.getCert())
@@ -44,10 +53,21 @@ public class PinningSslFactory {
     val keyManagerFactory =
         KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
     keyManagerFactory.init(clientStore, null);
+    return keyManagerFactory.getKeyManagers();
+  }
 
-    // TODO do we need to expose sslContext for java relay tests?
-    sslContext = SSLContext.getInstance("TLS");
-    sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+  private TrustManager[] setupTrust(InputStream caStream)
+      throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
+    TrustManager[] trustManagers;
+    val ca = getCertificate(caStream);
+    val caKeyStore = from(ca, "ca");
+
+    // Create a TrustManager that trusts the CAs in our KeyStore
+    val tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
+    val trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
+    trustManagerFactory.init(caKeyStore);
+    trustManagers = trustManagerFactory.getTrustManagers();
+    return trustManagers;
   }
 
   private Certificate getCertificate(byte[] cert) throws CertificateException, IOException {

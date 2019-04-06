@@ -18,10 +18,10 @@ public class PushResource {
 
   PushService pushService;
 
-  @RequestMapping(value = "/{registrationId}", method = RequestMethod.POST)
-  public void sendMessage(@PathVariable String registrationId, @RequestBody String message) {
-    log.info("*** push message {} for registrationId {} received", message, registrationId);
+  @RequestMapping(value = "/{token}", method = RequestMethod.POST)
+  public void sendMessage(@PathVariable String token, @RequestBody String message) {
+    log.info("*** push message {} for token {} received", message, token);
 
-    pushService.pushMessage(registrationId, message);
+    pushService.pushMessage(token, message);
   }
 }
