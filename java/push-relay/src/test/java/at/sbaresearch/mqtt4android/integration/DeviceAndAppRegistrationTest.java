@@ -20,6 +20,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static at.sbaresearch.mqtt4android.registration.RegistrationTestHelper.appReq;
 import static at.sbaresearch.mqtt4android.registration.RegistrationTestHelper.deviceReq;
@@ -57,18 +58,22 @@ public class DeviceAndAppRegistrationTest extends AppTest {
 
   @Test
   public void testDeviceReg_wrongTopic_shouldFail() throws Throwable {
-    val reg = registrationResource.registerDevice(deviceReq().build());
+    val origianlReg = registrationResource.registerDevice(deviceReq().build());
 
-    val modifiedReg = reg.toBuilder().mqttTopic(reg.getMqttTopic() + "X")
+    val modifiedReg = origianlReg.toBuilder().mqttTopic(origianlReg.getMqttTopic() + "X")
         .build();
     withConnection(setupClient(modifiedReg), connection -> {
 
-      val future = connection.subscribe(new Topic[]{
-          new Topic(modifiedReg.getMqttTopic(), QoS.AT_LEAST_ONCE)
-      });
-      future.await();
-      // TODO this does fail on the server, but client is not informed about this
-      System.out.println(future);
+      // this does fail on the server, but client is not informed about this
+      subscribe(connection, modifiedReg.getMqttTopic());
+
+      val mockUser = registrationToUser(origianlReg);
+      val appResp = registrationResource.registerApp(appReq().build(), mockUser);
+      String msg = "should not be received";
+      pushResource.sendMessage(appResp.getToken(), msg);
+
+      // we wait for a timeout here
+      assertThatThrownBy(() -> await(connection.receive())).isInstanceOf(TimeoutException.class);
     });
   }
 
