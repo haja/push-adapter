@@ -103,6 +103,7 @@ public class RegistrationResource {
     String dummy;
   }
 
+  @Builder(builderMethodName = "testWith", toBuilder = true)
   @Value
   public static class DeviceRegisterDto {
     @NonNull

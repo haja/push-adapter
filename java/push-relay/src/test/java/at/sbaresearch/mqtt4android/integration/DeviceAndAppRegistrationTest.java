@@ -55,6 +55,23 @@ public class DeviceAndAppRegistrationTest extends AppTest {
     });
   }
 
+  @Test
+  public void testDeviceReg_wrongTopic_shouldFail() throws Throwable {
+    val reg = registrationResource.registerDevice(deviceReq().build());
+
+    val modifiedReg = reg.toBuilder().mqttTopic(reg.getMqttTopic() + "X")
+        .build();
+    withConnection(setupClient(modifiedReg), connection -> {
+
+      val future = connection.subscribe(new Topic[]{
+          new Topic(modifiedReg.getMqttTopic(), QoS.AT_LEAST_ONCE)
+      });
+      future.await();
+      // TODO this does fail on the server, but client is not informed about this
+      System.out.println(future);
+    });
+  }
+
   private User registrationToUser(DeviceRegisterDto reg) {
     return new User(reg.getMqttTopic(), "", Collections.emptyList());
   }
