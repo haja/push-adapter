@@ -1,4 +1,4 @@
-package at.sbaresearch.mqtt4android.integration;
+package at.sbaresearch.mqtt4android.registration;
 
 import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.AppRegistrationRequest;
 import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.AppRegistrationRequest.AppRegistrationRequestBuilder;

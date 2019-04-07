@@ -1,4 +1,4 @@
-package at.sbaresearch.mqtt4android.integration;
+package at.sbaresearch.mqtt4android;
 
 import at.sbaresearch.mqtt4android.SecurityConfig.SslConfig;
 import org.springframework.beans.factory.annotation.Qualifier;

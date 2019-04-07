@@ -8,7 +8,6 @@ import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.DeviceR
 import at.sbaresearch.mqtt4android.relay.web.PushResource;
 import io.vavr.CheckedConsumer;
 import lombok.val;
-import org.assertj.core.api.SoftAssertions;
 import org.fusesource.mqtt.client.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,11 @@ import java.security.cert.CertificateEncodingException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import static at.sbaresearch.mqtt4android.integration.RegistrationTestHelper.appReq;
-import static at.sbaresearch.mqtt4android.integration.RegistrationTestHelper.deviceReq;
+import static at.sbaresearch.mqtt4android.registration.RegistrationTestHelper.appReq;
+import static at.sbaresearch.mqtt4android.registration.RegistrationTestHelper.deviceReq;
 import static org.assertj.core.api.Assertions.*;
 
-public class DeviceRegistrationTest extends AppTest {
+public class DeviceAndAppRegistrationTest extends AppTest {
 
   @Autowired
   RegistrationResource registrationResource;
@@ -38,27 +37,7 @@ public class DeviceRegistrationTest extends AppTest {
   Certificate serverCert;
 
   @Test
-  public void testRegistration_shouldBeNotNull() throws Exception {
-    val reg = registrationResource.registerDevice(deviceReq().build());
-    assertThat(reg).isNotNull();
-    assertThat(reg).hasNoNullFieldsOrProperties();
-  }
-
-  @Test
-  public void testRegistrationTwice_shouldReturnDifferentTopicAndCredentials() throws Exception {
-    val reg = registrationResource.registerDevice(deviceReq().build());
-    val reg2 = registrationResource.registerDevice(deviceReq().build());
-
-    SoftAssertions.assertSoftly(softly -> {
-      softly.assertThat(reg.getMqttTopic()).isNotEqualToIgnoringCase(reg2.getMqttTopic());
-      softly.assertThat(reg.getEncodedCert()).isNotEqualTo(reg2.getEncodedCert());
-      softly.assertThat(reg.getEncodedPrivateKey()).isNotEqualTo(reg2.getEncodedPrivateKey());
-    });
-  }
-
-  // TODO this test depends on our external hostname as configured in application-it.yml
-  @Test
-  public void testRegistration_shouldConnectThroughTls() throws Throwable {
+  public void testDeviceAndAppRegistration_shouldReceiveMsg() throws Throwable {
     val reg = registrationResource.registerDevice(deviceReq().build());
 
     withConnection(setupClient(reg), connection -> {
