@@ -1,14 +1,13 @@
 package at.sbaresearch.mqtt4android.relay;
 
+import at.sbaresearch.mqtt4android.relay.mqtt.CustomAuthorizationPlugin;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import lombok.val;
 import org.apache.activemq.advisory.AdvisorySupport;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.filter.DestinationMap;
 import org.apache.activemq.jaas.GroupPrincipal;
-import org.apache.activemq.security.AuthorizationPlugin;
 import org.apache.activemq.security.SimpleAuthorizationMap;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +15,7 @@ import org.springframework.stereotype.Component;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class TopicRegistry {
   public static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
+  public static final String TOPIC_READ_PRINCIPAL_GROUP = "client-group";
 
   AuthorizationWrapper wrapper;
   PushService pushService;
@@ -26,9 +26,6 @@ public class TopicRegistry {
   }
 
   public String createTopic(String clientId) {
-    // TODO see comment about topic name on wrapper.authorize
-    wrapper.authorize(clientId, clientId);
-
     // TODO this ensures all advisory topics are created by the system user
     pushService.pushToDummyTopic();
     return clientId;
@@ -42,45 +39,28 @@ public class TopicRegistry {
   @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
   private static class AuthorizationWrapper {
 
-    AuthorizationPlugin authorizationPlugin;
+    CustomAuthorizationPlugin authorizationPlugin;
     DestinationMap readACLs;
     DestinationMap writeACLs;
     DestinationMap adminACLs;
 
     private AuthorizationWrapper() {
+      // base ACLs for broker-intern access
       readACLs = createTopicReadACLs();
       writeACLs = createTopicWriteACLs();
       adminACLs = createTopicAdminACLs();
-      authorizationPlugin = new AuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, readACLs, adminACLs));
+      authorizationPlugin = new CustomAuthorizationPlugin(new SimpleAuthorizationMap(writeACLs, readACLs, adminACLs));
     }
 
-    public AuthorizationPlugin getAuthorizationPlugin() {
+    public CustomAuthorizationPlugin getAuthorizationPlugin() {
       return authorizationPlugin;
-    }
-
-    // TODO here we hold state that must be persisted across server restarts.
-    //  maybe we can do better; instead of explicit auth map:
-    //  hashing clientId and some info private to the server (ca key?)
-    //  or sign the clientId with our ca and verify this here
-    //  OR:
-    //  why must clientId and topic be different? we control clientId anyways.
-    //  just verify that clientId matches topicName. clientId is extracted from cert
-    public void authorize(String clientId, String topic) {
-      putTopic(readACLs, topic, clientId);
-      // TODO consumer needs to be able to "auto-create" the topic and advisory
-      putTopic(adminACLs, topic, clientId);
-      // TODO consumers need to write to advisory topics. disable this? how to handle this?
-      putTopic(adminACLs, withAdvisory(topic), clientId);
-      putTopic(writeACLs, withAdvisory(topic), clientId);
-    }
-
-    private String withAdvisory(String topic) {
-      return AdvisorySupport.TOPIC_CONSUMER_ADVISORY_TOPIC_PREFIX + topic;
     }
 
     private DestinationMap createTopicWriteACLs() {
       DestinationMap destinationMap = new DestinationMap();
       putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
+      // allow full access to advisory topics, see http://activemq.apache.org/security
+      putTopic(destinationMap, "topic://ActiveMQ.Advisory>", TOPIC_READ_PRINCIPAL_GROUP);
       return destinationMap;
     }
 
@@ -89,6 +69,8 @@ public class TopicRegistry {
 
       // allow writer reading
       putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
+      // allow full access to advisory topics, see http://activemq.apache.org/security
+      putTopic(destinationMap, "topic://ActiveMQ.Advisory>", TOPIC_READ_PRINCIPAL_GROUP);
 
       return destinationMap;
     }
@@ -96,7 +78,6 @@ public class TopicRegistry {
     private DestinationMap createTopicAdminACLs() {
       return createTopicWriteACLs();
     }
-
 
     private void putTopic(DestinationMap destinationMap, String topic, String group) {
       ActiveMQDestination destination = ActiveMQDestination.createDestination(
