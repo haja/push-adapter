@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.TextView;
 import at.sbaresearch.microg.adapter.backend.R;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterAppService;
+import at.sbaresearch.microg.adapter.backend.registration.app.RegisterAppService;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
@@ -63,7 +63,7 @@ public class AskPushPermission extends FragmentActivity {
           new Thread(new Runnable() {
             @Override
             public void run() {
-              RegisterAppService
+             new RegisterAppService()
                   .registerAndReply(AskPushPermission.this, database, intent, packageName,
                       requestId);
             }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microg.adapter.backend.gms.gcm;
+package at.sbaresearch.microg.adapter.backend.registration.app;
 
 import android.app.PendingIntent;
 import android.content.Context;
@@ -24,19 +24,24 @@ import android.util.Log;
 import at.sbaresearch.microg.adapter.backend.gms.checkin.LastCheckinInfo;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
 import at.sbaresearch.microg.adapter.backend.gms.common.Utils;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest;
+import at.sbaresearch.microg.adapter.backend.registration.app.HttpRegisterAppService;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
-class PushRegisterHandler extends Handler {
-  private static final String TAG = "GmsGcmRegisterHdl";
+class RegisterAppHandler extends Handler {
+  private static final String TAG = "RegisterAppHndl";
 
   private Context context;
   private int callingUid;
   private GcmDatabase database;
+  private HttpRegisterAppService httpService;
 
-  public PushRegisterHandler(Context context, GcmDatabase database) {
+  public RegisterAppHandler(Context context, GcmDatabase database) throws Exception {
     this.context = context;
     this.database = database;
+    this.httpService = new HttpRegisterAppService(context);
   }
 
   @Override
@@ -86,18 +91,7 @@ class PushRegisterHandler extends Handler {
     Log.d(TAG, "handleMessage " + msg);
     if (msg.what == 0) {
       if (msg.obj instanceof Intent) {
-        Message nuMsg = Message.obtain();
-        nuMsg.what = msg.what;
-        nuMsg.arg1 = 0;
-        nuMsg.replyTo = null;
-        PendingIntent pendingIntent = ((Intent) msg.obj).getParcelableExtra(EXTRA_APP);
-        String packageName = PackageUtils.packageFromPendingIntent(pendingIntent);
-        Bundle data = new Bundle();
-        data.putBoolean("oneWay", false);
-        data.putString("pkg", packageName);
-        data.putBundle("data", msg.getData());
-        nuMsg.setData(data);
-        msg = nuMsg;
+        msg = fromIntentMsg(msg);
       } else {
         return;
       }
@@ -131,7 +125,7 @@ class PushRegisterHandler extends Handler {
 
     Log.d(TAG, "about to send app register request");
     // TODO fix http requests
-    PushRegisterManager.completeRegisterRequest(context, database,
+    httpService.registerApp(context, database,
         new RegisterRequest()
             .build(Utils.getBuild(context))
             .sender(sender)
@@ -140,5 +134,21 @@ class PushRegisterHandler extends Handler {
             .app(packageName)
             .appid(subdata.getString("appid"), subdata.getString("gmp_app_id")),
         bundle -> sendReply(what, id, replyTo, bundle));
+  }
+
+  private Message fromIntentMsg(Message msg) {
+    Message nuMsg = Message.obtain();
+    nuMsg.what = msg.what;
+    nuMsg.arg1 = 0;
+    nuMsg.replyTo = null;
+    PendingIntent pendingIntent = ((Intent) msg.obj).getParcelableExtra(EXTRA_APP);
+    String packageName = PackageUtils.packageFromPendingIntent(pendingIntent);
+    Bundle data = new Bundle();
+    data.putBoolean("oneWay", false);
+    data.putString("pkg", packageName);
+    data.putBundle("data", msg.getData());
+    nuMsg.setData(data);
+    msg = nuMsg;
+    return msg;
   }
 }

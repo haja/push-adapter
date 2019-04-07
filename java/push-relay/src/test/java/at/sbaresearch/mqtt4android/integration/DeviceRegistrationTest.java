@@ -13,12 +13,13 @@ import org.fusesource.mqtt.client.*;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
+import org.springframework.security.core.userdetails.User;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static at.sbaresearch.mqtt4android.integration.RegistrationTestHelper.appReq;
@@ -76,10 +77,7 @@ public class DeviceRegistrationTest extends AppTest {
   }
 
   private User registrationToUser(DeviceRegisterDto reg) {
-    // TODO go through spring security?
-    val usr = new User();
-    usr.setName(reg.getMqttTopic());
-    return usr;
+    return new User(reg.getMqttTopic(), "", Collections.emptyList());
   }
 
   private void withConnection(final MQTT client, CheckedConsumer<FutureConnection> withConnection)

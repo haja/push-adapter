@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microg.adapter.backend.gms.gcm;
+package at.sbaresearch.microg.adapter.backend.registration.app;
 
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
-import at.sbaresearch.microg.adapter.backend.MqttClientAdapter;
+import at.sbaresearch.microg.adapter.backend.R;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmPrefs.MqttSettings;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.AppRegisterRequest;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.AppRegisterResponse;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.DeviceRegisterRequest;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterClient.DeviceRegisterResponse;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmPrefs;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterResponse;
+import at.sbaresearch.microg.adapter.backend.registration.NullHostNameVerifier;
+import at.sbaresearch.microg.adapter.backend.registration.app.HttpRegisterAppClient.AppRegisterRequest;
+import at.sbaresearch.microg.adapter.backend.registration.app.HttpRegisterAppClient.AppRegisterResponse;
+import at.sbaresearch.mqtt4android.pinning.ClientKeyCert;
 import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
 import lombok.val;
 import okhttp3.OkHttpClient;
@@ -37,63 +40,35 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
-public class PushRegisterManager {
-  private static final String TAG = "GmsGcmRegisterMgr";
+public class HttpRegisterAppService {
+  private static final String TAG = "HttpRegAppSrv";
 
-  private static PushRegisterClient pushRegisterClient;
+  private final HttpRegisterAppClient httpClient;
 
-  static {
-    // TODO normal okhttp pinning does not work with self signed certs
-    val factory = new PinningSslFactory()
-    val client = new OkHttpClient.Builder()
-        // TODO set socket factory
-        .sslSocketFactory()
+  public HttpRegisterAppService(Context context) throws Exception {
+    val mqtt = GcmPrefs.get(context).getMqttSettings();
+    val keys = new ClientKeyCert(mqtt.getPrivKey(), mqtt.getCert());
+    val factory = new PinningSslFactory(keys,
+        context.getResources().openRawResource(R.raw.server));
+
+    // normal okhttp pinning does not work with self signed certs
+    OkHttpClient client = new OkHttpClient.Builder()
+        .sslSocketFactory(factory.getSocketFactory(), factory.getTrustManager())
+        .hostnameVerifier(new NullHostNameVerifier())
         .build();
-    pushRegisterClient = new Retrofit.Builder()
-        .baseUrl(PushRegisterClient.SERVICE_URL)
+    httpClient = new Retrofit.Builder()
+        .baseUrl(HttpRegisterAppClient.SERVICE_URL)
         .addConverterFactory(JacksonConverterFactory.create())
         .client(client)
         .build()
-        .create(PushRegisterClient.class);
+        .create(HttpRegisterAppClient.class);
   }
 
   public interface BundleCallback {
     void onResult(Bundle bundle);
   }
 
-  public static void registerDevice(Context context) {
-    val registerCall =  pushRegisterClient.registerDevice(new DeviceRegisterRequest("foobar"));
-    registerCall.enqueue(new Callback<DeviceRegisterResponse>() {
-      @Override
-      public void onResponse(Call<DeviceRegisterResponse> call, Response<DeviceRegisterResponse> response) {
-        Log.i(TAG, "onDeviceRegResponse: " + response.code());
-        val resp = response.body();
-        if(resp == null) {
-          Log.w(TAG, "deviceResponse was null");
-          return;
-        }
-
-        val prefs = GcmPrefs.get(context);
-        val settings = fromRequest(resp.host, resp.port, resp.mqttTopic,
-            resp.encodedPrivateKey, resp.encodedCert);
-        prefs.setMqttSettings(settings);
-
-        MqttClientAdapter.ensureBackendConnection(context);
-      }
-
-      private MqttSettings fromRequest(String host, Integer port, String topic,
-          byte[] encodedPrivateKey, byte[] encodedCert) {
-        return new MqttSettings(host, port, topic, encodedPrivateKey, encodedCert);
-      }
-
-      @Override
-      public void onFailure(Call<DeviceRegisterResponse> call, Throwable e) {
-        Log.w(TAG, "onDeviceReg failed", e);
-      }
-    });
-  }
-
-  public static void completeRegisterRequest(Context context, final GcmDatabase database,
+  public void registerApp(Context context, final GcmDatabase database,
       final RegisterRequest request, final BundleCallback callback) {
     if (request.app != null) {
       if (request.appSignature == null)
@@ -106,6 +81,7 @@ public class PushRegisterManager {
 
     GcmDatabase.App app = database.getApp(request.app);
     GcmPrefs prefs = GcmPrefs.get(context);
+    // TODO this depends on registration inserted before this call? this is madness!
     if (database.getRegistrationsByApp(request.app).isEmpty()) {
       Bundle bundle = new Bundle();
       bundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, null));
@@ -113,7 +89,7 @@ public class PushRegisterManager {
       return;
     }
 
-    val registerCall = pushRegisterClient.registerApp(AppRegisterRequest.fromOldRequest(request));
+    val registerCall = httpClient.registerApp(AppRegisterRequest.fromOldRequest(request));
     registerCall.enqueue(new Callback<AppRegisterResponse>() {
       @Override
       public void onResponse(Call<AppRegisterResponse> call, Response<AppRegisterResponse> response) {

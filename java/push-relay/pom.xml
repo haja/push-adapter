@@ -91,6 +91,7 @@
             <groupId>at.sbaresearch.mqtt4android</groupId>
             <artifactId>pinning-tls-lib</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
 
         <!-- dev -->

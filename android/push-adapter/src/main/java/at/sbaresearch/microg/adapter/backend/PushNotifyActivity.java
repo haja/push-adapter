@@ -3,16 +3,16 @@ package at.sbaresearch.microg.adapter.backend;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterManager;
+import at.sbaresearch.microg.adapter.backend.registration.device.RegisterDeviceService;
 
 import java.util.Arrays;
 
@@ -21,6 +21,7 @@ import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 public class PushNotifyActivity extends AppCompatActivity {
 
   private static final int SEND_PERM_REQ = 1;
+  private static final String TAG = "PushNotifyActivity";
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +32,9 @@ public class PushNotifyActivity extends AppCompatActivity {
   }
 
   public void registerDevice(View view) {
-    PushRegisterManager.registerDevice(this);
+    Log.d(TAG, "registerDevice");
+    // TODO do this via intent instead?
+    startService(new Intent(this, RegisterDeviceService.class));
   }
 
   public void reqPermission(View view) {

@@ -8,8 +8,9 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
-import at.sbaresearch.mqtt4android.pinning.ConnectionSettings;
+import at.sbaresearch.mqtt4android.pinning.ClientKeyCert;
 import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
+import lombok.val;
 import org.eclipse.paho.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.*;
 
@@ -116,7 +117,8 @@ public class MqttConnectionManagerService extends Service {
 
   private void setupSsl(ConnectionSettings settings) {
     try {
-      mqttConnectOptions.setSocketFactory(new PinningSslFactory(settings,
+      val keys = new ClientKeyCert(settings.getPrivKey(), settings.getCert());
+      mqttConnectOptions.setSocketFactory(new PinningSslFactory(keys,
           getApplicationContext().getResources().openRawResource(R.raw.server)).getSocketFactory());
     } catch (Exception e) {
       Log.e(TAG, "onCreate: sslSocketFactorySetup failed", e);

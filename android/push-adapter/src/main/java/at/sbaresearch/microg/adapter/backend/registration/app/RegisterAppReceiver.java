@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microg.adapter.backend.gms.gcm;
+package at.sbaresearch.microg.adapter.backend.registration.app;
 
 import android.content.Context;
 import android.content.Intent;
@@ -23,8 +23,8 @@ import android.util.Log;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.ACTION_C2DM_REGISTER;
 
-public class PushRegisterReceiver extends WakefulBroadcastReceiver {
-  private static final String TAG = "GmsGcmRegisterRcv";
+public class RegisterAppReceiver extends WakefulBroadcastReceiver {
+  private static final String TAG = "RegAppReceiver";
 
   @Override
   public void onReceive(Context context, Intent intent) {

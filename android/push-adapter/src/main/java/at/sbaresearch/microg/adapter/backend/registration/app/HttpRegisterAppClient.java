@@ -1,21 +1,20 @@
-package at.sbaresearch.microg.adapter.backend.gms.gcm;
+package at.sbaresearch.microg.adapter.backend.registration.app;
 
+import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterResponse;
 import lombok.*;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
 
-public interface PushRegisterClient {
+public interface HttpRegisterAppClient {
   // TODO externalize config
   String SERVICE_HOSTNAME = "trigger.lan";
   String SERVICE_URL = "https://" + SERVICE_HOSTNAME + ":9876";
 
   @POST("registration/new")
   Call<AppRegisterResponse> registerApp(@Body AppRegisterRequest request);
-
-  @POST("registration/device")
-  Call<DeviceRegisterResponse> registerDevice(@Body DeviceRegisterRequest request);
 
   @Data
   @AllArgsConstructor
@@ -50,28 +49,5 @@ public interface PushRegisterClient {
       }
       return old;
     }
-  }
-
-  @Data
-  @AllArgsConstructor
-  @NoArgsConstructor
-  class DeviceRegisterRequest {
-    String dummy = "dummy";
-  }
-
-  @Data
-  @AllArgsConstructor
-  @NoArgsConstructor
-  class DeviceRegisterResponse {
-    @NonNull
-    String host;
-    @NonNull
-    Integer port;
-    @NonNull
-    String mqttTopic;
-    @NonNull
-    byte[] encodedPrivateKey;
-    @NonNull
-    byte[] encodedCert;
   }
 }

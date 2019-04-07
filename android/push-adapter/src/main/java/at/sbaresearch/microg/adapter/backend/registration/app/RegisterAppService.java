@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microg.adapter.backend.gms.gcm;
+package at.sbaresearch.microg.adapter.backend.registration.app;
 
 import android.app.IntentService;
 import android.app.PendingIntent;
@@ -27,10 +27,12 @@ import android.os.Messenger;
 import android.support.annotation.Nullable;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
-import at.sbaresearch.microg.adapter.backend.MqttClientAdapter;
 import at.sbaresearch.microg.adapter.backend.gms.checkin.LastCheckinInfo;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
 import at.sbaresearch.microg.adapter.backend.gms.common.Utils;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmPrefs;
+import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest;
 import at.sbaresearch.microg.adapter.backend.gms.ui.AskPushPermission;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
@@ -41,6 +43,7 @@ public class RegisterAppService extends IntentService {
 
   private GcmDatabase database;
   private static boolean requestPending = false;
+  private HttpRegisterAppService httpService = null;
 
   public RegisterAppService() {
     super(TAG);
@@ -51,6 +54,11 @@ public class RegisterAppService extends IntentService {
   public void onCreate() {
     super.onCreate();
     database = new GcmDatabase(this);
+    try {
+      this.httpService = new HttpRegisterAppService(this);
+    } catch (Exception e) {
+      Log.e(TAG, "cannot create http service", e);
+    }
   }
 
   @Override
@@ -108,14 +116,14 @@ public class RegisterAppService extends IntentService {
       String requestId) {
     Intent outIntent = new Intent(ACTION_C2DM_REGISTRATION);
     outIntent.putExtra(EXTRA_ERROR,
-        PushRegisterManager.attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
+        HttpRegisterAppService.attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
     sendReply(context, intent, packageName, outIntent);
   }
 
-  public static void registerAndReply(Context context, GcmDatabase database, Intent intent,
+  public void registerAndReply(Context context, GcmDatabase database, Intent intent,
       String packageName, String requestId) {
     Log.d(TAG, "register[req]: " + intent.toString() + " extras=" + intent.getExtras());
-    PushRegisterManager.completeRegisterRequest(context, database,
+    httpService.registerApp(context, database,
         new RegisterRequest()
             .build(Utils.getBuild(context))
             .sender(intent.getStringExtra(EXTRA_SENDER))
@@ -155,8 +163,12 @@ public class RegisterAppService extends IntentService {
   public IBinder onBind(Intent intent) {
     Log.d(TAG, "onBind: " + intent.toString());
     if (ACTION_C2DM_REGISTER.equals(intent.getAction())) {
-      Messenger messenger = new Messenger(new PushRegisterHandler(this, database));
-      return messenger.getBinder();
+      try {
+        Messenger messenger = new Messenger(new RegisterAppHandler(this, database));
+        return messenger.getBinder();
+      } catch (Exception e) {
+        Log.e(TAG, "cannot bind to messenger", e);
+      }
     }
     return super.onBind(intent);
   }

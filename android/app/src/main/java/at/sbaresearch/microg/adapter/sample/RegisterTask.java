@@ -6,8 +6,11 @@ import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging;
 import at.sbaresearch.microg.adapter.sample.BackendRestClient.AppRegistrationRequest;
 import lombok.AllArgsConstructor;
+import lombok.val;
 import retrofit2.Response;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 
 @AllArgsConstructor
@@ -25,8 +28,10 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
       Log.i(TAG, "doInBackground: registration successful, sending to backend");
       Log.d(TAG, "doInBackground: registration id" + id);
 
+      byte[] cert = readCert(ctx[0]);
+
       Response<Void> response = restClient.sendRegistrationId(
-          new AppRegistrationRequest(id)).execute();
+          new AppRegistrationRequest(id, cert)).execute();
       if (response.isSuccessful()){
         return id;
       } else {
@@ -36,6 +41,16 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
       Log.e(TAG, "registration failed", e);
     }
     return null;
+  }
+
+  private byte[] readCert(Context ctx) throws IOException {
+    val certStream = ctx.getResources().openRawResource(R.raw.server);
+    int b;
+    val bos = new ByteArrayOutputStream();
+    while((b = certStream.read()) != -1) {
+      bos.write(b);
+    }
+    return bos.toByteArray();
   }
 
   @Override

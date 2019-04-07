@@ -71,11 +71,18 @@ public class PinningSslFactory {
     val caKeyStore = from(ca, "ca");
 
     // Create a TrustManager that trusts the CAs in our KeyStore
-    val trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
+    val defaultAlg = TrustManagerFactory.getDefaultAlgorithm();
+    val trustManagerFactory = TrustManagerFactory.getInstance(defaultAlg);
     trustManagerFactory.init(caKeyStore);
-    return Arrays.stream(trustManagerFactory.getTrustManagers())
-        .map(tm -> (X509TrustManager) tm)
-        .collect(Collectors.toList()).toArray(new X509TrustManager[1]);
+    return toX509(trustManagerFactory.getTrustManagers());
+  }
+
+  private X509TrustManager[] toX509(TrustManager[] trustManagers) {
+    val ret = new ArrayList<X509TrustManager>();
+    for (TrustManager tm : trustManagers) {
+      ret.add((X509TrustManager) tm);
+    }
+    return ret.toArray(new X509TrustManager[1]);
   }
 
   private Certificate getCertificate(byte[] cert) throws CertificateException, IOException {

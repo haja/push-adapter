@@ -1,4 +1,4 @@
-package at.sbaresearch.mqtt4android.pinning;
+package at.sbaresearch.mqtt_backend;
 
 import lombok.Value;
 

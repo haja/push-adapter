@@ -47,7 +47,7 @@ public class RegistrationResource {
   // TODO actually, this is registerApp; rename endpoint to "app" or so
   @PostMapping(path = REGISTRATION_APP, consumes = MediaType.APPLICATION_JSON_UTF8_VALUE)
   public AppRegistrationResponse registerApp(@RequestBody AppRegistrationRequest req,
-      @AuthenticationPrincipal User user) {
+      @AuthenticationPrincipal org.springframework.security.core.userdetails.User user) {
     log.info("register app: {} for user: {}", req, user);
 
     val deviceId = toDeviceId(user);
@@ -57,8 +57,8 @@ public class RegistrationResource {
     return new AppRegistrationResponse(token);
   }
 
-  private DeviceId toDeviceId(User user) {
-    return new DeviceId(user.getName());
+  private DeviceId toDeviceId(org.springframework.security.core.userdetails.User user) {
+    return new DeviceId(user.getUsername());
   }
 
   private AppRegistration mapFromRequest(AppRegistrationRequest req) {

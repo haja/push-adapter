@@ -89,7 +89,7 @@
         </service>
 
         <service
-            android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterAppService"
+            android:name="at.sbaresearch.microg.adapter.backend.registration.app.RegisterAppService"
             android:permission="at.sbaresearch.android.c2dm.permission.RECEIVE">
             <intent-filter>
                 <action android:name="at.sbaresearch.android.c2dm.intent.REGISTER"/>
@@ -99,14 +99,14 @@
             </intent-filter>
         </service>
 
-        <receiver android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.PushRegisterReceiver">
+        <receiver android:name="at.sbaresearch.microg.adapter.backend.registration.app.RegisterAppReceiver">
             <intent-filter>
                 <action android:name="com.google.iid.TOKEN_REQUEST"/>
             </intent-filter>
         </receiver>
 
         <service android:name=".gms.gcm.McsService"/>
-        <service android:name=".gms.gcm.RegisterDeviceService" />
+        <service android:name=".registration.device.RegisterDeviceService" />
 
         <receiver
             android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.SendReceiver"
