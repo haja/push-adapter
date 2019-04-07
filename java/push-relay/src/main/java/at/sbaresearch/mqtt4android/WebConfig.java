@@ -1,4 +1,4 @@
-package at.sbaresearch.mqtt4android.registration.web;
+package at.sbaresearch.mqtt4android;
 
 import at.sbaresearch.mqtt4android.jackson.fixes.single_parameter_ctor.ParameterNamesModuleFixed;
 import com.fasterxml.jackson.annotation.JsonCreator.Mode;

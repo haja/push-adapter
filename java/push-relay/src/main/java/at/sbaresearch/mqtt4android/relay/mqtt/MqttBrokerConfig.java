@@ -1,5 +1,6 @@
-package at.sbaresearch.mqtt4android.relay;
+package at.sbaresearch.mqtt4android.relay.mqtt;
 
+import at.sbaresearch.mqtt4android.relay.TopicRegistry;
 import at.sbaresearch.mqtt4android.relay.jaas.JaasCertOnlyOrSimpleAuthenticationPlugin;
 import io.vavr.control.Option;
 import lombok.val;

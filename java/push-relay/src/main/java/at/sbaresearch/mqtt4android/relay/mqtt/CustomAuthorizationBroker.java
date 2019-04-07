@@ -1,6 +1,5 @@
 package at.sbaresearch.mqtt4android.relay.mqtt;
 
-import at.sbaresearch.mqtt4android.relay.MqttBrokerConfig;
 import lombok.val;
 import org.apache.activemq.advisory.AdvisorySupport;
 import org.apache.activemq.broker.Broker;
