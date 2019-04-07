@@ -1,6 +1,7 @@
 package at.sbaresearch.mqtt4android.integration;
 
-import at.sbaresearch.mqtt4android.pinning.ConnectionSettings;
+import at.sbaresearch.mqtt4android.AppTest;
+import at.sbaresearch.mqtt4android.pinning.ClientKeyCert;
 import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
 import at.sbaresearch.mqtt4android.registration.web.RegistrationResource;
 import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.DeviceRegisterDto;
@@ -58,10 +59,9 @@ public class DeviceRegistrationTest extends AppTest {
   @Test
   public void testRegistration_shouldConnectThroughTls() throws Throwable {
     val reg = registrationResource.registerDevice(deviceReq().build());
-    val settings = toSettings(reg);
 
-    withConnection(setupClient(reg, settings), connection -> {
-      subscribe(connection, settings);
+    withConnection(setupClient(reg), connection -> {
+      subscribe(connection, reg.getMqttTopic());
 
       val mockUser = registrationToUser(reg);
       val appResp = registrationResource.registerApp(appReq().build(), mockUser);
@@ -93,35 +93,30 @@ public class DeviceRegistrationTest extends AppTest {
     }
   }
 
-  private MQTT setupClient(DeviceRegisterDto reg, ConnectionSettings settings) throws Exception {
+  private MQTT setupClient(DeviceRegisterDto reg) throws Exception {
     val pinningFactory = createPinningFactory(reg);
     val client = new MQTT();
-    client.setHost(settings.getServerUrl());
+    client.setHost("ssl://" + reg.getHost() + ":" + reg.getPort());
     client.setSslContext(pinningFactory.getSslContext());
     return client;
   }
 
-  private void subscribe(FutureConnection connection, ConnectionSettings settings)
+  private void subscribe(FutureConnection connection, String topic)
       throws Exception {
     await(connection.subscribe(new Topic[]{
-        new Topic(settings.getTopic(), QoS.AT_LEAST_ONCE)
+        new Topic(topic, QoS.AT_LEAST_ONCE)
     }));
   }
 
   private PinningSslFactory createPinningFactory(
       DeviceRegisterDto reg) throws Exception {
-    val conn = toSettings(reg);
+    val keys = new ClientKeyCert(reg.getEncodedPrivateKey(), reg.getEncodedCert());
     val in = toInputStream(serverCert);
-    return new PinningSslFactory(conn, in);
+    return new PinningSslFactory(keys, in);
   }
 
   private InputStream toInputStream(Certificate cert) throws CertificateEncodingException {
     return new ByteArrayInputStream(cert.getEncoded());
-  }
-
-  private ConnectionSettings toSettings(DeviceRegisterDto reg) {
-    return new ConnectionSettings(reg.getHost(), reg.getPort(), reg.getMqttTopic(),
-        reg.getEncodedPrivateKey(), reg.getEncodedCert());
   }
 
   private <T> T await(final Future<T> future) throws Exception {

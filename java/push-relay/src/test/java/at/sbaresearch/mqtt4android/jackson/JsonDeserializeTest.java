@@ -1,19 +1,15 @@
 package at.sbaresearch.mqtt4android.jackson;
 
+import at.sbaresearch.mqtt4android.AppTest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class JsonDeserializeTest {
+public class JsonDeserializeTest extends AppTest {
 
   @Autowired
   ObjectMapper mapper;

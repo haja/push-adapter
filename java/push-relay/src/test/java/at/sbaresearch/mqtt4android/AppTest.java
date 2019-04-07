@@ -1,4 +1,4 @@
-package at.sbaresearch.mqtt4android.integration;
+package at.sbaresearch.mqtt4android;
 
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;

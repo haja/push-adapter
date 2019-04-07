@@ -17,17 +17,23 @@ import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class PinningSslFactory {
 
   @Getter
   SSLContext sslContext;
-  @Getter
-  TrustManager[] trustManagers;
+  X509TrustManager[] trustManagers;
 
-  public PinningSslFactory(ConnectionSettings settings, InputStream caStream) throws Exception {
+
+  /**
+   * ssl factory with pinning and client keys
+   */
+  public PinningSslFactory(ClientKeyCert settings, InputStream caStream) throws Exception {
     trustManagers = setupTrust(caStream);
     val keyManager = setupClientKeys(settings);
 
@@ -35,6 +41,9 @@ public class PinningSslFactory {
     sslContext.init(keyManager, trustManagers, null);
   }
 
+  /**
+   * ssl factory with pinning, without client keys
+   */
   public PinningSslFactory(InputStream caStream) throws Exception {
     trustManagers = setupTrust(caStream);
 
@@ -42,7 +51,7 @@ public class PinningSslFactory {
     sslContext.init(null, trustManagers, null);
   }
 
-  private KeyManager[] setupClientKeys(ConnectionSettings settings)
+  private KeyManager[] setupClientKeys(ClientKeyCert settings)
       throws NoSuchAlgorithmException, InvalidKeySpecException, CertificateException, IOException,
              KeyStoreException, UnrecoverableKeyException {
     val clientKey = getKey(settings.getPrivKey());
@@ -56,18 +65,17 @@ public class PinningSslFactory {
     return keyManagerFactory.getKeyManagers();
   }
 
-  private TrustManager[] setupTrust(InputStream caStream)
+  private X509TrustManager[] setupTrust(InputStream caStream)
       throws CertificateException, IOException, KeyStoreException, NoSuchAlgorithmException {
-    TrustManager[] trustManagers;
     val ca = getCertificate(caStream);
     val caKeyStore = from(ca, "ca");
 
     // Create a TrustManager that trusts the CAs in our KeyStore
-    val tmfAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-    val trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
+    val trustManagerFactory = TrustManagerFactory.getInstance("SunX509");
     trustManagerFactory.init(caKeyStore);
-    trustManagers = trustManagerFactory.getTrustManagers();
-    return trustManagers;
+    return Arrays.stream(trustManagerFactory.getTrustManagers())
+        .map(tm -> (X509TrustManager) tm)
+        .collect(Collectors.toList()).toArray(new X509TrustManager[1]);
   }
 
   private Certificate getCertificate(byte[] cert) throws CertificateException, IOException {
@@ -113,7 +121,12 @@ public class PinningSslFactory {
     return keyStore;
   }
 
-  public SocketFactory getSocketFactory() throws Exception {
+  public SSLSocketFactory getSocketFactory() throws Exception {
     return sslContext.getSocketFactory();
   }
+
+  public X509TrustManager getTrustManager() {
+    return trustManagers[0];
+  }
+
 }

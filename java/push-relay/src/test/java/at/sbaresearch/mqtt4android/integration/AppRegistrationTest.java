@@ -1,11 +1,11 @@
 package at.sbaresearch.mqtt4android.integration;
 
+import at.sbaresearch.mqtt4android.AppTest;
 import at.sbaresearch.mqtt4android.registration.web.RegistrationResource;
 import lombok.val;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static at.sbaresearch.mqtt4android.integration.RegistrationTestHelper.appReq;
 import static at.sbaresearch.mqtt4android.integration.RegistrationTestHelper.deviceReq;
 import static org.assertj.core.api.Assertions.*;
 
