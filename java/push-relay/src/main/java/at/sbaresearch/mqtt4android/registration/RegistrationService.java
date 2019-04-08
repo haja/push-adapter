@@ -15,7 +15,7 @@ public class RegistrationService {
 
   private static int TOKEN_LENGTH = 32;
 
-  RegistrationStore registrationStore;
+  RegistrationRepository repository;
   SecureRngGenerator rng;
 
   public String registerApp(DeviceId device, AppRegistration registration) {
@@ -23,10 +23,12 @@ public class RegistrationService {
 
     val token = rng.randomString(TOKEN_LENGTH);
     // TODO save app as well, so if re-registering old values for the same app can be dropped
-    registrationStore.register(token, device.id);
+    repository.register(token, device.id);
 
     return token;
   }
+
+  // TODO expose repo here
 
   @Value
   public static class AppRegistration {
