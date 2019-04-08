@@ -33,8 +33,12 @@ public class PushNotifyActivity extends AppCompatActivity {
 
   public void registerDevice(View view) {
     Log.d(TAG, "registerDevice");
-    // TODO do this via intent instead?
     startService(new Intent(this, RegisterDeviceService.class));
+  }
+
+  public void ensureConnection(View view) {
+    Log.d(TAG, "registerDevice");
+    MqttClientAdapter.ensureBackendConnection(this);
   }
 
   public void reqPermission(View view) {

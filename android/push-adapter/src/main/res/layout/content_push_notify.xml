@@ -33,4 +33,11 @@
         android:id="@+id/button_register"
         app:layout_constraintTop_toBottomOf="@+id/button_req_perm" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ensure MQTT connection"
+        android:onClick="ensureConnection"
+        android:id="@+id/button_connect"
+        app:layout_constraintTop_toBottomOf="@+id/button_register" />
 </android.support.constraint.ConstraintLayout>
