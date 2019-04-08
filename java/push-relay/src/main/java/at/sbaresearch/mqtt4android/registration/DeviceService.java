@@ -23,15 +23,15 @@ public class DeviceService {
   String mqttHostname;
   int mqttPort;
   ClientKeyFactory clientKeyFactory;
-  TopicRegistry topicRegistry;
   SecureRngGenerator secureRngGenerator;
 
   public DeviceData registerDevice() throws Exception {
     val clientId = generateClientId();
     log.info("registering new device; clientId: {}", clientId);
     val clientKeys = clientKeyFactory.createSignedKey(clientId);
-    // TODO this call can be removed
-    val topic = topicRegistry.createTopic(clientId);
+
+    val topic = clientId;
+
     val mqttSettings = getMqttSettings();
     DeviceData deviceData = new DeviceData(clientKeys, topic, mqttSettings);
     log.info("device data generated: {}", deviceData);

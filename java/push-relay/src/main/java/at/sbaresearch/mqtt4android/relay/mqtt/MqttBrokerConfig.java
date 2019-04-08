@@ -87,7 +87,7 @@ public class MqttBrokerConfig {
 
     // TODO better system user access required; generate password in memory on startup and set here?
     simpleAuthPlugin.setUsers(List.of(
-        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TopicRegistry.TOPIC_WRITE_PRINCIPAL_GROUP)
+        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TopicRegistry.TOPIC_PRINCIPAL_WRITER)
     ));
     return new JaasCertOnlyOrSimpleAuthenticationPlugin(simpleAuthPlugin);
   }

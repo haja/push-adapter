@@ -3,7 +3,6 @@ package at.sbaresearch.mqtt4android.relay;
 import at.sbaresearch.mqtt4android.relay.mqtt.CustomAuthorizationPlugin;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.apache.activemq.advisory.AdvisorySupport;
 import org.apache.activemq.broker.BrokerPlugin;
 import org.apache.activemq.command.ActiveMQDestination;
 import org.apache.activemq.filter.DestinationMap;
@@ -14,20 +13,13 @@ import org.springframework.stereotype.Component;
 @Component
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class TopicRegistry {
-  public static final String TOPIC_WRITE_PRINCIPAL_GROUP = "system-group";
-  public static final String TOPIC_READ_PRINCIPAL_GROUP = "client-group";
+  public static final String TOPIC_PRINCIPAL_WRITER = "system-group";
+  public static final String TOPIC_PRINCIPAL_READER = "client-group";
 
   AuthorizationWrapper wrapper;
-  PushService pushService;
 
-  public TopicRegistry(PushService pushService) {
-    this.pushService = pushService;
+  public TopicRegistry() {
     wrapper = new AuthorizationWrapper();
-  }
-
-  public String createTopic(String clientId) {
-    //
-    return clientId;
   }
 
   public BrokerPlugin getAuthorizationPlugin() {
@@ -57,23 +49,14 @@ public class TopicRegistry {
 
     private DestinationMap createTopicWriteACLs() {
       DestinationMap destinationMap = new DestinationMap();
-      putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
+      putTopic(destinationMap, "topic://>", TOPIC_PRINCIPAL_WRITER);
       // allow full access to advisory topics, see http://activemq.apache.org/security
-      putTopic(destinationMap, "topic://ActiveMQ.Advisory>", TOPIC_READ_PRINCIPAL_GROUP);
-      putTopic(destinationMap, "topic://ActiveMQ.Advisory.Topic", TOPIC_READ_PRINCIPAL_GROUP);
+      putTopic(destinationMap, "topic://ActiveMQ.Advisory.>", TOPIC_PRINCIPAL_READER);
       return destinationMap;
     }
 
     private DestinationMap createTopicReadACLs() {
-      DestinationMap destinationMap = new DestinationMap();
-
-      // allow writer reading
-      putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
-      // allow full access to advisory topics, see http://activemq.apache.org/security
-      putTopic(destinationMap, "topic://ActiveMQ.Advisory>", TOPIC_READ_PRINCIPAL_GROUP);
-      putTopic(destinationMap, "topic://ActiveMQ.Advisory.Topic", TOPIC_READ_PRINCIPAL_GROUP);
-
-      return destinationMap;
+      return createTopicWriteACLs();
     }
 
     private DestinationMap createTopicAdminACLs() {

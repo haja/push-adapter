@@ -12,7 +12,6 @@ import javax.security.auth.login.LoginException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -47,6 +46,6 @@ public class SimpleCertificateLoginModule extends CertificateLoginModule {
   @Override
   protected Set<String> getUserGroups(String username) throws LoginException {
     log.info("got userGroups for username: {}", username);
-    return new HashSet<>(Arrays.asList(username, TopicRegistry.TOPIC_READ_PRINCIPAL_GROUP));
+    return new HashSet<>(Arrays.asList(username, TopicRegistry.TOPIC_PRINCIPAL_READER));
   }
 }
