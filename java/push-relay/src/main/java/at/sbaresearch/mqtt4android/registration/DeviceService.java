@@ -30,6 +30,7 @@ public class DeviceService {
     val clientId = generateClientId();
     log.info("registering new device; clientId: {}", clientId);
     val clientKeys = clientKeyFactory.createSignedKey(clientId);
+    // TODO this call can be removed
     val topic = topicRegistry.createTopic(clientId);
     val mqttSettings = getMqttSettings();
     DeviceData deviceData = new DeviceData(clientKeys, topic, mqttSettings);

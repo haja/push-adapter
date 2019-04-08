@@ -26,8 +26,7 @@ public class TopicRegistry {
   }
 
   public String createTopic(String clientId) {
-    // TODO this ensures all advisory topics are created by the system user
-    pushService.pushToDummyTopic();
+    //
     return clientId;
   }
 
@@ -61,6 +60,7 @@ public class TopicRegistry {
       putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
       // allow full access to advisory topics, see http://activemq.apache.org/security
       putTopic(destinationMap, "topic://ActiveMQ.Advisory>", TOPIC_READ_PRINCIPAL_GROUP);
+      putTopic(destinationMap, "topic://ActiveMQ.Advisory.Topic", TOPIC_READ_PRINCIPAL_GROUP);
       return destinationMap;
     }
 
@@ -71,6 +71,7 @@ public class TopicRegistry {
       putTopic(destinationMap, "topic://>", TOPIC_WRITE_PRINCIPAL_GROUP);
       // allow full access to advisory topics, see http://activemq.apache.org/security
       putTopic(destinationMap, "topic://ActiveMQ.Advisory>", TOPIC_READ_PRINCIPAL_GROUP);
+      putTopic(destinationMap, "topic://ActiveMQ.Advisory.Topic", TOPIC_READ_PRINCIPAL_GROUP);
 
       return destinationMap;
     }
