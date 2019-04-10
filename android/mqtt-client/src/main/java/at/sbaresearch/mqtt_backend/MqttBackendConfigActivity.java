@@ -30,6 +30,8 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
   private MqttConnectionManagerService mqttConnectionManagerService;
   private boolean mqttBound = false;
 
+  private ServiceConnection serviceConnection = new MqttServiceConnection();
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -64,23 +66,6 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     unbindService(serviceConnection);
     mqttBound = false;
   }
-
-  private ServiceConnection serviceConnection = new ServiceConnection() {
-
-    @Override
-    public void onServiceConnected(ComponentName className,
-        IBinder service) {
-      Log.i(TAG, "on service bound");
-      MqttConnectionBinder binder = (MqttConnectionBinder) service;
-      mqttConnectionManagerService = binder.getService();
-      mqttBound = true;
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName arg0) {
-      mqttBound = false;
-    }
-  };
 
   public void disconnect(final View view) {
     if (mqttBound) {
@@ -140,4 +125,20 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     }
   }
 
+  private class MqttServiceConnection implements ServiceConnection {
+
+    @Override
+    public void onServiceConnected(ComponentName className, IBinder service) {
+      Log.i(TAG, "on service bound");
+      MqttConnectionBinder binder = (MqttConnectionBinder) service;
+      mqttConnectionManagerService = binder.getService();
+      mqttBound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName arg0) {
+      Log.i(TAG, "on service unbound");
+      mqttBound = false;
+    }
+  }
 }

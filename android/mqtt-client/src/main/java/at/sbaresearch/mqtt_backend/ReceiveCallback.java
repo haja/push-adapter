@@ -3,6 +3,7 @@ package at.sbaresearch.mqtt_backend;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import lombok.ToString;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -62,8 +63,10 @@ class ReceiveCallback implements MqttCallback {
 
   @Override
   public void deliveryComplete(IMqttDeliveryToken token) {
+    // nop
   }
 
+  @ToString
   private class Payload {
 
     // TODO what fields are needed?
@@ -74,15 +77,6 @@ class ReceiveCallback implements MqttCallback {
     public Payload(String id, String payload) {
       this.id = id;
       this.payload = payload;
-    }
-
-    @Override
-    public String toString() {
-      final StringBuffer sb = new StringBuffer("Payload{");
-      sb.append("id='").append(id).append('\'');
-      sb.append(", payload='").append(payload).append('\'');
-      sb.append('}');
-      return sb.toString();
     }
   }
 }

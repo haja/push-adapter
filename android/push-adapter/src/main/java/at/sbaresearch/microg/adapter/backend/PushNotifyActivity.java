@@ -37,7 +37,7 @@ public class PushNotifyActivity extends AppCompatActivity {
   }
 
   public void ensureConnection(View view) {
-    Log.d(TAG, "registerDevice");
+    Log.d(TAG, "ensureConnection");
     MqttClientAdapter.ensureBackendConnection(this);
   }
 

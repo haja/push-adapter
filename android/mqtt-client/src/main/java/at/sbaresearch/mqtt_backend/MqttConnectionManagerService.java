@@ -23,8 +23,6 @@ public class MqttConnectionManagerService extends Service {
   private static final String TAG = "MqttConnectionMgrSrvc";
 
   private MqttAndroidClient mqttAndroidClient;
-  // TODO receive connection details on connect intent
-  private String clientId = "test1";
 
   private MqttCallback recvCallback;
 
@@ -64,11 +62,13 @@ public class MqttConnectionManagerService extends Service {
   @Nullable
   @Override
   public IBinder onBind(Intent intent) {
+    Log.i(TAG, "onBind: intent: " + intent);
     return binder;
   }
 
   @Override
   public void onDestroy() {
+    Log.i(TAG, "onDestroy");
     disconnect();
   }
 
@@ -88,15 +88,11 @@ public class MqttConnectionManagerService extends Service {
         public void onSuccess(IMqttToken asyncActionToken) {
           final String msg = "connection established";
           Log.i(TAG, msg);
-          // Snackbar.make(view, "connection established", Snackbar.LENGTH_SHORT)
-          // .setAction("Action", null).show();
           try {
             mqttAndroidClient.subscribe(sett.getTopic(), 0);
           } catch (MqttException e) {
             String msgFail = "subscribe failed: " + e.getMessage();
             Log.e(TAG, msgFail);
-            // Snackbar.make(view, msgFail, Snackbar.LENGTH_LONG)
-            // .setAction("Action", null).show();
           }
         }
 
@@ -105,8 +101,6 @@ public class MqttConnectionManagerService extends Service {
           Throwable cause = exception.getCause();
           String causeMsg = cause == null ? "" : cause.getMessage();
           Log.e(TAG, "connect failed: " + exception.getMessage() + causeMsg);
-          // Snackbar.make(view, "connect failed", Snackbar.LENGTH_SHORT)
-          // .setAction("Action", null).show();
         }
       };
       AsyncTask<Void, Void, Void> connectTask =
@@ -122,17 +116,19 @@ public class MqttConnectionManagerService extends Service {
           getApplicationContext().getResources().openRawResource(R.raw.server)).getSocketFactory());
     } catch (Exception e) {
       Log.e(TAG, "onCreate: sslSocketFactorySetup failed", e);
-      throw new RuntimeException(e);
+      throw new SslSetupException(e);
     }
   }
 
   private void ensureClientExists(ConnectionSettings sett) {
     if (mqttAndroidClient == null) {
-      mqttAndroidClient = new MqttAndroidClient(this, sett.getServerUrl(), clientId);
+      Log.d(TAG, "ensureClientExists: client is null, creating...");
+      mqttAndroidClient = new MqttAndroidClient(this, sett.getServerUrl(), sett.getTopic());
     }
   }
 
   public void disconnect() {
+    Log.d(TAG, "disconnect");
     if (mqttAndroidClient != null) {
       try {
         final IMqttToken token = mqttAndroidClient.disconnect(0);
@@ -155,6 +151,7 @@ public class MqttConnectionManagerService extends Service {
         Log.e(TAG, "disconnect: failed ", e);
       }
     }
+    Log.d(TAG, "disconnect done");
   }
 
   private static class VoidVoidVoidAsyncTask extends AsyncTask<Void, Void, Void> {
