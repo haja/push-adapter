@@ -19,6 +19,7 @@ public class MqttBackendReceiver extends BroadcastReceiver {
   public void onReceive(Context context, Intent backendIntent) {
     Log.i(TAG, "onReceive: " + backendIntent);
     Intent outgoingIntent = generateIntent(backendIntent);
+    Log.i(TAG, "onReceive: sending intent" + outgoingIntent);
     sendIntent(context, outgoingIntent);
   }
 
@@ -27,9 +28,10 @@ public class MqttBackendReceiver extends BroadcastReceiver {
     Intent out = new Intent(ACTION_C2DM_RECEIVE);
 
     // TODO lookup package and from of receiving app from appId of intent
-    String id = backendIntent.getStringExtra(MQTT_API.id);
-    out.putExtra(EXTRA_FROM, id);
-    String clientPackageName = "at.sbaresearch.microg.adapter.sample";
+    String app = backendIntent.getStringExtra(MQTT_API.app);
+    // TODO is this bogus?
+    out.putExtra(EXTRA_FROM, app);
+    String clientPackageName = app;
     out.setPackage(clientPackageName);
 
     // TODO handle payload as bundle like GCM

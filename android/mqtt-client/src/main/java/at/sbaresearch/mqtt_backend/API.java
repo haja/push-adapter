@@ -12,6 +12,7 @@ public class API {
 
   public static final String SEND_PERM = "at.sbaresearch.android.gcm.mqtt.intent.SEND";
 
-  public static String payload = "payload";
-  public static String id = "id";
+  public static final String app = "app";
+  public static final String signature = "sig";
+  public static final String payload = "payload";
 }

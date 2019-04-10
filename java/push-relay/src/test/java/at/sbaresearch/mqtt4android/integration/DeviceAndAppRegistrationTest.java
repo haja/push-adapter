@@ -26,6 +26,9 @@ public class DeviceAndAppRegistrationTest extends AppTest {
   @Autowired
   MqttTestHelper mqttHelper;
 
+  // TODO multi-client tests
+  //  routing of push messages to correct app
+
   @Test
   public void testDeviceAndAppRegistration_shouldReceiveMsg() throws Throwable {
     val reg = registrationResource.registerDevice(deviceReq().build());

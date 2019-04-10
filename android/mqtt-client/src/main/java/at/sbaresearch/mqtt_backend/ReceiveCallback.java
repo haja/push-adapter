@@ -3,7 +3,7 @@ package at.sbaresearch.mqtt_backend;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import lombok.ToString;
+import lombok.Value;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -38,23 +38,18 @@ class ReceiveCallback implements MqttCallback {
   }
 
   private Payload parsePayload(MqttMessage msg) throws JSONException {
-    // TODO do actual json parsing instead of toString
-    final Object raw = new JSONTokener(msg.toString()).nextValue();
-    if (raw instanceof  String) {
-      return new Payload("no id", (String) raw);
-    }
-    JSONObject obj = (JSONObject) raw;
-    String id = obj.getString("id");
-    String payload = obj.getString("payload");
-    return new Payload(id, payload);
+    final JSONObject json = (JSONObject) new JSONTokener(new String(msg.getPayload())).nextValue();
+    String app = json.getString("app");
+    String sig = json.getString("signature");
+    String message = json.getString("message");
+    return new Payload(app, sig, message);
   }
 
   private void sendIntent(Payload payload) {
     // TODO register intent, well-defined intent constant
     Intent intent = new Intent(API.INTENT_MQTT_RECEIVE);
-    // TODO raise intent with payload
-    // TODO put data from mqtt backend here (appID? Identity hash? msg-content?)
-    intent.putExtra(API.id, payload.id);
+    intent.putExtra(API.app, payload.app);
+    intent.putExtra(API.signature, payload.signature);
     intent.putExtra(API.payload, payload.payload);
 
     // TODO enforce some permission here? enforce package name here
@@ -66,17 +61,11 @@ class ReceiveCallback implements MqttCallback {
     // nop
   }
 
-  @ToString
+  @Value
   private class Payload {
-
-    // TODO what fields are needed?
-    private final String id;
+    String app;
+    String signature;
     // TODO this should be a map? or binary?
-    private final String payload;
-
-    public Payload(String id, String payload) {
-      this.id = id;
-      this.payload = payload;
-    }
+    String payload;
   }
 }
