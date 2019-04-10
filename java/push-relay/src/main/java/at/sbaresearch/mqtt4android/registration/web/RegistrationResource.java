@@ -51,8 +51,8 @@ public class RegistrationResource {
     log.info("register app: {} for user: {}", req, user);
 
     val deviceId = toDeviceId(user);
-    val registrationData = mapFromRequest(req);
-    val token = registrationService.registerApp(deviceId, registrationData);
+    val registrationData = mapFromRequest(req, deviceId);
+    val token = registrationService.registerApp(registrationData);
 
     return new AppRegistrationResponse(token);
   }
@@ -61,25 +61,15 @@ public class RegistrationResource {
     return new DeviceId(user.getUsername());
   }
 
-  private AppRegistration mapFromRequest(AppRegistrationRequest req) {
-    return new AppRegistration(req.app, req.cert);
+  private AppRegistration mapFromRequest(AppRegistrationRequest req, DeviceId deviceId) {
+    return new AppRegistration(req.app, req.signature, deviceId);
   }
 
   @Value
   @Builder(builderMethodName = "testWith")
   public static class AppRegistrationRequest {
     String app;
-    String cert;
-    Integer appVer;
-    String appVerName;
-    String info;
-    //    Boolean delete;
-    //    int osv;
-    //    int gmsv;
-    //    String scope;
-    //    TODO appID will be most likely needed
-    //    String appid;
-    //    String gmpAppId;
+    String signature;
   }
 
   @Value

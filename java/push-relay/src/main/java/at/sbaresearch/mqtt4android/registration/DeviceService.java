@@ -18,7 +18,7 @@ import lombok.val;
 @Slf4j
 public class DeviceService {
 
-  private static int CLIENT_ID_LENGTH = 32;
+  private static final int CLIENT_ID_LENGTH = 32;
 
   String mqttHostname;
   int mqttPort;

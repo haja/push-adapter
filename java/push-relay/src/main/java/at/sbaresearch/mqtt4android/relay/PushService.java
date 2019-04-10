@@ -1,6 +1,6 @@
 package at.sbaresearch.mqtt4android.relay;
 
-import at.sbaresearch.mqtt4android.registration.RegistrationRepository;
+import at.sbaresearch.mqtt4android.registration.RegistrationService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -15,13 +15,13 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PushService {
 
-  // TODO use service here, not store/repo
-  RegistrationRepository registrationRepository;
+  RegistrationService registrationService;
   JmsTemplate jmsTemplate;
 
   public void pushMessage(String token, String msg) {
     log.info("pushing message: {}", msg);
-    val topic = registrationRepository.getTopic(token);
-    jmsTemplate.convertAndSend(topic, msg);
+    val app = registrationService.getApp(token);
+    // TODO properly build msg, include app and app_signature
+    jmsTemplate.convertAndSend(app.getDeviceId().getId(), msg);
   }
 }

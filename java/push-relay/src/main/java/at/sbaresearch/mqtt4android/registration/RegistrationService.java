@@ -18,22 +18,24 @@ public class RegistrationService {
   RegistrationRepository repository;
   SecureRngGenerator rng;
 
-  public String registerApp(DeviceId device, AppRegistration registration) {
-    // TODO verify app cert?
+  public String registerApp(AppRegistration registration) {
+    // TODO verify app signature?
 
     val token = rng.randomString(TOKEN_LENGTH);
-    // TODO save app as well, so if re-registering old values for the same app can be dropped
-    repository.register(token, device.id);
+    repository.register(registration, token);
 
     return token;
   }
 
-  // TODO expose repo here
+  public AppRegistration getApp(String token) {
+    return repository.getTopic(token);
+  }
 
   @Value
   public static class AppRegistration {
     String app;
-    String cert;
+    String signature;
+    DeviceId deviceId;
   }
 
   @Value

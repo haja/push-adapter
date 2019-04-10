@@ -1,6 +1,8 @@
 package at.sbaresearch.mqtt4android.jdbc;
 
 import at.sbaresearch.mqtt4android.registration.RegistrationRepository;
+import at.sbaresearch.mqtt4android.registration.RegistrationService.AppRegistration;
+import at.sbaresearch.mqtt4android.registration.RegistrationService.DeviceId;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -15,26 +17,32 @@ public class JdbcRegistrationRepository implements RegistrationRepository {
 
   //language=SQL
   private static final String INSERT_TOKEN =
-      "INSERT INTO app_registrations(token, topic) VALUES (:token, :topic)";
+      "INSERT INTO app_registrations(token, device_id, app, app_signature) VALUES (:token, :device_id, :app, :signature)";
   //language=SQL
   private static final String SELECT_TOPIC =
-      "SELECT topic FROM app_registrations WHERE token=:token";
+      "SELECT device_id, app, app_signature FROM app_registrations WHERE token=:token";
 
   Jdbi jdbi;
 
   @Override
-  public void register(String token, String topic) {
-    jdbi.useHandle(h -> {
-      h.createUpdate(INSERT_TOKEN)
-          .bind("token", token)
-          .bind("topic", topic)
-          .execute();
-    });
+  public void register(AppRegistration registration, String token) {
+    // TODO should re-registering drop old token for the same app and device?
+    jdbi.useHandle(h -> h.createUpdate(INSERT_TOKEN)
+        .bind("token", token)
+        .bind("device_id", registration.getDeviceId().getId())
+        .bind("app", registration.getApp())
+        .bind("signature", registration.getSignature())
+        .execute());
   }
 
   @Override
-  public String getTopic(String token) {
-    RowMapper<String> mapper = (rs, ctx) -> rs.getString("topic");
+  public AppRegistration getTopic(String token) {
+    RowMapper<AppRegistration> mapper = (rs, ctx) ->
+        new AppRegistration(
+            rs.getString("app"),
+            rs.getString("app_signature"),
+            new DeviceId(rs.getString("device_id"))
+        );
     return jdbi.withHandle(h -> h.select(SELECT_TOPIC)
         .bind("token", token)
         .map(mapper)

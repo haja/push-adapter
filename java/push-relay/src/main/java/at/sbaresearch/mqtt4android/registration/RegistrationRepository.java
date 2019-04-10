@@ -1,9 +1,8 @@
 package at.sbaresearch.mqtt4android.registration;
 
+import at.sbaresearch.mqtt4android.registration.RegistrationService.AppRegistration;
+
 public interface RegistrationRepository {
-  void register(String token, String topic);
-  /**
-   *  TODO token + app + topic
-   */
-  String getTopic(String token);
+  void register(AppRegistration registration, String token);
+  AppRegistration getTopic(String token);
 }

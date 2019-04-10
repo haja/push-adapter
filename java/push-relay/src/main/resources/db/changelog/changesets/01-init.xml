@@ -7,9 +7,13 @@
             <column name="token" type="varchar">
                 <constraints nullable="false" />
             </column>
-            <column name="topic" type="varchar">
+            <column name="device_id" type="varchar">
                 <constraints nullable="false" />
             </column>
+            <column name="app" type="varchar">
+                <constraints nullable="false" />
+            </column>
+            <column name="app_signature" type="varchar" />
         </createTable>
     </changeSet>
 </databaseChangeLog>
