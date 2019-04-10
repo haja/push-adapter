@@ -20,7 +20,7 @@ public class PushResource {
 
   @RequestMapping(value = "/{token}", method = RequestMethod.POST)
   public void sendMessage(@PathVariable String token, @RequestBody String message) {
-    log.info("*** push message {} for token {} received", message, token);
+    log.info("push message {} for token {} received", message, token);
 
     pushService.pushMessage(token, message);
   }

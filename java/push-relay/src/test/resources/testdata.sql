@@ -1,4 +1,4 @@
 DELETE FROM APP_REGISTRATIONS;
 
 INSERT INTO APP_REGISTRATIONS(token, topic)
-VALUES ('asdf', 'topic123');
+VALUES ('registrationToken1', 'testTopic1');

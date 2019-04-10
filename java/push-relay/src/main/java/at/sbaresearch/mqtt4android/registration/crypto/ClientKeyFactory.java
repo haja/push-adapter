@@ -22,31 +22,23 @@ import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcECContentSignerBuilder;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.vavr.API.*;
 
-@Component
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 public class ClientKeyFactory {
 
-  private static final String SECURITY_PROVIDER = "BC";
   private static final String KEY_ALGORITHM = "EC";
   private static final String SIGN_ALGORITHM = "SHA256withECDSA";
   private static final int KEYSIZE = 384;
@@ -56,18 +48,23 @@ public class ClientKeyFactory {
   private static final DefaultDigestAlgorithmIdentifierFinder digAlgFinder =
       new DefaultDigestAlgorithmIdentifierFinder();
 
+  String securityProvider;
+
   X509CertificateHolder caCert;
   Option<File> keyPath;
   ContentSigner contentSigner;
+  KeyWriter keyWriter;
 
-  // TODO save and reload serial generator state from file?
+  // TODO save and reload serial generator state from file? or DB?
   AtomicInteger serialGenerator = new AtomicInteger(1);
 
   public ClientKeyFactory(
-      PrivateKey caKey, java.security.cert.Certificate caCert,
-      @Value("${ssl.debug.writeKeysPath}") String keyPath
+      String securityProvider, PrivateKey caKey, java.security.cert.Certificate caCert,
+      String keyPath, KeyWriter keyWriter
   )
       throws IOException, CertificateEncodingException, OperatorCreationException {
+    this.securityProvider = securityProvider;
+    this.keyWriter = keyWriter;
     AsymmetricKeyParameter caKey1 = toBCstructure(caKey);
     this.caCert = toBCstructure(caCert);
 
@@ -93,7 +90,7 @@ public class ClientKeyFactory {
   }
 
   private KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
-    val keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM, SECURITY_PROVIDER);
+    val keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM, securityProvider);
     keyGen.initialize(KEYSIZE, SecureRandom.getInstanceStrong());
     return keyGen.genKeyPair();
   }
@@ -105,7 +102,7 @@ public class ClientKeyFactory {
     Date endDate = new Date(System.currentTimeMillis() + 365L * 24 * 60 * 60 * 1000);
     X509v3CertificateBuilder certGen = new BcX509v3CertificateBuilder(
         caCert,
-        BigInteger.valueOf(serialGenerator.incrementAndGet()),
+        BigInteger.valueOf(serialGenerator.getAndIncrement()),
         startDate, endDate,
         toX500Name(clientId), pubKeyInfo);
     return certGen.build(contentSigner);
@@ -118,19 +115,9 @@ public class ClientKeyFactory {
    */
   private void debugWriteKeys(KeyPair keypair, X509CertificateHolder cert) {
     keyPath.forEach(path -> {
-      log.warn("writing key+certificate to filesystem at {}", path);
-      val certPath = new File(path, "cert-" + serialGenerator.get());
-      try (val fos = new FileOutputStream(certPath)) {
-        val certificate = (X509Certificate) CertificateFactory.getInstance("X.509")
-            .generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
-        fos.write(certificate.getEncoded());
+      try {
+        keyWriter.write(keypair.getPrivate().getEncoded(), cert.getEncoded(), path);
       } catch (IOException | CertificateException e) {
-        e.printStackTrace();
-      }
-      val keyPath = new File(path, "key-" + serialGenerator.get());
-      try (val fos = new FileOutputStream(keyPath)) {
-        fos.write(keypair.getPrivate().getEncoded());
-      } catch (IOException e) {
         e.printStackTrace();
       }
     });

@@ -1,0 +1,37 @@
+spring:
+  main:
+    web-application-type: none
+  datasource:
+    url: "jdbc:h2:mem:relay.test;DB_CLOSE_ON_EXIT=FALSE;"
+
+mqtt:
+  hostname: "trigger.lan"
+  port: 61610
+
+server:
+  port:
+
+ssl:
+  serverCertAlias: "server"
+  key:
+    store: "classpath:cert-it/keystore.p12"
+    storePassword: "asdfff"
+    storeType: "PKCS12"
+
+  trust:
+    store: "classpath:cert-it/truststore.p12"
+    storePassword: "asdfff"
+    storeType: "PKCS12"
+
+  caKeyAlias: "ca"
+  ca:
+    store: "classpath:cert-it/castore.p12"
+    storePassword: "asdfff"
+    storeType: "PKCS12"
+  debug:
+    writeKeysPath:
+
+testSetup:
+  ssl:
+    clientKeysPath: "classpath:cert-it/client-keys"
+    clientKeysPathForGenerate: "src/test/resources/cert-it/client-keys"

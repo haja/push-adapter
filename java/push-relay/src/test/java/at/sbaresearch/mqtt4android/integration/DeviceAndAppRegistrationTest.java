@@ -58,16 +58,16 @@ public class DeviceAndAppRegistrationTest extends AppTest {
 
   @Test
   public void testDeviceReg_wrongTopic_shouldFail() throws Throwable {
-    val origianlReg = registrationResource.registerDevice(deviceReq().build());
+    val originalReg = registrationResource.registerDevice(deviceReq().build());
 
-    val modifiedReg = origianlReg.toBuilder().mqttTopic(origianlReg.getMqttTopic() + "X")
+    val modifiedReg = originalReg.toBuilder().mqttTopic(originalReg.getMqttTopic() + "X")
         .build();
     withConnection(setupClient(modifiedReg), connection -> {
 
       // this does fail on the server, but client is not informed about this
       subscribe(connection, modifiedReg.getMqttTopic());
 
-      val mockUser = registrationToUser(origianlReg);
+      val mockUser = registrationToUser(originalReg);
       val appResp = registrationResource.registerApp(appReq().build(), mockUser);
       String msg = "should not be received";
       pushResource.sendMessage(appResp.getToken(), msg);

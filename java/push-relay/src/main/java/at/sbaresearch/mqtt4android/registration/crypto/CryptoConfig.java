@@ -2,18 +2,32 @@ package at.sbaresearch.mqtt4android.registration.crypto;
 
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.Security;
+import java.security.cert.CertificateEncodingException;
 
-@Configuration
 @Slf4j
+@Configuration
 public class CryptoConfig {
 
-  @PostConstruct
-  public void init() {
+  @Bean
+  public ClientKeyFactory clientKeyFactory(
+      PrivateKey caKey, java.security.cert.Certificate caCert,
+      @Value("${ssl.debug.writeKeysPath}") String keyPath,
+      KeyWriter keyWriter
+  ) throws CertificateEncodingException, OperatorCreationException, IOException {
+    setupBouncyCastle();
+    return new ClientKeyFactory("BC", caKey, caCert, keyPath, keyWriter);
+  }
+
+  private void setupBouncyCastle() {
     Security.addProvider(new BouncyCastleProvider());
     Security.setProperty("crypto.policy", "unlimited");
     int maxKeySize = 0;
