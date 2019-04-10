@@ -1,9 +1,11 @@
 package at.sbaresearch.mqtt4android;
 
+import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.DeviceRegisterDto;
+import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.DeviceRegisterDto.DeviceRegisterDtoBuilder;
 import lombok.AccessLevel;
-import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import lombok.val;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
@@ -17,25 +19,37 @@ public class TestData {
   Registrations registrations;
 
   public TestData(
-      @org.springframework.beans.factory.annotation.Value("${testSetup.ssl.clientKeysResource}")
-          Resource clientKeysPath)
+      @Value("${testSetup.ssl.clientKeysResource}")
+          Resource clientKeysPath,
+      @Value("${mqtt.hostname}") String host,
+      @Value("${mqtt.port}") int mqttPort
+      )
       throws IOException {
-    this.clients = new Clients(clientKeysPath);
     this.registrations = new Registrations();
+    this.clients = new Clients(host, mqttPort, clientKeysPath, registrations);
   }
 
-  @FieldDefaults(makeFinal = true)
+  @FieldDefaults(makeFinal = true, level = AccessLevel.PUBLIC)
   public static class Clients {
+    DeviceRegisterDtoBuilder client1;
 
-    EncodedKeys client1;
-    private Resource keys;
+    public Clients(String host, int mqttPort, Resource keys, Registrations registrations) throws IOException {
+      val regBase = defaultRegBuilder(host, mqttPort);
 
-    public Clients(Resource keys) throws IOException {
-      this.keys = keys;
-      this.client1 = loadKeys(1);
+      val client1Keys = loadKeys(keys, 1);
+      client1 = regBase
+          .encodedPrivateKey(client1Keys.getPrivateKey())
+          .encodedCert(client1Keys.getCert())
+          .mqttTopic(registrations.registration1.topic);
     }
 
-    private EncodedKeys loadKeys(int id) throws IOException {
+    private DeviceRegisterDtoBuilder defaultRegBuilder(String host, int mqttPort) {
+      return DeviceRegisterDto.testWith()
+          .host(host)
+          .port(mqttPort);
+    }
+
+    private EncodedKeys loadKeys(Resource keys, int id) throws IOException {
       val key = keys.createRelative("key-" + id);
       val cert = keys.createRelative("cert-" + id);
 
@@ -45,7 +59,7 @@ public class TestData {
       return new EncodedKeys(keyBytes, certBytes);
     }
 
-    @Value
+    @lombok.Value
     public static class EncodedKeys {
       byte[] privateKey;
       byte[] cert;
@@ -56,7 +70,7 @@ public class TestData {
     public final RegistrationRecord registration1 =
         RegistrationRecord.of("registrationToken1", "testTopic1");
 
-    @Value(staticConstructor = "of")
+    @lombok.Value(staticConstructor = "of")
     public static class RegistrationRecord {
       String token;
       String topic;

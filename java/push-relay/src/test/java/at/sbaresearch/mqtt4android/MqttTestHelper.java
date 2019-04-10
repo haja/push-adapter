@@ -25,7 +25,7 @@ public class MqttTestHelper {
   Certificate serverCert;
 
   public MQTT setupClient(DeviceRegisterDto reg) throws Exception {
-    val pinningFactory = createPinningFactory(reg);
+    val pinningFactory = createPinningFactory(reg.getEncodedPrivateKey(), reg.getEncodedCert());
     val client = new MQTT();
     client.setHost("ssl://" + reg.getHost() + ":" + reg.getPort());
     client.setSslContext(pinningFactory.getSslContext());
@@ -51,8 +51,8 @@ public class MqttTestHelper {
   }
 
   private PinningSslFactory createPinningFactory(
-      DeviceRegisterDto reg) throws Exception {
-    val keys = new ClientKeyCert(reg.getEncodedPrivateKey(), reg.getEncodedCert());
+      final byte[] privateKey, final byte[] cert) throws Exception {
+    val keys = new ClientKeyCert(privateKey, cert);
     val in = toInputStream(serverCert);
     return new PinningSslFactory(keys, in);
   }
