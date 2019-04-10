@@ -1,8 +1,10 @@
 package at.sbaresearch.mqtt4android.relay.mqtt;
 
+import at.sbaresearch.mqtt4android.common.SecureRngGenerator;
 import at.sbaresearch.mqtt4android.relay.TopicRegistry;
 import at.sbaresearch.mqtt4android.relay.jaas.JaasCertOnlyOrSimpleAuthenticationPlugin;
 import io.vavr.control.Option;
+import lombok.extern.slf4j.Slf4j;
 import lombok.val;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.broker.BrokerPlugin;
@@ -33,11 +35,20 @@ import java.util.List;
 
 @Configuration
 @EnableJms
+@Slf4j
 public class MqttBrokerConfig {
 
   public static final String TOPIC_WRITE_USERNAME = "system";
-  private final String embeddedBrokerName = "embeddedManual";
   public static final String externalIp = "0.0.0.0";
+  private static final int SYSTEM_USER_PW_LENGTH = 48;
+
+  private final String writeUserPassword;
+  private final String embeddedBrokerName = "embeddedManual";
+
+  public MqttBrokerConfig(SecureRngGenerator generator) {
+    writeUserPassword = generator.randomString(SYSTEM_USER_PW_LENGTH);
+    log.info("system user password generated: {}", writeUserPassword);
+  }
 
   @Bean
   public JmsListenerContainerFactory<?> queueListenerFactory(
@@ -59,9 +70,8 @@ public class MqttBrokerConfig {
 
   @Bean
   public QueueConnectionFactory jmsConnectionFactory() {
-    ActiveMQConnectionFactory connectionFactory =
-        new ActiveMQConnectionFactory(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", "vm://" + embeddedBrokerName);
-    return connectionFactory;
+    return new ActiveMQConnectionFactory(TOPIC_WRITE_USERNAME,
+        writeUserPassword, "vm://" + embeddedBrokerName);
   }
 
   @Bean
@@ -81,12 +91,9 @@ public class MqttBrokerConfig {
 
   @Bean
   public JaasCertOnlyOrSimpleAuthenticationPlugin jaasCertificateOnlyAuthPlugin() {
-    // TODO this is currently used for all authentication; replace with system access only
     val simpleAuthPlugin = new SimpleAuthenticationPlugin();
-
-    // TODO better system user access required; generate password in memory on startup and set here?
     simpleAuthPlugin.setUsers(List.of(
-        new AuthenticationUser(TOPIC_WRITE_USERNAME, " 2rwq powrweopr uqwoeoa orareaoiureao e", TopicRegistry.TOPIC_PRINCIPAL_WRITER)
+        new AuthenticationUser(TOPIC_WRITE_USERNAME, writeUserPassword, TopicRegistry.TOPIC_PRINCIPAL_WRITER)
     ));
     return new JaasCertOnlyOrSimpleAuthenticationPlugin(simpleAuthPlugin);
   }

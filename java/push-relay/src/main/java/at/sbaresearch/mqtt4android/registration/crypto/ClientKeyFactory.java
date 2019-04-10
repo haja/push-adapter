@@ -94,7 +94,7 @@ public class ClientKeyFactory {
 
   private KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
     val keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM, SECURITY_PROVIDER);
-    keyGen.initialize(KEYSIZE, new SecureRandom());
+    keyGen.initialize(KEYSIZE, SecureRandom.getInstanceStrong());
     return keyGen.genKeyPair();
   }
 
