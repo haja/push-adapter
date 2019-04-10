@@ -27,12 +27,9 @@ import android.os.Messenger;
 import android.support.annotation.Nullable;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
-import at.sbaresearch.microg.adapter.backend.gms.checkin.LastCheckinInfo;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
-import at.sbaresearch.microg.adapter.backend.gms.common.Utils;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmPrefs;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest;
 import at.sbaresearch.microg.adapter.backend.gms.ui.AskPushPermission;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
@@ -123,12 +120,7 @@ public class RegisterAppService extends IntentService {
   public void registerAndReply(Context context, GcmDatabase database, Intent intent,
       String packageName, String requestId) {
     Log.d(TAG, "register[req]: " + intent.toString() + " extras=" + intent.getExtras());
-    httpService.registerApp(context, database,
-        new RegisterRequest()
-            .build(Utils.getBuild(context))
-            .sender(intent.getStringExtra(EXTRA_SENDER))
-            .checkin(LastCheckinInfo.read(context))
-            .app(packageName),
+    httpService.registerApp(context, database, packageName,
         bundle -> {
           Intent outIntent = new Intent(ACTION_C2DM_REGISTRATION);
           outIntent.putExtras(bundle);

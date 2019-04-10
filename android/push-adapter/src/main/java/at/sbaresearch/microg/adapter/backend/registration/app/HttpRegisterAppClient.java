@@ -1,6 +1,5 @@
 package at.sbaresearch.microg.adapter.backend.registration.app;
 
-import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterResponse;
 import lombok.*;
 import retrofit2.Call;
@@ -21,16 +20,7 @@ public interface HttpRegisterAppClient {
   @NoArgsConstructor
   class AppRegisterRequest {
     String app;
-    String cert;
-    int appVer;
-    String appVerName;
-    String info;
-
-    // TODO use new requests only
-    public static AppRegisterRequest fromOldRequest(RegisterRequest old) {
-      return new AppRegisterRequest(old.app, old.appSignature, old.appVersion, old.appVersionName,
-          old.info);
-    }
+    String signature;
   }
 
   @Data
@@ -45,7 +35,6 @@ public interface HttpRegisterAppClient {
       val body = resp.body();
       if (body != null) {
         old.token = body.token;
-        old.retryAfter = null; // TODO retryAfter not implemented
       }
       return old;
     }

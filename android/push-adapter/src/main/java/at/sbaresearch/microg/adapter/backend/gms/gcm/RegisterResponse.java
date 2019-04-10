@@ -16,24 +16,10 @@
 
 package at.sbaresearch.microg.adapter.backend.gms.gcm;
 
-import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.ResponseHeader;
-import at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.ResponseStatusText;
+import lombok.ToString;
 
-import static at.sbaresearch.microg.adapter.backend.gms.common.HttpFormClient.ResponseField;
-
+@ToString
 public class RegisterResponse {
-  @ResponseField("token")
   public String token;
-  @ResponseHeader("Retry-After")
-  public String retryAfter;
-  @ResponseStatusText
   public String responseText;
-
-  @Override
-  public String toString() {
-    return "RegisterResponse{" +
-        "token='" + token + '\'' +
-        ", retryAfter='" + retryAfter + '\'' +
-        '}';
-  }
 }

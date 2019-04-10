@@ -23,7 +23,6 @@ import at.sbaresearch.microg.adapter.backend.R;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmPrefs;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterResponse;
 import at.sbaresearch.microg.adapter.backend.registration.NullHostNameVerifier;
 import at.sbaresearch.microg.adapter.backend.registration.app.HttpRegisterAppClient.AppRegisterRequest;
@@ -69,30 +68,16 @@ public class HttpRegisterAppService {
   }
 
   public void registerApp(Context context, final GcmDatabase database,
-      final RegisterRequest request, final BundleCallback callback) {
-    if (request.app != null) {
-      if (request.appSignature == null)
-        request.appSignature = PackageUtils.firstSignatureDigest(context, request.app);
-      if (request.appVersion <= 0)
-        request.appVersion = PackageUtils.versionCode(context, request.app);
-      if (request.appVersionName == null)
-        request.appVersionName = PackageUtils.versionName(context, request.app);
-    }
+      String appPackageName, final BundleCallback callback) {
+    String appSignature = PackageUtils.firstSignatureDigest(context, appPackageName);
 
-    GcmDatabase.App app = database.getApp(request.app);
-    GcmPrefs prefs = GcmPrefs.get(context);
-    // TODO this depends on registration inserted before this call? this is madness!
-    if (database.getRegistrationsByApp(request.app).isEmpty()) {
-      Bundle bundle = new Bundle();
-      bundle.putString(EXTRA_UNREGISTERED, attachRequestId(request.app, null));
-      callback.onResult(bundle);
-      return;
-    }
-
-    val registerCall = httpClient.registerApp(AppRegisterRequest.fromOldRequest(request));
+    AppRegisterRequest request = new AppRegisterRequest(appPackageName, appSignature);
+    val registerCall = httpClient.registerApp(
+        request);
     registerCall.enqueue(new Callback<AppRegisterResponse>() {
       @Override
-      public void onResponse(Call<AppRegisterResponse> call, Response<AppRegisterResponse> response) {
+      public void onResponse(Call<AppRegisterResponse> call,
+          Response<AppRegisterResponse> response) {
         val old = AppRegisterResponse.toOldResponse(response);
         Log.i(TAG, "onResponse: " + response.code());
         callback.onResult(handleResponse(database, request, old, null));
@@ -101,65 +86,52 @@ public class HttpRegisterAppService {
       @Override
       public void onFailure(Call<AppRegisterResponse> call, Throwable e) {
         Log.w(TAG, e);
-        callback.onResult(handleResponse(database, request, e, null));
+        callback.onResult(handleErrorResponse(database, request, e, null));
       }
     });
   }
 
-  private static Bundle handleResponse(GcmDatabase database, RegisterRequest request,
+  private static Bundle handleResponse(GcmDatabase database, AppRegisterRequest request,
       RegisterResponse response, String requestId) {
-    return handleResponse(database, request, response, null, requestId);
-  }
-
-  private static Bundle handleResponse(GcmDatabase database, RegisterRequest request, Throwable e,
-      String requestId) {
-    return handleResponse(database, request, null, e, requestId);
-  }
-
-  private static Bundle handleResponse(GcmDatabase database, RegisterRequest request,
-      RegisterResponse response, Throwable e, String requestId) {
     Bundle resultBundle = new Bundle();
-    if (response == null && e == null) {
+    if (response == null) {
       resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-    } else if (e != null) {
-      handleErrorResponse(database, request, e, requestId, resultBundle);
     } else {
       handleSuccessResponse(database, request, response, requestId, resultBundle);
     }
     return resultBundle;
   }
 
-  private static void handleSuccessResponse(GcmDatabase database, RegisterRequest request,
+  private static void handleSuccessResponse(GcmDatabase database, AppRegisterRequest request,
       RegisterResponse response, String requestId, Bundle resultBundle) {
     handleRegisterResponse(database, request, response, requestId, resultBundle);
-
-    if (response.retryAfter != null && !response.retryAfter.contains(":")) {
-      resultBundle.putLong(EXTRA_RETRY_AFTER, Long.parseLong(response.retryAfter));
-    }
   }
 
-  private static void handleRegisterResponse(GcmDatabase database, RegisterRequest request,
+  private static void handleRegisterResponse(GcmDatabase database, AppRegisterRequest request,
       RegisterResponse response, String requestId, Bundle resultBundle) {
     if (response.token == null) {
       database.noteAppRegistrationError(request.app, response.responseText);
       resultBundle
           .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
     } else {
-      database.noteAppRegistered(request.app, request.appSignature, response.token);
+      database.noteAppRegistered(request.app, request.signature, response.token);
       resultBundle.putString(EXTRA_REGISTRATION_ID, attachRequestId(response.token, requestId));
     }
   }
 
-  private static void handleErrorResponse(GcmDatabase database, RegisterRequest request,
-      Throwable e, String requestId, Bundle resultBundle) {
+  private static Bundle handleErrorResponse(GcmDatabase database, AppRegisterRequest request,
+      Throwable e, String requestId) {
+    Bundle resultBundle = new Bundle();
     if (e.getMessage() != null && e.getMessage().startsWith("Error=")) {
       String errorMessage = e.getMessage().substring(6);
       database.noteAppRegistrationError(request.app, errorMessage);
+
       resultBundle.putString(EXTRA_ERROR, attachRequestId(errorMessage, requestId));
     } else {
-      resultBundle
-          .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
+      resultBundle.putString(EXTRA_ERROR,
+          attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
     }
+    return resultBundle;
   }
 
   public static String attachRequestId(String msg, String requestId) {

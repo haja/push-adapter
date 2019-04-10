@@ -78,6 +78,7 @@ public class PackageUtils {
     }
     if (info != null && info.signatures != null && info.signatures.length > 0) {
       for (Signature sig : info.signatures) {
+        // TODO sha1 is a bad idea
         String digest = sha1sum(sig.toByteArray());
         if (digest != null) {
           return digest;

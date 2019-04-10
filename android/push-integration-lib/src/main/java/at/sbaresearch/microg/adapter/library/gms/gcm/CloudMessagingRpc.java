@@ -105,6 +105,7 @@ public class CloudMessagingRpc {
   private PendingIntent getSelfAuthIntent() {
     if (selfAuthIntent == null) {
       Intent intent = new Intent();
+      // TODO this looks strange, should this be a packagename of the requesting app?
       intent.setPackage("com.google.example.invalidpackage");
       selfAuthIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
     }

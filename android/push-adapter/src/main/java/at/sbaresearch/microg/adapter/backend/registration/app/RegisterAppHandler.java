@@ -21,12 +21,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.*;
 import android.util.Log;
-import at.sbaresearch.microg.adapter.backend.gms.checkin.LastCheckinInfo;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
-import at.sbaresearch.microg.adapter.backend.gms.common.Utils;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
-import at.sbaresearch.microg.adapter.backend.gms.gcm.RegisterRequest;
-import at.sbaresearch.microg.adapter.backend.registration.app.HttpRegisterAppService;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
@@ -112,7 +108,6 @@ class RegisterAppHandler extends Handler {
 
     String packageName = data.getString("pkg");
     Bundle subdata = data.getBundle("data");
-    String sender = subdata.getString("sender");
 
     try {
       PackageUtils.checkPackageUid(context, packageName, callingUid);
@@ -125,14 +120,7 @@ class RegisterAppHandler extends Handler {
 
     Log.d(TAG, "about to send app register request");
     // TODO fix http requests
-    httpService.registerApp(context, database,
-        new RegisterRequest()
-            .build(Utils.getBuild(context))
-            .sender(sender)
-            // TODO is checkin needed?
-            .checkin(LastCheckinInfo.read(context))
-            .app(packageName)
-            .appid(subdata.getString("appid"), subdata.getString("gmp_app_id")),
+    httpService.registerApp(context, database, packageName,
         bundle -> sendReply(what, id, replyTo, bundle));
   }
 
