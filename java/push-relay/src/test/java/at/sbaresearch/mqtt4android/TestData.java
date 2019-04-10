@@ -32,11 +32,12 @@ public class TestData {
   @FieldDefaults(makeFinal = true, level = AccessLevel.PUBLIC)
   public static class Clients {
     DeviceRegisterDtoBuilder client1;
+    EncodedKeys client1Keys;
 
     public Clients(String host, int mqttPort, Resource keys, Registrations registrations) throws IOException {
       val regBase = defaultRegBuilder(host, mqttPort);
 
-      val client1Keys = loadKeys(keys, 1);
+      client1Keys = loadKeys(keys, 1);
       client1 = regBase
           .encodedPrivateKey(client1Keys.getPrivateKey())
           .encodedCert(client1Keys.getCert())

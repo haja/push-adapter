@@ -2,6 +2,20 @@ spring:
   datasource:
     url: "jdbc:h2:mem:relay.test;DB_CLOSE_ON_EXIT=FALSE;"
 
+server:
+  port: 9870
+  ssl:
+    # must be the same values as for ssl.*
+    key-store: "classpath:cert-it/keystore.p12"
+    key-store-password: "asdfff"
+    key-password: "asdfff"
+    key-store-type: "PKCS12"
+    trust-store: "classpath:cert-it/truststore.p12"
+    trust-store-password: "asdfff"
+    trust-store-type: "PKCS12"
+    key-alias: "server"
+    client-auth: want
+
 mqtt:
   hostname: "trigger.lan"
   port: 61610

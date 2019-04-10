@@ -65,14 +65,6 @@ public class RegistrationResource {
     return new AppRegistration(req.app, req.cert);
   }
 
-  @RequestMapping(path = "/list", method = RequestMethod.GET)
-  public String listAll() {
-    log.info("listing");
-    // TODO this must not be exposed
-    // TODO mocked for now
-    return "testRegisterId....";
-  }
-
   @Value
   @Builder(builderMethodName = "testWith")
   public static class AppRegistrationRequest {
@@ -90,9 +82,8 @@ public class RegistrationResource {
     //    String gmpAppId;
   }
 
-  // TODO this should be a static class
   @Value
-  public class AppRegistrationResponse {
+  public static class AppRegistrationResponse {
     @NonNull
     String token;
   }
