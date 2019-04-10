@@ -6,21 +6,15 @@ import at.sbaresearch.mqtt4android.registration.crypto.KeyWriter;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.actuate.autoconfigure.metrics.web.tomcat.TomcatMetricsAutoConfiguration;
-import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQAutoConfiguration;
 import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
-import org.springframework.boot.autoconfigure.webservices.WebServicesAutoConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.*;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
  * run this application to handles one-time setup of testdata
  */
+@Profile("test-setup")
 @Configuration
 @EnableAutoConfiguration(exclude = {
     WebMvcAutoConfiguration.class,
@@ -41,8 +35,8 @@ public class OneTimeTestSetupHelper {
   public CryptoTestSetupHelper cryptoTestSetupHelper(
       ClientKeyFactory keyFactory,
       KeyWriter keyWriter,
-      @Value("${testSetup.ssl.clientKeysPathForGenerate}") String testKeyPath
-  ) {
-    return new CryptoTestSetupHelper(keyFactory, keyWriter, testKeyPath);
+      @Value("${testSetup.ssl.clientKeysPathForGenerate}") String testKeyPath,
+      TestData testData) {
+    return new CryptoTestSetupHelper(keyFactory, keyWriter, testKeyPath, testData);
   }
 }
