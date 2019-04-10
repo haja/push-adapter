@@ -1,12 +1,12 @@
 package at.sbaresearch.mqtt4android;
 
-import at.sbaresearch.mqtt4android.registration.crypto.ClientKeyFactory.ClientKeys;
 import lombok.AccessLevel;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
+import lombok.val;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 
 @Component
@@ -16,8 +16,11 @@ public class TestData {
   Clients clients;
   Registrations registrations;
 
-  public TestData() {
-    this.clients = new Clients();
+  public TestData(
+      @org.springframework.beans.factory.annotation.Value("${testSetup.ssl.clientKeysResource}")
+          Resource clientKeysPath)
+      throws IOException {
+    this.clients = new Clients(clientKeysPath);
     this.registrations = new Registrations();
   }
 
@@ -25,13 +28,21 @@ public class TestData {
   public static class Clients {
 
     EncodedKeys client1;
+    private Resource keys;
 
-    public Clients() {
+    public Clients(Resource keys) throws IOException {
+      this.keys = keys;
       this.client1 = loadKeys(1);
     }
 
-    private EncodedKeys loadKeys(int i) {
-      return null;
+    private EncodedKeys loadKeys(int id) throws IOException {
+      val key = keys.createRelative("key-" + id);
+      val cert = keys.createRelative("cert-" + id);
+
+      val keyBytes = key.getInputStream().readAllBytes();
+      val certBytes = cert.getInputStream().readAllBytes();
+
+      return new EncodedKeys(keyBytes, certBytes);
     }
 
     @Value

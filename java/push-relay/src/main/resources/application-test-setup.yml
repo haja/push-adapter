@@ -33,5 +33,4 @@ ssl:
 
 testSetup:
   ssl:
-    clientKeysPath: "classpath:cert-it/client-keys"
     clientKeysPathForGenerate: "src/test/resources/cert-it/client-keys"
