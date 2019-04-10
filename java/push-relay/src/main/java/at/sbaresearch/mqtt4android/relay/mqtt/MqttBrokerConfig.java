@@ -35,7 +35,6 @@ import java.util.List;
 @EnableJms
 public class MqttBrokerConfig {
 
-  public static final String DUMMY_TOPIC = "dummy";
   public static final String TOPIC_WRITE_USERNAME = "system";
   private final String embeddedBrokerName = "embeddedManual";
   public static final String externalIp = "0.0.0.0";

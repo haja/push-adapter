@@ -25,9 +25,4 @@ public class PushService {
     val topic = registrationRepository.getTopic(token);
     jmsTemplate.convertAndSend(topic, msg);
   }
-
-  public void pushToDummyTopic() {
-    log.info("pushing to dummy topic");
-    jmsTemplate.convertAndSend(MqttBrokerConfig.DUMMY_TOPIC, "foo");
-  }
 }
