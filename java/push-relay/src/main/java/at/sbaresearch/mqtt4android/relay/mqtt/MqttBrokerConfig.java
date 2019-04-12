@@ -29,6 +29,7 @@ import javax.jms.ConnectionFactory;
 import javax.jms.QueueConnectionFactory;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,8 +86,10 @@ public class MqttBrokerConfig {
   }
 
   @Bean
-  public SslContext sslContext(KeyManager[] keyManager, TrustManager[] trustManager) {
-    SslContext sslContext = new SslContext(keyManager, trustManager, new SecureRandom());
+  public SslContext sslContext(KeyManager[] keyManager, TrustManager[] trustManager)
+      throws NoSuchAlgorithmException {
+    SslContext sslContext =
+        new SslContext(keyManager, trustManager, SecureRandom.getInstanceStrong());
     sslContext.setProtocol("TLSv1.2");
     return sslContext;
   }
