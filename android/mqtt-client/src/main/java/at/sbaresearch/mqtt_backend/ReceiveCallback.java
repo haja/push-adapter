@@ -15,19 +15,25 @@ class ReceiveCallback implements MqttCallback {
   private static final String TAG = "ReceiveCallback";
 
   private final Context context;
+  private final int id;
 
-  public ReceiveCallback(Context ctx) {
+  public ReceiveCallback(Context ctx, int id) {
+    this.id = id;
     this.context = ctx;
   }
 
   @Override
   public void connectionLost(Throwable cause) {
-    Log.e(TAG, "connection lost: " + (cause != null ? cause.getMessage() : ""));
+    if (cause != null) {
+      Log.e(TAG, id + " connection lost: " + cause.getMessage());
+    } else {
+      Log.w(TAG, id +  " connection lost: without cause (client disconnected?)");
+    }
   }
 
   @Override
   public void messageArrived(String topic, MqttMessage message) {
-    Log.i(TAG, "MQTT msg recv: " + message.toString());
+    Log.i(TAG, id + " MQTT msg recv: " + message.toString());
     try {
       Payload pay = parsePayload(message);
       Log.i(TAG, "MQTT msg parsed: " + pay.toString());

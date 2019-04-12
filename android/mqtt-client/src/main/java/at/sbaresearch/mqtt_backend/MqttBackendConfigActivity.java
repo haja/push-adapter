@@ -45,9 +45,6 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
       public void onClick(View view) {
       }
     });
-
-    Log.i(TAG, "before startService");
-    //startService(new Intent(this, MqttConnectionManagerService.class));
   }
 
   @Override
