@@ -1,21 +1,12 @@
 # Next steps for implementation
 
-TESTS: some integration test?
+TESTS: some complete integration test?
     start relay backend with some application config.
-    use bishbosh as mqtt client.
-    do http calls from bash script, then subscribe with returned keys.
-    then http call from backend-sample to deliver message
+    use the sample android apps as clients
     assert if message gets delivered
 
 ## overall
-- handle device registration
-- generate client certs and mqtt-topic for client
-- actually relay messages from REST API to mqtt-topic
-
-## mqtt
-- register client certs for mqtt-topic, use this as auth mechanism
-    - how to handle tls client certs for auth on relay?
-- expose/advertise mqtt connection settings (host:port) through REST API
+- cleanup TODOs in code
 
 # crypto setup
 write script to do the following:
