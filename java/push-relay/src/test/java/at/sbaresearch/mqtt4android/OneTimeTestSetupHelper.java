@@ -3,6 +3,7 @@ package at.sbaresearch.mqtt4android;
 import at.sbaresearch.mqtt4android.registration.crypto.ClientKeyFactory;
 import at.sbaresearch.mqtt4android.registration.crypto.CryptoTestSetupHelper;
 import at.sbaresearch.mqtt4android.registration.crypto.KeyWriter;
+import at.sbaresearch.mqtt4android.testdata.Registrations;
 import lombok.val;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -36,7 +37,7 @@ public class OneTimeTestSetupHelper {
       ClientKeyFactory keyFactory,
       KeyWriter keyWriter,
       @Value("${testSetup.ssl.clientKeysPathForGenerate}") String testKeyPath,
-      TestData testData) {
-    return new CryptoTestSetupHelper(keyFactory, keyWriter, testKeyPath, testData);
+      Registrations registrations) {
+    return new CryptoTestSetupHelper(keyFactory, keyWriter, testKeyPath, registrations);
   }
 }

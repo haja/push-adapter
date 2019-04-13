@@ -12,6 +12,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.concurrent.TimeoutException;
+
 import static org.assertj.core.api.Assertions.*;
 
 public class PushIntegrationTest extends AppTest {
@@ -48,6 +50,20 @@ public class PushIntegrationTest extends AppTest {
       assertThat(new String(msg.getPayload())).contains(pushedMsg);
     });
   }
+
+  @Test
+  public void pushMessage_otherClient_sameApp_shouldNotReceive() throws Throwable {
+    val client1 = testData.registrations.registration1;
+    val client2 = testData.registrations.registration2;
+
+    withClient(testData.clients.client1.mqttTopic(client1.getTopic()), conn -> {
+      pushResource.sendMessage(client2.getToken(), "message for other client");
+
+      assertThatThrownBy(() -> mqtt.await(conn.receive()))
+          .isInstanceOf(TimeoutException.class);
+    });
+  }
+
 
   private void withClient(DeviceRegisterDtoBuilder registrationBuilder,
       CheckedConsumer<FutureConnection> afterSubscribe)

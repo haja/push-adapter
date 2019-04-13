@@ -1,6 +1,6 @@
 package at.sbaresearch.mqtt4android.registration.crypto;
 
-import at.sbaresearch.mqtt4android.TestData.Clients.EncodedKeys;
+import at.sbaresearch.mqtt4android.testdata.Clients.EncodedKeys;
 import at.sbaresearch.mqtt4android.pinning.ClientKeyCert;
 import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
 import lombok.AccessLevel;

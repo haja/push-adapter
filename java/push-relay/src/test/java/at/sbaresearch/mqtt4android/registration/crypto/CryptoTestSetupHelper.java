@@ -1,7 +1,8 @@
 package at.sbaresearch.mqtt4android.registration.crypto;
 
 import at.sbaresearch.mqtt4android.registration.crypto.ClientKeyFactory.ClientKeys;
-import at.sbaresearch.mqtt4android.TestData;
+import at.sbaresearch.mqtt4android.testdata.Registrations;
+import at.sbaresearch.mqtt4android.testdata.Registrations.RegistrationRecord;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -17,22 +18,29 @@ public class CryptoTestSetupHelper implements CommandLineRunner {
   ClientKeyFactory keyFactory;
   KeyWriter keyWriter;
   File outputPath;
-  TestData testData;
+  Registrations registrations;
 
   public CryptoTestSetupHelper(ClientKeyFactory keyFactory, KeyWriter keyWriter,
-      String outputPath, TestData testData) {
+      String outputPath, Registrations registrations) {
     this.keyFactory = keyFactory;
     this.keyWriter = keyWriter;
     this.outputPath = new File(outputPath);
-    this.testData = testData;
+    if (!this.outputPath.isDirectory() || !this.outputPath.canWrite()) {
+      throw new RuntimeException("cannot write to directory '" + this.outputPath.getAbsolutePath() + "'. are you running from the right working directory?");
+    }
+    this.registrations = registrations;
   }
 
   @Override
   public void run(String... args) throws Exception {
     log.info("generating keys for registrations");
-    val reg1 = testData.registrations.registration1;
-    val key1 = generateSignedKeyForTest(reg1.getTopic());
-    keyWriter.write(key1.getEncodedPrivateKey(), key1.getEncodedCert(), outputPath
+    generateAndWrite(registrations.registration1);
+    generateAndWrite(registrations.registration2);
+  }
+
+  private void generateAndWrite(RegistrationRecord reg) throws Exception {
+    val key = generateSignedKeyForTest(reg.getTopic());
+    keyWriter.write(key.getEncodedPrivateKey(), key.getEncodedCert(), outputPath
     );
   }
 
