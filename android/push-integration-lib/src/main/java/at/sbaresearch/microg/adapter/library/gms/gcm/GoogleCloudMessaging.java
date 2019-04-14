@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+import at.sbaresearch.microg.adapter.library.firebase.messaging.FirebaseMessagingService;
 import at.sbaresearch.microg.adapter.library.gms.common.PublicApi;
 import at.sbaresearch.microg.adapter.library.gms.iid.InstanceID;
 
@@ -42,9 +43,9 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  * <a href="http://developer.android.com/google/gcm/gs.html">Getting Started</a>.
  * <p/>
  * In order to receive GCM messages, declare {@link GcmReceiver}
- * and an implementation of {@link GcmListenerService} in the app manifest.
+ * and an implementation of {@link FirebaseMessagingService} in the app manifest.
  * {@link GcmReceiver} will pass the incoming messages to the implementation
- * of {@link GcmListenerService}. To process messages, override base class
+ * of {@link FirebaseMessagingService}. To process messages, override base class
  * methods to handle any events required by the application.
  * <p/>
  * Client apps can send upstream messages back to the app server using the XMPP-based
@@ -80,7 +81,7 @@ public class GoogleCloudMessaging {
    * some pending messages because they exceeded the storage limits. The
    * application should contact the server to retrieve the discarded messages.
    *
-   * @deprecated Instead implement {@link GcmListenerService#onDeletedMessages()}
+   * @deprecated Instead implement {@link FirebaseMessagingService#onDeletedMessages()}
    */
   @Deprecated
   public static final String MESSAGE_TYPE_DELETED = GcmConstants.MESSAGE_TYPE_DELETED_MESSAGE;
@@ -88,7 +89,7 @@ public class GoogleCloudMessaging {
   /**
    * Returned by {@link GoogleCloudMessaging#getMessageType(android.content.Intent)} to indicate a regular message.
    *
-   * @deprecated Instead implement {@link GcmListenerService#onMessageReceived(java.lang.String, android.os.Bundle)}
+   * @deprecated Instead implement {@link FirebaseMessagingService#onMessageReceived(java.lang.String, android.os.Bundle)}
    */
   @Deprecated
   public static final String MESSAGE_TYPE_MESSAGE = GcmConstants.MESSAGE_TYPE_GCM;
@@ -97,7 +98,7 @@ public class GoogleCloudMessaging {
    * Returned by {@link GoogleCloudMessaging#getMessageType(android.content.Intent)} to indicate a send error.
    * The intent includes the message ID of the message and an error code.
    *
-   * @deprecated Instead implement {@link GcmListenerService#onSendError(java.lang.String, java.lang.String)}
+   * @deprecated Instead implement {@link FirebaseMessagingService#onSendError(java.lang.String, java.lang.String)}
    */
   @Deprecated
   public static final String MESSAGE_TYPE_SEND_ERROR = GcmConstants.MESSAGE_TYPE_SEND_ERROR;
@@ -106,7 +107,7 @@ public class GoogleCloudMessaging {
    * Returned by {@link GoogleCloudMessaging#getMessageType(android.content.Intent)} to indicate a sent message has been received by the GCM
    * server. The intent includes the message ID of the message.
    *
-   * @deprecated Instead implement {@link GcmListenerService#onMessageSent(java.lang.String)}
+   * @deprecated Instead implement {@link FirebaseMessagingService#onMessageSent(java.lang.String)}
    */
   @Deprecated
   public static final String MESSAGE_TYPE_SEND_EVENT = GcmConstants.MESSAGE_TYPE_SEND_EVENT;

@@ -27,12 +27,13 @@ import android.os.Build;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Base64;
 import android.util.Log;
+import at.sbaresearch.microg.adapter.library.firebase.messaging.FirebaseMessagingService;
 
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
 
 /**
  * <code>WakefulBroadcastReceiver</code> that receives GCM messages and delivers them to an
- * application-specific {@link GcmListenerService} subclass.
+ * application-specific {@link FirebaseMessagingService} subclass.
  * <p/>
  * This receiver should be declared in your application's manifest file as follows:
  * <p/>

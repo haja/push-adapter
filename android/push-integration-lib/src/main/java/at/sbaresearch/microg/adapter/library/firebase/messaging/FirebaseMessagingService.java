@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package at.sbaresearch.microg.adapter.library.gms.gcm;
+package at.sbaresearch.microg.adapter.library.firebase.messaging;
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -25,31 +25,32 @@ import android.os.IBinder;
 import android.support.v4.os.AsyncTaskCompat;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.common.PublicApi;
+import at.sbaresearch.microg.adapter.library.gms.gcm.GcmReceiver;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
 
 /**
- * Base class for communicating with Google Cloud Messaging.
- * <p/>
- * It also provides functionality such as automatically displaying
- * <a href="https://developer.android.com/google/gcm/server.html">notifications when requested by app server</a>.
- * <p/>
+ * Base class for receiving Firebase Messages.
  * Override base class methods to handle any events required by the application.
  * Methods are invoked asynchronously.
+ * // TODO This is wrong
  * <p/>
  * Include the following in the manifest:
  * <pre>
  * <service
- *     android:name=".YourGcmListenerService"
+ *     android:name=".YourFcmListenerService"
  *     android:exported="false" >
  *     <intent-filter>
- *         <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+ *         <action android:name="at.sbaresearch.android.c2dm.intent.RECEIVE" />
  *     </intent-filter>
  * </service></pre>
  */
 @PublicApi
-public abstract class GcmListenerService extends Service {
-  private static final String TAG = "GcmListenerService";
+public abstract class FirebaseMessagingService extends Service {
+  private static final String TAG = "FcmListenerService";
 
   private final Object lock = new Object();
   private int startId;
@@ -60,44 +61,36 @@ public abstract class GcmListenerService extends Service {
   }
 
   /**
-   * Called when GCM server deletes pending messages due to exceeded
-   * storage limits, for example, when the device cannot be reached
-   * for an extended period of time.
-   * <p/>
-   * It is recommended to retrieve any missing messages directly from the
-   * app server.
+   * Called when a message is received.
+   */
+  public void onMessageReceived(RemoteMessage message) {
+    // To be overwritten
+  }
+
+  /**
+   * Called when a new token is generated
+   * TODO implement onNewToken
+   */
+  public void onNewToken(String token) {
+    // to be overwritten
+  }
+
+  /**
+   * NOT SUPPORTED
    */
   public void onDeletedMessages() {
     // To be overwritten
   }
 
   /**
-   * Called when a message is received.
-   *
-   * @param from describes message sender.
-   * @param data message data as String key/value pairs.
-   */
-  public void onMessageReceived(String from, Bundle data) {
-    // To be overwritten
-  }
-
-  /**
-   * Called when an upstream message has been successfully sent to the
-   * GCM connection server.
-   *
-   * @param msgId of the upstream message sent using
-   * {@link com.google.android.gms.gcm.GoogleCloudMessaging#send(String, String, Bundle)}.
+   * NOT SUPPORTED
    */
   public void onMessageSent(String msgId) {
     // To be overwritten
   }
 
   /**
-   * Called when there was an error sending an upstream message.
-   *
-   * @param msgId of the upstream message sent using
-   * {@link com.google.android.gms.gcm.GoogleCloudMessaging#send(String, String, Bundle)}.
-   * @param error description of the error.
+   * NOT SUPPORTED
    */
   public void onSendError(String msgId, String error) {
     // To be overwritten
@@ -144,7 +137,8 @@ public abstract class GcmListenerService extends Service {
         data.remove(
             "android.support.content.wakelockid"); // WakefulBroadcastReceiver.EXTRA_WAKE_LOCK_ID
         data.remove(EXTRA_FROM);
-        onMessageReceived(from, data);
+        onMessageReceived(buildRemoteMessage(from, data));
+        // TODO add if for onNewToken
       } else if (MESSAGE_TYPE_DELETED_MESSAGE.equals(messageType)) {
         onDeletedMessages();
       } else if (MESSAGE_TYPE_SEND_EVENT.equals(messageType)) {
@@ -158,6 +152,17 @@ public abstract class GcmListenerService extends Service {
     } finally {
       GcmReceiver.completeWakefulIntent(intent);
     }
+  }
+
+  private RemoteMessage buildRemoteMessage(String from, Bundle data) {
+    Map<String, String> asMap = new HashMap<>(data.size());
+    for (String key : data.keySet()) {
+      String val = data.getString(key);
+      if (key != null && val != null) {
+        asMap.put(key, val);
+      }
+    }
+    return new RemoteMessage(from, asMap);
   }
 
   private void handlePendingNotification(Intent intent) {
