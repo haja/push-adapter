@@ -1,8 +1,9 @@
 package at.sbaresearch.mqtt4android.relay.web;
 
 import at.sbaresearch.mqtt4android.relay.PushService;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
+import at.sbaresearch.mqtt4android.relay.PushService.PushMessage;
+import io.vavr.collection.Map;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +19,24 @@ public class PushResource {
 
   PushService pushService;
 
-  @RequestMapping(value = "/{token}", method = RequestMethod.POST)
-  public void sendMessage(@PathVariable String token, @RequestBody String message) {
-    log.info("push message {} for token {} received", message, token);
+  // TODO map from FCM format here
+  @PostMapping("/")
+  public void sendMessage(@RequestBody PushDto msg) {
+    log.info("push message {} for token {} received", msg.name, msg.token);
+    val token = msg.token;
 
-    pushService.pushMessage(token, message);
+    pushService.pushMessage(token, toMessage(msg));
+  }
+
+  private PushMessage toMessage(PushDto msg) {
+    return PushMessage.of(msg.name, msg.data);
+  }
+
+  @Value
+  @Builder
+  public static class PushDto {
+    String name;
+    Map<String, String> data;
+    String token;
   }
 }

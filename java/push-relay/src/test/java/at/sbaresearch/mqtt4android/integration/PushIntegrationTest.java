@@ -2,6 +2,7 @@ package at.sbaresearch.mqtt4android.integration;
 
 import at.sbaresearch.mqtt4android.AppTest;
 import at.sbaresearch.mqtt4android.MqttTestHelper;
+import at.sbaresearch.mqtt4android.PushTestHelper;
 import at.sbaresearch.mqtt4android.TestData;
 import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.DeviceRegisterDto.DeviceRegisterDtoBuilder;
 import at.sbaresearch.mqtt4android.relay.web.PushResource;
@@ -23,13 +24,19 @@ public class PushIntegrationTest extends AppTest {
   TestData testData;
   @Autowired
   MqttTestHelper mqtt;
+  @Autowired
+  PushTestHelper helper;
 
   @Test
   @Ignore("investigate QueryBasedSubscriptionRecoveryPolicy")
   public void pushMessage_validToken_subscribeAfterPush_shouldBeReceived() throws Throwable {
     val reg = testData.registrations.registration1;
     val pushedMsg = "push message IT";
-    pushResource.sendMessage(reg.getToken(), pushedMsg);
+    val pushDto = helper.pushMessageBuilder()
+        .name(pushedMsg)
+        .token(reg.getToken())
+        .build();
+    pushResource.sendMessage(pushDto);
 
     // TODO this test fails; use a QueryBasedSubscriptionRecoveryPolicy https://activemq.apache.org/subscription-recovery-policy to fix this
     withClient(testData.clients.client1.mqttTopic(reg.getTopic()), conn -> {
@@ -44,7 +51,11 @@ public class PushIntegrationTest extends AppTest {
 
     withClient(testData.clients.client1.mqttTopic(reg.getTopic()), conn -> {
       val pushedMsg = "push message IT2";
-      pushResource.sendMessage(reg.getToken(), pushedMsg);
+      val pushDto = helper.pushMessageBuilder()
+          .name(pushedMsg)
+          .token(reg.getToken())
+          .build();
+      pushResource.sendMessage(pushDto);
 
       val msg = mqtt.await(conn.receive());
       assertThat(new String(msg.getPayload())).contains(pushedMsg);
@@ -57,7 +68,10 @@ public class PushIntegrationTest extends AppTest {
     val client2 = testData.registrations.registration2;
 
     withClient(testData.clients.client1.mqttTopic(client1.getTopic()), conn -> {
-      pushResource.sendMessage(client2.getToken(), "message for other client");
+      val msgForOtherClient = helper.pushMessageBuilder()
+          .token(client2.getToken())
+          .build();
+      pushResource.sendMessage(msgForOtherClient);
 
       assertThatThrownBy(() -> mqtt.await(conn.receive()))
           .isInstanceOf(TimeoutException.class);

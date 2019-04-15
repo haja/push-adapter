@@ -27,7 +27,7 @@ import java.util.function.Consumer;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AppResource {
 
-  private static final String URL_RELAY = "https://localhost:9876/push/{requestId}";
+  private static final String URL_RELAY = "https://localhost:9876/push/";
 
   @NonFinal
   Option<Tuple2<String, byte[]>> currentRegId = Option.none();
@@ -58,13 +58,17 @@ public class AppResource {
   private Consumer<Tuple2<String, byte[]>> pushMessage(
       @RequestBody String message) {
     return regTuple -> {
+      val token = regTuple._1;
+      val req = HashMap.of("name", message, "token", token)
+          .toJavaMap();
+
       val cert = regTuple._2;
       try {
         val requestFactory = setupRequestFactory(cert);
         templateBuilder
             .requestFactory(() -> requestFactory)
             .build()
-            .postForLocation(URL_RELAY, message, HashMap.of("requestId", regTuple._1).toJavaMap());
+            .postForLocation(URL_RELAY, req);
       } catch (Exception e) {
         log.error("cannot create ssl connection", e);
       }

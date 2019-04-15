@@ -4,6 +4,7 @@ import at.sbaresearch.mqtt4android.registration.RegistrationService;
 import at.sbaresearch.mqtt4android.registration.RegistrationService.AppRegistration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.vavr.collection.Map;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -25,11 +26,12 @@ public class PushService {
   ObjectMapper objectMapper;
   JmsTemplate jmsTemplate;
 
-  public void pushMessage(String token, String msg) {
+  public void pushMessage(String token, PushMessage msg) {
     log.info("pushing message: {}", msg);
     val app = registrationService.getApp(token);
     try {
-      sendAsJson(app, msg);
+      // TODO mapping of data
+      sendAsJson(app, msg.name);
     } catch (JsonProcessingException e) {
       log.error("cannot send message, json parsing failed", e);
       throw new PushMessageException("cannot convert message for sending: " + msg);
@@ -46,6 +48,12 @@ public class PushService {
     String app;
     String signature;
     String message;
+  }
+
+  @Value(staticConstructor = "of")
+  public static class PushMessage {
+    String name;
+    Map<String, String> data;
   }
 
   @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

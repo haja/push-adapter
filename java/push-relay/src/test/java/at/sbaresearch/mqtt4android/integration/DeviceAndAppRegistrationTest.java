@@ -2,6 +2,7 @@ package at.sbaresearch.mqtt4android.integration;
 
 import at.sbaresearch.mqtt4android.AppTest;
 import at.sbaresearch.mqtt4android.MqttTestHelper;
+import at.sbaresearch.mqtt4android.PushTestHelper;
 import at.sbaresearch.mqtt4android.registration.web.RegistrationResource;
 import at.sbaresearch.mqtt4android.registration.web.RegistrationResource.DeviceRegisterDto;
 import at.sbaresearch.mqtt4android.relay.web.PushResource;
@@ -25,6 +26,8 @@ public class DeviceAndAppRegistrationTest extends AppTest {
   PushResource pushResource;
   @Autowired
   MqttTestHelper mqttHelper;
+  @Autowired
+  PushTestHelper helper;
 
   // TODO multi-client tests
   //  routing of push messages to correct app
@@ -39,8 +42,12 @@ public class DeviceAndAppRegistrationTest extends AppTest {
       val mockUser = registrationToUser(reg);
       val appResp = registrationResource.registerApp(appReq().build(), mockUser);
 
-      String messageContent = "some push content";
-      pushResource.sendMessage(appResp.getToken(), messageContent);
+      val messageContent = "some push content";
+      val msg = helper.pushMessageBuilder()
+          .name(messageContent)
+          .token(appResp.getToken())
+          .build();
+      pushResource.sendMessage(msg);
 
       val message = mqttHelper.await(connection.receive());
       // TODO better assert of payload
@@ -60,8 +67,12 @@ public class DeviceAndAppRegistrationTest extends AppTest {
 
       val mockUser = registrationToUser(originalReg);
       val appResp = registrationResource.registerApp(appReq().build(), mockUser);
-      String msg = "should not be received";
-      pushResource.sendMessage(appResp.getToken(), msg);
+
+      val msg = helper.pushMessageBuilder()
+          .name("should not be received")
+          .token(appResp.getToken())
+          .build();
+      pushResource.sendMessage(msg);
 
       // we wait for a timeout here
       assertThatThrownBy(() -> mqttHelper.await(connection.receive()))

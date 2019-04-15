@@ -1,10 +1,9 @@
 package at.sbaresearch.mqtt4android.relay;
 
 import at.sbaresearch.mqtt4android.AppTest;
-import at.sbaresearch.mqtt4android.MqttTestHelper;
+import at.sbaresearch.mqtt4android.PushTestHelper;
 import at.sbaresearch.mqtt4android.TestData;
 import at.sbaresearch.mqtt4android.relay.web.PushResource;
-import lombok.AllArgsConstructor;
 import lombok.val;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,20 +16,26 @@ public class PushMessageTest extends AppTest {
   PushResource pushResource;
   @Autowired
   TestData testData;
+  @Autowired
+  PushTestHelper helper;
 
   @Test
   public void pushMessage_validToken_shouldNotThrow() throws Exception {
     val reg = testData.registrations.registration1;
-    val msg = "this is a test";
-    pushResource.sendMessage(reg.getToken(), msg);
+    val msg = helper.pushMessageBuilder()
+        .token(reg.getToken())
+        .build();
+    pushResource.sendMessage(msg);
   }
 
   @Test
   public void pushMessage_invalidToken_shouldFail() throws Exception {
     val reg = testData.registrations.registration1;
-    val msg = "this should fail";
-    assertThatThrownBy(() -> {
-      pushResource.sendMessage(reg.getToken() + "-modified", msg);
-    }).isInstanceOf(RuntimeException.class);
+    val msg = helper.pushMessageBuilder()
+        .name("this should fail")
+        .token(reg.getToken() + "-modified")
+        .build();
+    assertThatThrownBy(() -> pushResource.sendMessage(msg))
+        .isInstanceOf(RuntimeException.class);
   }
 }
