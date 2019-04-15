@@ -12,7 +12,7 @@ public class GcmTestService extends FirebaseMessagingService {
   @Override
   public void onMessageReceived(RemoteMessage message) {
     final String msg = "### msg RECV: " + message.getFrom() + " data: " + message.getData();
-    Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
+    //Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
     Log.i(TAG, msg);
   }
 }
