@@ -1,8 +1,10 @@
 package at.sbaresearch.mqtt_backend;
 
+import lombok.ToString;
 import lombok.Value;
 
 @Value
+@ToString(exclude = {"privKey", "cert"})
 public class ConnectionSettings {
   String host;
   int port;

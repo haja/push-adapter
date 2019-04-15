@@ -111,11 +111,12 @@ public class MqttConnectionManagerService extends Service {
     final IMqttActionListener connectCb = new IMqttActionListener() {
       @Override
       public void onSuccess(IMqttToken asyncActionToken) {
-        final String msg = "connection established";
+        final String msg = "connection established to: " + sett;
         Log.i(TAG, msg);
         try {
           mqttAndroidClient.subscribe(sett.getTopic(), 0)
               .waitForCompletion();
+          Log.i(TAG, "subscribe done");
         } catch (MqttException e) {
           String msgFail = "subscribe failed: " + e.getMessage();
           Log.e(TAG, msgFail);
