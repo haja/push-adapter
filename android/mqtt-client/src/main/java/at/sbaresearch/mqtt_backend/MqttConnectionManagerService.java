@@ -31,7 +31,6 @@ public class MqttConnectionManagerService extends Service {
   private IBinder binder = new MqttConnectionBinder();
 
   private Integer currentStartId = null;
-  private Object connectionMonitor = new Object();
 
   public MqttConnectionManagerService() {
     mqttConnectOptions = new MqttConnectOptions();
@@ -114,9 +113,18 @@ public class MqttConnectionManagerService extends Service {
         final String msg = "connection established to: " + sett;
         Log.i(TAG, msg);
         try {
-          mqttAndroidClient.subscribe(sett.getTopic(), 0)
-              .waitForCompletion();
-          Log.i(TAG, "subscribe done");
+          asyncActionToken.getClient().subscribe(sett.getTopic(), 0).setActionCallback(
+              new IMqttActionListener() {
+                @Override
+                public void onSuccess(IMqttToken asyncActionToken) {
+                  Log.i(TAG, "subscribe success");
+                }
+
+                @Override
+                public void onFailure(IMqttToken asyncActionToken, Throwable e) {
+                  Log.e(TAG, "subscribe failed", e);
+                }
+              });
         } catch (MqttException e) {
           String msgFail = "subscribe failed: " + e.getMessage();
           Log.e(TAG, msgFail);
