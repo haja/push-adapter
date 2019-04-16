@@ -32,6 +32,7 @@ public class PushMessageTest extends AppTest {
   public void pushMessage_invalidToken_shouldFail() throws Exception {
     val reg = testData.registrations.registration1;
     val msg = helper.pushMessageBuilder()
+        // TODO remove name, is "output only" identifier in FCM
         .name("this should fail")
         .token(reg.getToken() + "-modified")
         .build();

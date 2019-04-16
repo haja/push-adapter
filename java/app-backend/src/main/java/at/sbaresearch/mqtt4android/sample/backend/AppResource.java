@@ -3,7 +3,6 @@ package at.sbaresearch.mqtt4android.sample.backend;
 import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import io.vavr.collection.HashMap;
 import io.vavr.control.Option;
 import lombok.AccessLevel;
 import lombok.Value;
@@ -20,6 +19,8 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.ByteArrayInputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 @RestController
@@ -59,8 +60,7 @@ public class AppResource {
       @RequestBody String message) {
     return regTuple -> {
       val token = regTuple._1;
-      val req = HashMap.of("name", message, "token", token)
-          .toJavaMap();
+      val req = new JsonRequest(token, message, new HashMap<>());
 
       val cert = regTuple._2;
       try {
@@ -92,5 +92,18 @@ public class AppResource {
   public static class AppRegistrationRequest {
     String registrationId;
     byte[] relayCert;
+  }
+
+  /**
+   * TODO this should be FCM/relay compatible API definition
+   * see for proper definition
+   * https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send
+   */
+  @Value
+  public static class JsonRequest {
+    String token;
+    // TODO remove name, is "output only" identifier in FCM
+    String name;
+    Map<String, String> data;
   }
 }

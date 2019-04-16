@@ -32,9 +32,16 @@ public class PushResource {
     return PushMessage.of(msg.name, msg.data);
   }
 
+  /**
+   * TODO this should be FCM/relay compatible API definition
+   * see for proper definition
+   * https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send
+   */
   @Value
   @Builder
   public static class PushDto {
+    // TODO wrap this in "message" object?
+    // TODO remove name, is "output only" identifier in FCM
     String name;
     Map<String, String> data;
     String token;
