@@ -51,6 +51,7 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  * To prove ownership of Instance ID and to allow servers to access data or
  * services associated with the app, call {@link InstanceID#getToken(java.lang.String, java.lang.String)}.
  */
+// TODO wire needs FirebaseInstanceID; how different is it?
 @PublicApi
 public class InstanceID {
   /**
@@ -193,7 +194,7 @@ public class InstanceID {
    * <p/>
    * Do not call this function on the main thread.
    *
-   * @param authorizedEntity Entity authorized by the token.
+   * @param authorizedEntity Entity authorized by the token. (sender ID)
    * @param scope Action authorized for authorizedEntity.
    * @param extras additional parameters specific to each token scope.
    * Bundle keys starting with 'GCM.' and 'GOOGLE.' are
@@ -206,6 +207,7 @@ public class InstanceID {
                                                                                IOException {
     if (Looper.getMainLooper() == Looper.myLooper()) throw new IOException(ERROR_MAIN_THREAD);
 
+    // TODO implement for wire
     throw new UnsupportedOperationException();
   }
 
