@@ -51,7 +51,7 @@ public final class GcmConstants {
   public static final String EXTRA_KID = "kid";
   public static final String EXTRA_MESSENGER = "google.messenger";
   public static final String EXTRA_MESSAGE_TYPE = "message_type";
-  public static final String EXTRA_MESSAGE_ID = "google.message_id";
+  public static final String EXTRA_MESSAGE_ID = "messageId";
   public static final String EXTRA_OS_VERSION = "osv";
   public static final String EXTRA_PENDING_INTENT = "com.google.android.gms.gcm.PENDING_INTENT";
   public static final String EXTRA_PUBLIC_KEY = "pub2";

@@ -48,7 +48,7 @@ class ReceiveCallback implements MqttCallback {
     final JSONObject json = (JSONObject) new JSONTokener(new String(msg.getPayload())).nextValue();
     String app = json.getString("app");
     String sig = json.getString("signature");
-    String name = json.getString("name");
+    String name = json.getString("messageId");
     val data = json.getJSONObject("data").toString();
     return new Message(app, sig, name, data);
   }
@@ -58,10 +58,10 @@ class ReceiveCallback implements MqttCallback {
     Intent intent = new Intent(API.INTENT_MQTT_RECEIVE);
     intent.putExtra(API.app, message.app);
     intent.putExtra(API.signature, message.signature);
-    intent.putExtra(API.name, message.name);
+    intent.putExtra(API.messageId, message.messageId);
     intent.putExtra(API.payload, message.dataAsJson);
 
-    // TODO enforce some permission here? enforce package name here
+    // TODO enforce some permission here? enforce package messageId here
     context.sendBroadcast(intent);
   }
 
@@ -74,7 +74,7 @@ class ReceiveCallback implements MqttCallback {
   private class Message {
     String app;
     String signature;
-    String name;
+    String messageId;
     String dataAsJson;
   }
 }

@@ -18,19 +18,21 @@ public class PushResource {
 
   PushService pushService;
 
-  // TODO map from FCM format here
-  //  return request with name
   @PostMapping("/")
-  public void sendMessage(@RequestBody PushRequest req) {
+  public PushResponse sendMessage(@RequestBody PushRequest req) {
     val msg = req.getMessage();
     log.info("push message {} received", msg);
     val token = msg.getToken();
 
-    pushService.pushMessage(token, toMessage(msg));
+    return toResponse(pushService.pushMessage(token, toMessage(msg)));
+  }
+
+  private PushResponse toResponse(String pushMessage) {
+    return new PushResponse("projects/custom_relay/messages/" + pushMessage);
   }
 
   private PushMessage toMessage(PushRequest.Message msg) {
-    return PushMessage.of("todo name/ID", msg.getData());
+    return PushMessage.of(msg.getData());
   }
 
 }

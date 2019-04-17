@@ -141,8 +141,10 @@ public abstract class FirebaseMessagingService extends Service {
         data.remove(
             "android.support.content.wakelockid"); // WakefulBroadcastReceiver.EXTRA_WAKE_LOCK_ID
         data.remove(EXTRA_FROM);
-        onMessageReceived(buildRemoteMessage(from, data.getString(EXTRA_PAYLOAD)));
+        String msgId = intent.getStringExtra(EXTRA_MESSAGE_ID);
+        onMessageReceived(buildRemoteMessage(from, data.getString(EXTRA_PAYLOAD), msgId));
         // TODO add if for onNewToken
+        // TODO delete not supported message types
       } else if (MESSAGE_TYPE_DELETED_MESSAGE.equals(messageType)) {
         onDeletedMessages();
       } else if (MESSAGE_TYPE_SEND_EVENT.equals(messageType)) {
@@ -158,14 +160,15 @@ public abstract class FirebaseMessagingService extends Service {
     }
   }
 
-  private RemoteMessage buildRemoteMessage(String from, String dataAsString) {
+  private RemoteMessage buildRemoteMessage(String from, String dataAsString,
+      String messageId) {
     Map<String, String> asMap = new HashMap<>();
     try {
       asMap = parseData(new JSONObject(dataAsString));
     } catch (JSONException e) {
       Log.e(TAG, "buildRemoteMessage: cannot parse json string", e);
     }
-    return new RemoteMessage(from, asMap);
+    return new RemoteMessage(from, asMap, messageId);
   }
 
   private Map<String, String> parseData(JSONObject data) {

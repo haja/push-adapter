@@ -41,6 +41,8 @@ public class MqttBackendReceiver extends BroadcastReceiver {
 
     String payload = backendIntent.getStringExtra(MQTT_API.payload);
     out.putExtra("payload", payload);
+    String id = backendIntent.getStringExtra(MQTT_API.messageId);
+    out.putExtra("messageId", id);
 
     return out;
   }

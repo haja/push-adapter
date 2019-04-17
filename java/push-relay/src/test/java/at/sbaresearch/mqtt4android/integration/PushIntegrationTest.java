@@ -56,6 +56,7 @@ public class PushIntegrationTest extends AppTest {
 
       val msg = mqtt.await(conn.receive());
       assertThat(new String(msg.getPayload())).contains(pushedMsg);
+      assertThat(new String(msg.getPayload())).contains("messageId");
     });
   }
 
@@ -74,6 +75,20 @@ public class PushIntegrationTest extends AppTest {
     });
   }
 
+  @Test
+  public void pushMessage_validToken_shouldReturnMessageId() throws Throwable {
+    val reg = testData.registrations.registration1;
+
+    withClient(testData.clients.client1.mqttTopic(reg.getTopic()), conn -> {
+      val pushDto = helper.pushMessageBuilder()
+          .token(reg.getToken());
+      val resp = pushResource.sendMessage(toReq(pushDto));
+
+      val msg = mqtt.await(conn.receive());
+      val msgId = resp.getName().substring("projects/custom_relay/messages/".length());
+      assertThat(new String(msg.getPayload())).contains(msgId);
+    });
+  }
 
   private void withClient(DeviceRegisterDtoBuilder registrationBuilder,
       CheckedConsumer<FutureConnection> afterSubscribe)

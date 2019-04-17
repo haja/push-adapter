@@ -2,6 +2,7 @@ package at.sbaresearch.mqtt4android.relay;
 
 import at.sbaresearch.mqtt4android.registration.RegistrationService;
 import at.sbaresearch.mqtt4android.registration.RegistrationService.AppRegistration;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators.UUIDGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 @AllArgsConstructor
@@ -27,21 +29,23 @@ public class PushService {
   ObjectMapper objectMapper;
   JmsTemplate jmsTemplate;
 
-  public void pushMessage(String token, PushMessage msg) {
+  public String pushMessage(String token, PushMessage msg) {
     log.info("pushing message: {}", msg);
     val app = registrationService.getApp(token);
     try {
-      sendAsJson(app, msg.name, msg.data);
+      val messageId = UUID.randomUUID().toString();
+      sendAsJson(app, messageId, msg.data);
+      return messageId;
     } catch (JsonProcessingException e) {
       log.error("cannot send message, json parsing failed", e);
       throw new PushMessageException("cannot convert message for sending: " + msg);
     }
   }
 
-  private void sendAsJson(AppRegistration app, String name,
+  private void sendAsJson(AppRegistration app, String msgId,
       Map<String, String> data) throws JsonProcessingException {
     val jsonMsg = objectMapper.writeValueAsString(
-        MqttMessage.of(app.getApp(), app.getSignature(), name, data));
+        MqttMessage.of(app.getApp(), app.getSignature(), msgId, data));
     jmsTemplate.convertAndSend(app.getDeviceId().getId(), jsonMsg);
   }
 
@@ -49,13 +53,12 @@ public class PushService {
   public static class MqttMessage {
     String app;
     String signature;
-    String name;
+    String messageId;
     Map<String, String> data;
   }
 
   @Value(staticConstructor = "of")
   public static class PushMessage {
-    String name;
     Map<String, String> data;
   }
 
