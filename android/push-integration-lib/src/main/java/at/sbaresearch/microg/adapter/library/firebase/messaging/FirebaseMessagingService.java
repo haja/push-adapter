@@ -26,8 +26,11 @@ import android.support.v4.os.AsyncTaskCompat;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.common.PublicApi;
 import at.sbaresearch.microg.adapter.library.gms.gcm.GcmReceiver;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
@@ -108,13 +111,13 @@ public abstract class FirebaseMessagingService extends Service {
         finishCounter();
         GcmReceiver.completeWakefulIntent(intent);
       } else if (ACTION_C2DM_RECEIVE.equals(intent.getAction())) {
-        AsyncTaskCompat.executeParallel(new AsyncTask<Void, Void, Void>() {
+        AsyncTaskCompat.executeParallel(new AsyncTask<Intent, Void, Void>() {
           @Override
-          protected Void doInBackground(Void... params) {
-            handleC2dmMessage(intent);
+          protected Void doInBackground(Intent... params) {
+            handleC2dmMessage(params[0]);
             return null;
           }
-        });
+        }, intent);
       } else {
         Log.w(TAG, "Unknown intent action: " + intent.getAction());
 
@@ -133,11 +136,12 @@ public abstract class FirebaseMessagingService extends Service {
       if (messageType == null || MESSAGE_TYPE_GCM.equals(messageType)) {
         String from = intent.getStringExtra(EXTRA_FROM);
         Bundle data = intent.getExtras();
+        // TODO cleanup
         data.remove(EXTRA_MESSAGE_TYPE);
         data.remove(
             "android.support.content.wakelockid"); // WakefulBroadcastReceiver.EXTRA_WAKE_LOCK_ID
         data.remove(EXTRA_FROM);
-        onMessageReceived(buildRemoteMessage(from, data));
+        onMessageReceived(buildRemoteMessage(from, data.getString(EXTRA_PAYLOAD)));
         // TODO add if for onNewToken
       } else if (MESSAGE_TYPE_DELETED_MESSAGE.equals(messageType)) {
         onDeletedMessages();
@@ -154,16 +158,26 @@ public abstract class FirebaseMessagingService extends Service {
     }
   }
 
-  private RemoteMessage buildRemoteMessage(String from, Bundle data) {
-    Map<String, String> asMap = new HashMap<>(data.size());
-    for (String key : data.keySet()) {
-      String val = data.getString(key);
-      if (key != null && val != null) {
-        asMap.put(key, val);
-      }
+  private RemoteMessage buildRemoteMessage(String from, String dataAsString) {
+    Map<String, String> asMap = new HashMap<>();
+    try {
+      asMap = parseData(new JSONObject(dataAsString));
+    } catch (JSONException e) {
+      Log.e(TAG, "buildRemoteMessage: cannot parse json string", e);
     }
     return new RemoteMessage(from, asMap);
   }
+
+  private Map<String, String> parseData(JSONObject data) {
+    HashMap<String, String> map = new HashMap<>();
+    Iterator<String> it = data.keys();
+    while (it.hasNext()) {
+      String key = it.next();
+      map.put(key, data.optString(key));
+    }
+    return map;
+  }
+
 
   private void handlePendingNotification(Intent intent) {
     PendingIntent pendingIntent = intent.getParcelableExtra(EXTRA_PENDING_INTENT);

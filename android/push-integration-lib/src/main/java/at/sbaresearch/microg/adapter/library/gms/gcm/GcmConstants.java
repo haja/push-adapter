@@ -73,6 +73,7 @@ public final class GcmConstants {
   public static final String EXTRA_TOPIC = "gcm.topic";
   public static final String EXTRA_TTL = "google.ttl";
   public static final String EXTRA_UNREGISTERED = "unregistered";
+  public static final String EXTRA_PAYLOAD = "payload";
 
   public static final String MESSAGE_TYPE_GCM = "gcm";
   public static final String MESSAGE_TYPE_DELETED_MESSAGE = "deleted_message";

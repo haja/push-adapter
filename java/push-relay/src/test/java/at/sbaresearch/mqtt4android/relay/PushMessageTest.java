@@ -8,6 +8,7 @@ import lombok.val;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import static at.sbaresearch.mqtt4android.PushTestHelper.*;
 import static org.assertj.core.api.Assertions.*;
 
 public class PushMessageTest extends AppTest {
@@ -23,20 +24,16 @@ public class PushMessageTest extends AppTest {
   public void pushMessage_validToken_shouldNotThrow() throws Exception {
     val reg = testData.registrations.registration1;
     val msg = helper.pushMessageBuilder()
-        .token(reg.getToken())
-        .build();
-    pushResource.sendMessage(msg);
+        .token(reg.getToken());
+    pushResource.sendMessage(toReq(msg));
   }
 
   @Test
   public void pushMessage_invalidToken_shouldFail() throws Exception {
     val reg = testData.registrations.registration1;
     val msg = helper.pushMessageBuilder()
-        // TODO remove name, is "output only" identifier in FCM
-        .name("this should fail")
-        .token(reg.getToken() + "-modified")
-        .build();
-    assertThatThrownBy(() -> pushResource.sendMessage(msg))
+        .token(reg.getToken() + "-modified");
+    assertThatThrownBy(() -> pushResource.sendMessage(toReq(msg)))
         .isInstanceOf(RuntimeException.class);
   }
 }

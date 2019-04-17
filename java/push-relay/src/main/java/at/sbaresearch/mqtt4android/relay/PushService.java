@@ -4,7 +4,6 @@ import at.sbaresearch.mqtt4android.registration.RegistrationService;
 import at.sbaresearch.mqtt4android.registration.RegistrationService.AppRegistration;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.vavr.collection.Map;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -15,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.Map;
 
 @Component
 @AllArgsConstructor
@@ -30,16 +31,17 @@ public class PushService {
     log.info("pushing message: {}", msg);
     val app = registrationService.getApp(token);
     try {
-      // TODO mapping of data
-      sendAsJson(app, msg.name);
+      sendAsJson(app, msg.name, msg.data);
     } catch (JsonProcessingException e) {
       log.error("cannot send message, json parsing failed", e);
       throw new PushMessageException("cannot convert message for sending: " + msg);
     }
   }
 
-  private void sendAsJson(AppRegistration app, String msg) throws JsonProcessingException {
-    val jsonMsg = objectMapper.writeValueAsString(MqttMessage.of(app.getApp(), app.getSignature(), msg));
+  private void sendAsJson(AppRegistration app, String name,
+      Map<String, String> data) throws JsonProcessingException {
+    val jsonMsg = objectMapper.writeValueAsString(
+        MqttMessage.of(app.getApp(), app.getSignature(), name, data));
     jmsTemplate.convertAndSend(app.getDeviceId().getId(), jsonMsg);
   }
 
@@ -47,7 +49,8 @@ public class PushService {
   public static class MqttMessage {
     String app;
     String signature;
-    String message;
+    String name;
+    Map<String, String> data;
   }
 
   @Value(staticConstructor = "of")

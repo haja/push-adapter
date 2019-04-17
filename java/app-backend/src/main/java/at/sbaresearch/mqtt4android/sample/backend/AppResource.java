@@ -1,10 +1,12 @@
 package at.sbaresearch.mqtt4android.sample.backend;
 
 import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
+import at.sbaresearch.mqtt4android.sample.backend.AppResource.PushRequest.Message;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
@@ -60,7 +62,9 @@ public class AppResource {
       @RequestBody String message) {
     return regTuple -> {
       val token = regTuple._1;
-      val req = new JsonRequest(token, message, new HashMap<>());
+      val data = new HashMap<String, String>();
+      data.put("message", message);
+      val req = createPushRequest(data, token);
 
       val cert = regTuple._2;
       try {
@@ -73,6 +77,10 @@ public class AppResource {
         log.error("cannot create ssl connection", e);
       }
     };
+  }
+
+  private PushRequest createPushRequest(HashMap<String, String> data, String token) {
+    return new PushRequest(null, new Message(data, token));
   }
 
   private HttpComponentsClientHttpRequestFactory setupRequestFactory(byte[] cert) throws Exception {
@@ -95,15 +103,19 @@ public class AppResource {
   }
 
   /**
-   * TODO this should be FCM/relay compatible API definition
-   * see for proper definition
-   * https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send
+   * included from relay
    */
   @Value
-  public static class JsonRequest {
-    String token;
-    // TODO remove name, is "output only" identifier in FCM
-    String name;
-    Map<String, String> data;
+  @Builder
+  public static class PushRequest {
+    Boolean validate_only;
+    Message message;
+
+    @Value
+    @Builder
+    public static class Message {
+      Map<String, String> data;
+      String token;
+    }
   }
 }

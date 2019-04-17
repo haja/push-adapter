@@ -4,6 +4,11 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import lombok.val;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.ACTION_C2DM_RECEIVE;
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.EXTRA_FROM;
@@ -29,14 +34,13 @@ public class MqttBackendReceiver extends BroadcastReceiver {
 
     // TODO lookup package and from of receiving app from appId of intent
     String app = backendIntent.getStringExtra(MQTT_API.app);
-    // TODO is this bogus?
+    // TODO FROM should be something else
     out.putExtra(EXTRA_FROM, app);
     String clientPackageName = app;
     out.setPackage(clientPackageName);
 
-    // TODO handle payload as bundle like GCM
     String payload = backendIntent.getStringExtra(MQTT_API.payload);
-    out.putExtra("TODO-payload", payload);
+    out.putExtra("payload", payload);
 
     return out;
   }

@@ -15,4 +15,5 @@ public class API {
   public static final String app = "app";
   public static final String signature = "sig";
   public static final String payload = "payload";
+  public static final String name = "name";
 }

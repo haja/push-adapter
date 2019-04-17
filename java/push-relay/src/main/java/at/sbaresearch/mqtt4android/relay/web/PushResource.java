@@ -2,7 +2,6 @@ package at.sbaresearch.mqtt4android.relay.web;
 
 import at.sbaresearch.mqtt4android.relay.PushService;
 import at.sbaresearch.mqtt4android.relay.PushService.PushMessage;
-import io.vavr.collection.Map;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
@@ -20,30 +19,18 @@ public class PushResource {
   PushService pushService;
 
   // TODO map from FCM format here
+  //  return request with name
   @PostMapping("/")
-  public void sendMessage(@RequestBody PushDto msg) {
-    log.info("push message {} for token {} received", msg.name, msg.token);
-    val token = msg.token;
+  public void sendMessage(@RequestBody PushRequest req) {
+    val msg = req.getMessage();
+    log.info("push message {} received", msg);
+    val token = msg.getToken();
 
     pushService.pushMessage(token, toMessage(msg));
   }
 
-  private PushMessage toMessage(PushDto msg) {
-    return PushMessage.of(msg.name, msg.data);
+  private PushMessage toMessage(PushRequest.Message msg) {
+    return PushMessage.of("todo name/ID", msg.getData());
   }
 
-  /**
-   * TODO this should be FCM/relay compatible API definition
-   * see for proper definition
-   * https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages/send
-   */
-  @Value
-  @Builder
-  public static class PushDto {
-    // TODO wrap this in "message" object?
-    // TODO remove name, is "output only" identifier in FCM
-    String name;
-    Map<String, String> data;
-    String token;
-  }
 }

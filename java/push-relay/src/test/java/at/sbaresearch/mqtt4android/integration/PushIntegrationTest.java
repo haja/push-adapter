@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.concurrent.TimeoutException;
 
+import static at.sbaresearch.mqtt4android.PushTestHelper.*;
 import static org.assertj.core.api.Assertions.*;
 
 public class PushIntegrationTest extends AppTest {
@@ -32,11 +33,9 @@ public class PushIntegrationTest extends AppTest {
   public void pushMessage_validToken_subscribeAfterPush_shouldBeReceived() throws Throwable {
     val reg = testData.registrations.registration1;
     val pushedMsg = "push message IT";
-    val pushDto = helper.pushMessageBuilder()
-        .name(pushedMsg)
-        .token(reg.getToken())
-        .build();
-    pushResource.sendMessage(pushDto);
+    val pushDto = helper.pushMessageBuilder(pushedMsg)
+        .token(reg.getToken());
+    pushResource.sendMessage(toReq(pushDto));
 
     // TODO this test fails; use a QueryBasedSubscriptionRecoveryPolicy https://activemq.apache.org/subscription-recovery-policy to fix this
     withClient(testData.clients.client1.mqttTopic(reg.getTopic()), conn -> {
@@ -51,11 +50,9 @@ public class PushIntegrationTest extends AppTest {
 
     withClient(testData.clients.client1.mqttTopic(reg.getTopic()), conn -> {
       val pushedMsg = "push message IT2";
-      val pushDto = helper.pushMessageBuilder()
-          .name(pushedMsg)
-          .token(reg.getToken())
-          .build();
-      pushResource.sendMessage(pushDto);
+      val pushDto = helper.pushMessageBuilder(pushedMsg)
+          .token(reg.getToken());
+      pushResource.sendMessage(toReq(pushDto));
 
       val msg = mqtt.await(conn.receive());
       assertThat(new String(msg.getPayload())).contains(pushedMsg);
@@ -69,9 +66,8 @@ public class PushIntegrationTest extends AppTest {
 
     withClient(testData.clients.client1.mqttTopic(client1.getTopic()), conn -> {
       val msgForOtherClient = helper.pushMessageBuilder()
-          .token(client2.getToken())
-          .build();
-      pushResource.sendMessage(msgForOtherClient);
+          .token(client2.getToken());
+      pushResource.sendMessage(toReq(msgForOtherClient));
 
       assertThatThrownBy(() -> mqtt.await(conn.receive()))
           .isInstanceOf(TimeoutException.class);

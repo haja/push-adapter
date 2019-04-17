@@ -14,6 +14,7 @@ import org.springframework.security.core.userdetails.User;
 import java.util.Collections;
 import java.util.concurrent.TimeoutException;
 
+import static at.sbaresearch.mqtt4android.PushTestHelper.*;
 import static at.sbaresearch.mqtt4android.registration.RegistrationTestHelper.appReq;
 import static at.sbaresearch.mqtt4android.registration.RegistrationTestHelper.deviceReq;
 import static org.assertj.core.api.Assertions.*;
@@ -43,11 +44,9 @@ public class DeviceAndAppRegistrationTest extends AppTest {
       val appResp = registrationResource.registerApp(appReq().build(), mockUser);
 
       val messageContent = "some push content";
-      val msg = helper.pushMessageBuilder()
-          .name(messageContent)
-          .token(appResp.getToken())
-          .build();
-      pushResource.sendMessage(msg);
+      val msg = helper.pushMessageBuilder(messageContent)
+          .token(appResp.getToken());
+      pushResource.sendMessage(toReq(msg));
 
       val message = mqttHelper.await(connection.receive());
       // TODO better assert of payload
@@ -68,11 +67,9 @@ public class DeviceAndAppRegistrationTest extends AppTest {
       val mockUser = registrationToUser(originalReg);
       val appResp = registrationResource.registerApp(appReq().build(), mockUser);
 
-      val msg = helper.pushMessageBuilder()
-          .name("should not be received")
-          .token(appResp.getToken())
-          .build();
-      pushResource.sendMessage(msg);
+      val msg = helper.pushMessageBuilder("should not be received")
+          .token(appResp.getToken());
+      pushResource.sendMessage(toReq(msg));
 
       // we wait for a timeout here
       assertThatThrownBy(() -> mqttHelper.await(connection.receive()))
