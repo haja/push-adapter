@@ -31,7 +31,6 @@ import java.security.*;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.util.Date;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.vavr.API.*;
 
@@ -55,16 +54,16 @@ public class ClientKeyFactory {
   ContentSigner contentSigner;
   KeyWriter keyWriter;
 
-  // TODO save and reload serial generator state from file? or DB?
-  AtomicInteger serialGenerator = new AtomicInteger(1);
+  SerialDao serialGenerator;
 
   public ClientKeyFactory(
       String securityProvider, PrivateKey caKey, java.security.cert.Certificate caCert,
-      String keyPath, KeyWriter keyWriter
-  )
+      String keyPath, KeyWriter keyWriter,
+      SerialDao serialGenerator)
       throws IOException, CertificateEncodingException, OperatorCreationException {
     this.securityProvider = securityProvider;
     this.keyWriter = keyWriter;
+    this.serialGenerator = serialGenerator;
     AsymmetricKeyParameter caKey1 = toBCstructure(caKey);
     this.caCert = toBCstructure(caCert);
 

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.Security;
+import java.security.cert.Certificate;
 import java.security.cert.CertificateEncodingException;
 
 @Slf4j
@@ -19,12 +20,12 @@ public class CryptoConfig {
 
   @Bean
   public ClientKeyFactory clientKeyFactory(
-      PrivateKey caKey, java.security.cert.Certificate caCert,
+      PrivateKey caKey, Certificate caCert,
       @Value("${ssl.debug.writeKeysPath}") String keyPath,
-      KeyWriter keyWriter
-  ) throws CertificateEncodingException, OperatorCreationException, IOException {
+      KeyWriter keyWriter,
+      SerialDao serialDao) throws CertificateEncodingException, OperatorCreationException, IOException {
     setupBouncyCastle();
-    return new ClientKeyFactory("BC", caKey, caCert, keyPath, keyWriter);
+    return new ClientKeyFactory("BC", caKey, caCert, keyPath, keyWriter, serialDao);
   }
 
   private void setupBouncyCastle() {

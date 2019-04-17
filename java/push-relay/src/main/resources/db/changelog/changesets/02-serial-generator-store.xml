@@ -2,20 +2,17 @@
 <databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9
          http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
-    <changeSet author="haja" id="01-init">
-        <createTable tableName="app_registrations">
-            <column name="token" type="varchar">
+    <changeSet author="haja" id="02-serial-generator-store">
+        <createTable tableName="serial_store">
+            <column name="serial" type="bigint"
+                autoIncrement="true">
                 <constraints
-                    nullable="false"
-                    primaryKey="true" />
+                    primaryKey="true"
+                    nullable="false" />
             </column>
-            <column name="device_id" type="varchar">
+            <column name="generated_at" type="datetime" defaultValue="NOW()">
                 <constraints nullable="false" />
             </column>
-            <column name="app" type="varchar">
-                <constraints nullable="false" />
-            </column>
-            <column name="app_signature" type="varchar" />
         </createTable>
     </changeSet>
 </databaseChangeLog>
