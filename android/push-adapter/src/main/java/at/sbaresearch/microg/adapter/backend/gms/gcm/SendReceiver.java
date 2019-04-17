@@ -24,6 +24,7 @@ import android.util.Log;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.McsConstants.ACTION_SEND;
 
+// TODO this is currently not used, see MqttBackendReceiver
 public class SendReceiver extends WakefulBroadcastReceiver {
   @Override
   public void onReceive(Context context, Intent intent) {

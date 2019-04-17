@@ -15,6 +15,7 @@ import java.util.List;
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.McsConstants.MCS_DATA_MESSAGE_STANZA_TAG;
 
+// TODO this is currently not used, see MqttBackendReceiver
 public class McsService extends Service {
 
   private static final String TAG = "GmsGcmMcsSvcAdapter";
