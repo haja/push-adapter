@@ -22,6 +22,8 @@ allprojects {
     }
 }
 
+group = 'at.sbaresearch'
+
 project.ext {
     retrofitVersion = '2.5.0'
     retrofitLoggingVersion = '3.12.0'
