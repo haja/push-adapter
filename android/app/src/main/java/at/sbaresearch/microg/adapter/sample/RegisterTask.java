@@ -3,7 +3,7 @@ package at.sbaresearch.microg.adapter.sample;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
-import at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceID;
+import at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceId;
 import at.sbaresearch.microg.adapter.sample.BackendRestClient.AppRegistrationRequest;
 import lombok.AllArgsConstructor;
 import lombok.val;
@@ -21,7 +21,7 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
 
   @Override
   protected String doInBackground(Context... ctx) {
-    final FirebaseInstanceID instanceID = FirebaseInstanceID.getInstance(ctx[0]);
+    final FirebaseInstanceId instanceID = FirebaseInstanceId.getInstance(ctx[0]);
     try {
       final String id = instanceID.getToken("testId1", "FCM");
       Log.i(TAG, "doInBackground: registration successful, sending to backend");

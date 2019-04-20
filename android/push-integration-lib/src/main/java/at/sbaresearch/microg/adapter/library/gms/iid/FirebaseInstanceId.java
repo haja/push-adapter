@@ -39,13 +39,13 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.EXTRA_S
  * <li>User uninstalls the app</li>
  * <li>User clears app data</li>
  * </ul>
- * If Instance ID has become invalid, the app can call {@link FirebaseInstanceID#getId()}
+ * If Instance ID has become invalid, the app can call {@link FirebaseInstanceId#getId()}
  * to request a new Instance ID.
  * To prove ownership of Instance ID and to allow servers to access data or
- * services associated with the app, call {@link FirebaseInstanceID#getToken(java.lang.String, java.lang.String)}.
+ * services associated with the app, call {@link FirebaseInstanceId#getToken(java.lang.String, java.lang.String)}.
  */
 @PublicApi
-public class FirebaseInstanceID {
+public class FirebaseInstanceId {
   /**
    * Error returned when failed requests are retried too often.  Use
    * exponential backoff when retrying requests
@@ -77,9 +77,9 @@ public class FirebaseInstanceID {
   private static final String TAG = "InstanceID";
 
   private CloudMessagingRpc rpc;
-  private static FirebaseInstanceID instance;
+  private static FirebaseInstanceId instance;
 
-  private FirebaseInstanceID() {
+  private FirebaseInstanceId() {
   }
 
   /**
@@ -93,7 +93,7 @@ public class FirebaseInstanceID {
 
   /**
    * Revokes access to a scope (action) for an entity previously
-   * authorized by {@link FirebaseInstanceID#getToken(java.lang.String, java.lang.String)}.
+   * authorized by {@link FirebaseInstanceId#getToken(java.lang.String, java.lang.String)}.
    * <p/>
    * Do not call this function on the main thread.
    *
@@ -119,9 +119,9 @@ public class FirebaseInstanceID {
    *
    * @return InstanceID instance.
    */
-  public static FirebaseInstanceID getInstance(Context context) {
+  public static FirebaseInstanceId getInstance(Context context) {
     if (instance == null) {
-      instance = new FirebaseInstanceID();
+      instance = new FirebaseInstanceId();
       instance.rpc = new CloudMessagingRpc(context.getApplicationContext());
     }
     return instance;
