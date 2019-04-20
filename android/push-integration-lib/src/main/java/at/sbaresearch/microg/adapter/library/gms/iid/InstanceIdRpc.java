@@ -41,8 +41,8 @@ import java.util.Random;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static at.sbaresearch.microg.adapter.library.gms.common.Constants.*;
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
-import static at.sbaresearch.microg.adapter.library.gms.iid.InstanceID.*;
-import static at.sbaresearch.microg.adapter.library.gms.iid.InstanceID.ERROR_SERVICE_NOT_AVAILABLE;
+import static at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceID.*;
+import static at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceID.ERROR_SERVICE_NOT_AVAILABLE;
 
 public class InstanceIdRpc {
   private static final String TAG = "InstanceID/Rpc";
@@ -254,7 +254,7 @@ public class InstanceIdRpc {
     data.putString(EXTRA_APP_VERSION_CODE, Integer.toString(getSelfVersionCode(context)));
     data.putString(EXTRA_APP_VERSION_NAME, getSelfVersionName(context));
     data.putString(EXTRA_CLIENT_VERSION, "iid-" + MAX_REFERENCE_VERSION);
-    data.putString(EXTRA_APP_ID, InstanceID.sha1KeyPair(keyPair));
+    data.putString(EXTRA_APP_ID, FirebaseInstanceID.sha1KeyPair(keyPair));
     String pub = base64encode(keyPair.getPublic().getEncoded());
     data.putString(EXTRA_PUBLIC_KEY, pub);
     data.putString(EXTRA_SIGNATURE, sign(keyPair, context.getPackageName(), pub));

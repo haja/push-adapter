@@ -24,7 +24,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.*;
 import android.util.Log;
-import at.sbaresearch.microg.adapter.library.gms.iid.InstanceID;
+import at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceID;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
@@ -147,11 +147,11 @@ public class CloudMessagingRpc {
   }
 
   public String handleRegisterMessageResult(Intent resultIntent) throws IOException {
-    if (resultIntent == null) throw new IOException(InstanceID.ERROR_SERVICE_NOT_AVAILABLE);
+    if (resultIntent == null) throw new IOException(FirebaseInstanceID.ERROR_SERVICE_NOT_AVAILABLE);
     String result = resultIntent.getStringExtra(EXTRA_REGISTRATION_ID);
     if (result == null) result = resultIntent.getStringExtra(EXTRA_UNREGISTERED);
     if (result != null) return result;
     result = resultIntent.getStringExtra(EXTRA_ERROR);
-    throw new IOException(result != null ? result : InstanceID.ERROR_SERVICE_NOT_AVAILABLE);
+    throw new IOException(result != null ? result : FirebaseInstanceID.ERROR_SERVICE_NOT_AVAILABLE);
   }
 }

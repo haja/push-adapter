@@ -46,14 +46,14 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  * <li>User uninstalls the app</li>
  * <li>User clears app data</li>
  * </ul>
- * If Instance ID has become invalid, the app can call {@link InstanceID#getId()}
+ * If Instance ID has become invalid, the app can call {@link FirebaseInstanceID#getId()}
  * to request a new Instance ID.
  * To prove ownership of Instance ID and to allow servers to access data or
- * services associated with the app, call {@link InstanceID#getToken(java.lang.String, java.lang.String)}.
+ * services associated with the app, call {@link FirebaseInstanceID#getToken(java.lang.String, java.lang.String)}.
  */
 // TODO wire needs FirebaseInstanceID; how different is it?
 @PublicApi
-public class InstanceID {
+public class FirebaseInstanceID {
   /**
    * Error returned when failed requests are retried too often.  Use
    * exponential backoff when retrying requests
@@ -87,13 +87,13 @@ public class InstanceID {
 
   private static InstanceIdStore storeInstance;
   private static InstanceIdRpc rpc;
-  private static Map<String, InstanceID> instances = new HashMap<String, InstanceID>();
+  private static Map<String, FirebaseInstanceID> instances = new HashMap<String, FirebaseInstanceID>();
 
   private final String subtype;
   private KeyPair keyPair;
   private long creationTime;
 
-  private InstanceID(String subtype) {
+  private FirebaseInstanceID(String subtype) {
     this.subtype = subtype == null ? "" : subtype;
   }
 
@@ -111,7 +111,7 @@ public class InstanceID {
 
   /**
    * Revokes access to a scope (action) for an entity previously
-   * authorized by {@link InstanceID#getToken(java.lang.String, java.lang.String)}.
+   * authorized by {@link FirebaseInstanceID#getToken(java.lang.String, java.lang.String)}.
    * <p/>
    * Do not call this function on the main thread.
    *
@@ -171,15 +171,15 @@ public class InstanceID {
    *
    * @return InstanceID instance.
    */
-  public static InstanceID getInstance(Context context) {
+  public static FirebaseInstanceID getInstance(Context context) {
     String subtype = "";
     if (storeInstance == null) {
       storeInstance = new InstanceIdStore(context.getApplicationContext());
       rpc = new InstanceIdRpc(context.getApplicationContext());
     }
-    InstanceID instance = instances.get(subtype);
+    FirebaseInstanceID instance = instances.get(subtype);
     if (instance == null) {
-      instance = new InstanceID(subtype);
+      instance = new FirebaseInstanceID(subtype);
       instances.put(subtype, instance);
     }
     return instance;
