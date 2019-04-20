@@ -1,9 +1,8 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
 android {
     compileSdkVersion 28
-
-
 
     defaultConfig {
         minSdkVersion 21
@@ -21,7 +20,6 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-
 }
 
 dependencies {
@@ -32,3 +30,25 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+version = android.defaultConfig.versionName
+group = 'at.sbaresearch'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            // TODO is debug enough?
+            artifact bundleDebug
+            artifact sourcesJar
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
+
