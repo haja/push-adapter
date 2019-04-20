@@ -18,6 +18,7 @@ public interface BackendRestClient {
   @AllArgsConstructor
   class AppRegistrationRequest {
     private String registrationId;
+    private String relayUrl;
     private byte[] relayCert;
   }
 }

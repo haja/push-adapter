@@ -19,6 +19,7 @@ package at.sbaresearch.microg.adapter.backend.registration.app;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
+import at.sbaresearch.microg.adapter.backend.BuildConfig;
 import at.sbaresearch.microg.adapter.backend.R;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
@@ -37,18 +38,27 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
 public class HttpRegisterAppService {
   private static final String TAG = "HttpRegAppSrv";
+  private static final String RELAY_PUSH_PATH = "/push/";
+
+  private static byte[] RELAY_CERT = null;
 
   private final HttpRegisterAppClient httpClient;
 
   public HttpRegisterAppService(Context context) throws Exception {
+    setupStaticConsts(context);
+
     val mqtt = GcmPrefs.get(context).getMqttSettings();
     val keys = new ClientKeyCert(mqtt.getPrivKey(), mqtt.getCert());
     val factory = new PinningSslFactory(keys,
         context.getResources().openRawResource(R.raw.server));
+
 
     // normal okhttp pinning does not work with self signed certs
     OkHttpClient client = new OkHttpClient.Builder()
@@ -56,7 +66,7 @@ public class HttpRegisterAppService {
         .hostnameVerifier(new NullHostNameVerifier())
         .build();
     httpClient = new Retrofit.Builder()
-        .baseUrl(HttpRegisterAppClient.SERVICE_URL)
+        .baseUrl(BuildConfig.RELAY_HOST)
         .addConverterFactory(JacksonConverterFactory.create())
         .client(client)
         .build()
@@ -80,7 +90,7 @@ public class HttpRegisterAppService {
           Response<AppRegisterResponse> response) {
         val old = AppRegisterResponse.toOldResponse(response);
         Log.i(TAG, "onResponse: " + response.code());
-        callback.onResult(handleResponse(database, request, old, null));
+        callback.onResult(handleResponse(database, request, old));
       }
 
       @Override
@@ -92,31 +102,23 @@ public class HttpRegisterAppService {
   }
 
   private static Bundle handleResponse(GcmDatabase database, AppRegisterRequest request,
-      RegisterResponse response, String requestId) {
-    Bundle resultBundle = new Bundle();
+      RegisterResponse response) {
     if (response == null) {
-      resultBundle.putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
-    } else {
-      handleSuccessResponse(database, request, response, requestId, resultBundle);
-    }
-    return resultBundle;
-  }
-
-  private static void handleSuccessResponse(GcmDatabase database, AppRegisterRequest request,
-      RegisterResponse response, String requestId, Bundle resultBundle) {
-    handleRegisterResponse(database, request, response, requestId, resultBundle);
-  }
-
-  private static void handleRegisterResponse(GcmDatabase database, AppRegisterRequest request,
-      RegisterResponse response, String requestId, Bundle resultBundle) {
-    if (response.token == null) {
-      database.noteAppRegistrationError(request.app, response.responseText);
-      resultBundle
-          .putString(EXTRA_ERROR, attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
+      Bundle resultBundle = new Bundle();
+      resultBundle.putString(EXTRA_ERROR, ERROR_SERVICE_NOT_AVAILABLE);
+      return resultBundle;
     } else {
       database.noteAppRegistered(request.app, request.signature, response.token);
-      resultBundle.putString(EXTRA_REGISTRATION_ID, attachRequestId(response.token, requestId));
+      return buildResultBundle(response);
     }
+  }
+
+  private static Bundle buildResultBundle(RegisterResponse response) {
+    Bundle b = new Bundle();
+    b.putString(EXTRA_REGISTRATION_ID, response.token);
+    b.putString(EXTRA_RELAY_HOST, BuildConfig.RELAY_HOST + RELAY_PUSH_PATH);
+    b.putByteArray(EXTRA_RELAY_CERT, RELAY_CERT);
+    return b;
   }
 
   private static Bundle handleErrorResponse(GcmDatabase database, AppRegisterRequest request,
@@ -132,6 +134,20 @@ public class HttpRegisterAppService {
           attachRequestId(ERROR_SERVICE_NOT_AVAILABLE, requestId));
     }
     return resultBundle;
+  }
+
+  private static void setupStaticConsts(Context ctx) throws IOException {
+    RELAY_CERT = readCert(ctx);
+  }
+
+  private static byte[] readCert(Context ctx) throws IOException {
+    val certStream = ctx.getResources().openRawResource(R.raw.server);
+    int b;
+    val bos = new ByteArrayOutputStream();
+    while((b = certStream.read()) != -1) {
+      bos.write(b);
+    }
+    return bos.toByteArray();
   }
 
   public static String attachRequestId(String msg, String requestId) {

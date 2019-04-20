@@ -58,6 +58,8 @@ public final class GcmConstants {
   public static final String EXTRA_RAWDATA = "rawData";
   public static final String EXTRA_RAWDATA_BASE64 = "gcm.rawData64";
   public static final String EXTRA_REGISTRATION_ID = "registration_id";
+  public static final String EXTRA_RELAY_HOST = "relay_host";
+  public static final String EXTRA_RELAY_CERT = "relay_cert";
   public static final String EXTRA_RETRY_AFTER = "Retry-After";
   public static final String EXTRA_SCHEDULER_ACTION = "scheduler_action";
   public static final String EXTRA_SCOPE = "scope";

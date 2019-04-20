@@ -103,7 +103,8 @@ public class FirebaseInstanceId {
    * @throws IOException if the request fails.
    */
   public void deleteToken(String authorizedEntity, String scope) throws IOException {
-    throw new UnsupportedOperationException();
+    // TODO implement token revocation?
+    Log.w(TAG, "deleteToken: not implemented");
   }
 
   /**
@@ -143,7 +144,7 @@ public class FirebaseInstanceId {
    * application on the device.
    * @throws IOException if the request fails.
    */
-  public String getToken(String authorizedEntity, String scope) throws IOException {
+  public RelayConnection getToken(String authorizedEntity, String scope) throws IOException {
     if (Looper.getMainLooper() == Looper.myLooper()) throw new IOException(ERROR_MAIN_THREAD);
 
     Log.i(TAG, "getToken: authorizedEntity: " + authorizedEntity);
@@ -155,5 +156,26 @@ public class FirebaseInstanceId {
     Bundle extras = new Bundle();
     extras.putString(EXTRA_SENDER, authorizedEntity);
     return rpc.handleRegisterMessageResult(rpc.sendRegisterMessageBlocking(extras));
+  }
+
+  public static class RelayConnection {
+    public final String token;
+    public final String relayUrl;
+    public final byte[] cert;
+
+    public RelayConnection(String token, String relayUrl, byte[] cert) {
+      this.token = token;
+      this.relayUrl = relayUrl;
+      this.cert = cert;
+    }
+
+    @Override
+    public String toString() {
+      final StringBuffer sb = new StringBuffer("RelayConnection{");
+      sb.append("token='").append(token).append('\'');
+      sb.append(", relayUrl='").append(relayUrl).append('\'');
+      sb.append('}');
+      return sb.toString();
+    }
   }
 }

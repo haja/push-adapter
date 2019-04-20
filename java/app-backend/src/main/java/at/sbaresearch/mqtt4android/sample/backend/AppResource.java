@@ -4,6 +4,7 @@ import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
 import at.sbaresearch.mqtt4android.sample.backend.AppResource.PushRequest.Message;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import io.vavr.Tuple3;
 import io.vavr.control.Option;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -30,10 +31,8 @@ import java.util.function.Consumer;
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class AppResource {
 
-  private static final String URL_RELAY = "https://localhost:9876/push/";
-
   @NonFinal
-  Option<Tuple2<String, byte[]>> currentRegId = Option.none();
+  Option<Tuple3<String, String, byte[]>> currentRegId = Option.none();
   RestTemplateBuilder templateBuilder;
 
   public AppResource(RestTemplateBuilder builder) {
@@ -47,6 +46,7 @@ public class AppResource {
     // TODO link with app instance / userId.. mocked for now
     this.currentRegId = Option.of(Tuple.of(
         request.getRegistrationId(),
+        request.getRelayUrl(),
         request.getRelayCert()
     ));
   }
@@ -58,7 +58,7 @@ public class AppResource {
         .onEmpty(() -> log.warn("not registered, cannot send message"));
   }
 
-  private Consumer<Tuple2<String, byte[]>> pushMessage(
+  private Consumer<Tuple3<String, String, byte[]>> pushMessage(
       @RequestBody String message) {
     return regTuple -> {
       val token = regTuple._1;
@@ -66,13 +66,13 @@ public class AppResource {
       data.put("message", message);
       val req = createPushRequest(data, token);
 
-      val cert = regTuple._2;
+      val cert = regTuple._3;
       try {
         val requestFactory = setupRequestFactory(cert);
         templateBuilder
             .requestFactory(() -> requestFactory)
             .build()
-            .postForLocation(URL_RELAY, req);
+            .postForLocation(regTuple._2, req);
       } catch (Exception e) {
         log.error("cannot create ssl connection", e);
       }
@@ -99,6 +99,7 @@ public class AppResource {
   @Value
   public static class AppRegistrationRequest {
     String registrationId;
+    String relayUrl;
     byte[] relayCert;
   }
 

@@ -82,12 +82,6 @@
         </service>
         -->
 
-        <service android:name=".gms.checkin.CheckinService">
-            <intent-filter>
-                <action android:name="at.sbaresearch.android.gms.checkin.BIND_TO_SERVICE"/>
-            </intent-filter>
-        </service>
-
         <service
             android:name="at.sbaresearch.microg.adapter.backend.registration.app.RegisterAppService"
             android:permission="at.sbaresearch.android.c2dm.permission.RECEIVE">

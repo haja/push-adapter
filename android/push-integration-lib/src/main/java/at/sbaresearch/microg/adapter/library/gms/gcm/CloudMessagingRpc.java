@@ -25,6 +25,7 @@ import android.content.pm.ResolveInfo;
 import android.os.*;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceId;
+import at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceId.RelayConnection;
 
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
@@ -143,12 +144,15 @@ public class CloudMessagingRpc {
     context.startService(intent);
   }
 
-  public String handleRegisterMessageResult(Intent resultIntent) throws IOException {
+  public RelayConnection handleRegisterMessageResult(Intent resultIntent) throws IOException {
     if (resultIntent == null) throw new IOException(FirebaseInstanceId.ERROR_SERVICE_NOT_AVAILABLE);
-    String result = resultIntent.getStringExtra(EXTRA_REGISTRATION_ID);
-    if (result == null) result = resultIntent.getStringExtra(EXTRA_UNREGISTERED);
-    if (result != null) return result;
-    result = resultIntent.getStringExtra(EXTRA_ERROR);
-    throw new IOException(result != null ? result : FirebaseInstanceId.ERROR_SERVICE_NOT_AVAILABLE);
+    String token = resultIntent.getStringExtra(EXTRA_REGISTRATION_ID);
+    String host = resultIntent.getStringExtra(EXTRA_RELAY_HOST);
+    byte[] cert = resultIntent.getByteArrayExtra(EXTRA_RELAY_CERT);
+    if (token != null && host != null && cert != null) {
+      return new RelayConnection(token, host, cert);
+    }
+    token = resultIntent.getStringExtra(EXTRA_ERROR);
+    throw new IOException(token != null ? token : FirebaseInstanceId.ERROR_SERVICE_NOT_AVAILABLE);
   }
 }

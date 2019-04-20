@@ -9,8 +9,7 @@ import retrofit2.http.POST;
 
 public interface HttpRegisterAppClient {
   // TODO externalize config
-  String SERVICE_HOSTNAME = "trigger.lan";
-  String SERVICE_URL = "https://" + SERVICE_HOSTNAME + ":9876";
+  String SERVICE_URL = "https://trigger.lan:9876";
 
   @POST("registration/new")
   Call<AppRegisterResponse> registerApp(@Body AppRegisterRequest request);

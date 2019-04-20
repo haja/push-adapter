@@ -4,6 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceId;
+import at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceId.RelayConnection;
 import at.sbaresearch.microg.adapter.sample.BackendRestClient.AppRegistrationRequest;
 import lombok.AllArgsConstructor;
 import lombok.val;
@@ -23,16 +24,14 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
   protected String doInBackground(Context... ctx) {
     final FirebaseInstanceId instanceID = FirebaseInstanceId.getInstance(ctx[0]);
     try {
-      final String id = instanceID.getToken("testId1", "FCM");
+      final RelayConnection connection = instanceID.getToken("testId1", "FCM");
       Log.i(TAG, "doInBackground: registration successful, sending to backend");
-      Log.d(TAG, "doInBackground: registration id" + id);
-
-      byte[] cert = readCert(ctx[0]);
+      Log.d(TAG, "doInBackground: registration connection" + connection);
 
       Response<Void> response = restClient.sendRegistrationId(
-          new AppRegistrationRequest(id, cert)).execute();
+          new AppRegistrationRequest(connection.token, connection.relayUrl, connection.cert)).execute();
       if (response.isSuccessful()){
-        return id;
+        return connection.token;
       } else {
         Log.e(TAG, "doInBackground: rest call failed: " + response.message());
       }
@@ -40,16 +39,6 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
       Log.e(TAG, "registration failed", e);
     }
     return null;
-  }
-
-  private byte[] readCert(Context ctx) throws IOException {
-    val certStream = ctx.getResources().openRawResource(R.raw.server);
-    int b;
-    val bos = new ByteArrayOutputStream();
-    while((b = certStream.read()) != -1) {
-      bos.write(b);
-    }
-    return bos.toByteArray();
   }
 
   @Override
