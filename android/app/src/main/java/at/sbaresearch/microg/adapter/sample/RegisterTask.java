@@ -3,14 +3,13 @@ package at.sbaresearch.microg.adapter.sample;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
-import at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging;
+import at.sbaresearch.microg.adapter.library.gms.iid.FirebaseInstanceID;
 import at.sbaresearch.microg.adapter.sample.BackendRestClient.AppRegistrationRequest;
 import lombok.AllArgsConstructor;
 import lombok.val;
 import retrofit2.Response;
 
 import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
 import java.io.IOException;
 
 @AllArgsConstructor
@@ -22,9 +21,9 @@ public class RegisterTask extends AsyncTask<Context, Void, String> {
 
   @Override
   protected String doInBackground(Context... ctx) {
-    final GoogleCloudMessaging gcm = GoogleCloudMessaging.getInstance(ctx[0]);
+    final FirebaseInstanceID instanceID = FirebaseInstanceID.getInstance(ctx[0]);
     try {
-      final String id = gcm.register("testId1");
+      final String id = instanceID.getToken("testId1", "FCM");
       Log.i(TAG, "doInBackground: registration successful, sending to backend");
       Log.d(TAG, "doInBackground: registration id" + id);
 

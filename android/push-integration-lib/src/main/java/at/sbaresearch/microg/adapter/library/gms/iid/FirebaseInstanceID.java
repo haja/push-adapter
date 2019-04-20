@@ -19,21 +19,14 @@ package at.sbaresearch.microg.adapter.library.gms.iid;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Looper;
-import android.text.TextUtils;
-import android.util.Base64;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.common.PublicApi;
+import at.sbaresearch.microg.adapter.library.gms.gcm.CloudMessagingRpc;
 import at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants;
 
 import java.io.IOException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
 
-import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
+import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.EXTRA_SENDER;
 
 /**
  * Instance ID provides a unique identifier for each app instance and a mechanism
@@ -51,7 +44,6 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  * To prove ownership of Instance ID and to allow servers to access data or
  * services associated with the app, call {@link FirebaseInstanceID#getToken(java.lang.String, java.lang.String)}.
  */
-// TODO wire needs FirebaseInstanceID; how different is it?
 @PublicApi
 public class FirebaseInstanceID {
   /**
@@ -82,19 +74,12 @@ public class FirebaseInstanceID {
    */
   public static final String ERROR_TIMEOUT = "TIMEOUT";
 
-  private static final int RSA_KEY_SIZE = 2048;
   private static final String TAG = "InstanceID";
 
-  private static InstanceIdStore storeInstance;
-  private static InstanceIdRpc rpc;
-  private static Map<String, FirebaseInstanceID> instances = new HashMap<String, FirebaseInstanceID>();
+  private CloudMessagingRpc rpc;
+  private static FirebaseInstanceID instance;
 
-  private final String subtype;
-  private KeyPair keyPair;
-  private long creationTime;
-
-  private FirebaseInstanceID(String subtype) {
-    this.subtype = subtype == null ? "" : subtype;
+  private FirebaseInstanceID() {
   }
 
   /**
@@ -103,10 +88,7 @@ public class FirebaseInstanceID {
    * @throws IOException
    */
   public void deleteInstanceID() throws IOException {
-    deleteToken("*", "*");
-    creationTime = 0;
-    storeInstance.delete(subtype + "|");
-    keyPair = null;
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -120,41 +102,7 @@ public class FirebaseInstanceID {
    * @throws IOException if the request fails.
    */
   public void deleteToken(String authorizedEntity, String scope) throws IOException {
-    deleteToken(authorizedEntity, scope, null);
-  }
-
-  @PublicApi(exclude = true)
-  public void deleteToken(String authorizedEntity, String scope, Bundle extras) throws
-                                                                                IOException {
-    if (Looper.getMainLooper() == Looper.myLooper()) throw new IOException(ERROR_MAIN_THREAD);
-
-    storeInstance.delete(subtype, authorizedEntity, scope);
-
-    if (extras == null) extras = new Bundle();
-    extras.putString(EXTRA_SENDER, authorizedEntity);
-    extras.putString(EXTRA_SUBSCIPTION, authorizedEntity);
-    extras.putString(EXTRA_DELETE, "1");
-    extras.putString("X-" + EXTRA_DELETE, "1");
-    extras.putString(EXTRA_SUBTYPE, TextUtils.isEmpty(subtype) ? authorizedEntity : subtype);
-    extras.putString("X-" + EXTRA_SUBTYPE, TextUtils.isEmpty(subtype) ? authorizedEntity : subtype);
-    if (scope != null) extras.putString(EXTRA_SCOPE, scope);
-
-    rpc.handleRegisterMessageResult(rpc.sendRegisterMessageBlocking(extras, getKeyPair()));
-  }
-
-  /**
-   * Returns time when instance ID was created.
-   *
-   * @return Time when instance ID was created (milliseconds since Epoch).
-   */
-  public long getCreationTime() {
-    if (creationTime == 0) {
-      String s = storeInstance.get(subtype, "cre");
-      if (s != null) {
-        creationTime = Long.parseLong(s);
-      }
-    }
-    return creationTime;
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -163,7 +111,7 @@ public class FirebaseInstanceID {
    * @return The identifier for the application instance.
    */
   public String getId() {
-    return sha1KeyPair(getKeyPair());
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -172,43 +120,11 @@ public class FirebaseInstanceID {
    * @return InstanceID instance.
    */
   public static FirebaseInstanceID getInstance(Context context) {
-    String subtype = "";
-    if (storeInstance == null) {
-      storeInstance = new InstanceIdStore(context.getApplicationContext());
-      rpc = new InstanceIdRpc(context.getApplicationContext());
-    }
-    FirebaseInstanceID instance = instances.get(subtype);
     if (instance == null) {
-      instance = new FirebaseInstanceID(subtype);
-      instances.put(subtype, instance);
+      instance = new FirebaseInstanceID();
+      instance.rpc = new CloudMessagingRpc(context.getApplicationContext());
     }
     return instance;
-  }
-
-  /**
-   * Returns a token that authorizes an Entity (example: cloud service) to perform
-   * an action on behalf of the application identified by Instance ID.
-   * <p/>
-   * This is similar to an OAuth2 token except, it applies to the
-   * application instance instead of a user.
-   * <p/>
-   * Do not call this function on the main thread.
-   *
-   * @param authorizedEntity Entity authorized by the token. (sender ID)
-   * @param scope Action authorized for authorizedEntity.
-   * @param extras additional parameters specific to each token scope.
-   * Bundle keys starting with 'GCM.' and 'GOOGLE.' are
-   * reserved.
-   * @return a token that can identify and authorize the instance of the
-   * application on the device.
-   * @throws IOException if the request fails.
-   */
-  public String getToken(String authorizedEntity, String scope, Bundle extras) throws
-                                                                               IOException {
-    if (Looper.getMainLooper() == Looper.myLooper()) throw new IOException(ERROR_MAIN_THREAD);
-
-    // TODO implement for wire
-    throw new UnsupportedOperationException();
   }
 
   /**
@@ -227,47 +143,16 @@ public class FirebaseInstanceID {
    * @throws IOException if the request fails.
    */
   public String getToken(String authorizedEntity, String scope) throws IOException {
-    return getToken(authorizedEntity, scope, null);
-  }
+    if (Looper.getMainLooper() == Looper.myLooper()) throw new IOException(ERROR_MAIN_THREAD);
 
-  @PublicApi(exclude = true)
-  public InstanceIdStore getStore() {
-    return storeInstance;
-  }
+    Log.i(TAG, "getToken: authorizedEntity: " + authorizedEntity);
 
-  @PublicApi(exclude = true)
-  public String requestToken(String authorizedEntity, String scope, Bundle extras) {
-    throw new UnsupportedOperationException();
-  }
-
-  private synchronized KeyPair getKeyPair() {
-    if (keyPair == null) {
-      keyPair = storeInstance.getKeyPair(subtype);
-      if (keyPair == null) {
-        try {
-          KeyPairGenerator rsaGenerator = KeyPairGenerator.getInstance("RSA");
-          rsaGenerator.initialize(RSA_KEY_SIZE);
-          keyPair = rsaGenerator.generateKeyPair();
-          creationTime = System.currentTimeMillis();
-          storeInstance.put(subtype, keyPair, creationTime);
-        } catch (NoSuchAlgorithmException e) {
-          Log.w(TAG, e);
-        }
-      }
+    if (authorizedEntity == null) {
+      throw new IllegalArgumentException("not authorizedEntity");
     }
-    return keyPair;
-  }
 
-  @PublicApi(exclude = true)
-  public static String sha1KeyPair(KeyPair keyPair) {
-    try {
-      byte[] digest = MessageDigest.getInstance("SHA1").digest(keyPair.getPublic().getEncoded());
-      digest[0] = (byte) (112 + (0xF & digest[0]) & 0xFF);
-      return Base64
-          .encodeToString(digest, 0, 8, Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING);
-    } catch (NoSuchAlgorithmException e) {
-      Log.w(TAG, e);
-      return null;
-    }
+    Bundle extras = new Bundle();
+    extras.putString(EXTRA_SENDER, authorizedEntity);
+    return rpc.handleRegisterMessageResult(rpc.sendRegisterMessageBlocking(extras));
   }
 }

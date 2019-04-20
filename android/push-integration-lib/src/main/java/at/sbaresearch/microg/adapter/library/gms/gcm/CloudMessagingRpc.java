@@ -36,10 +36,16 @@ import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static at.sbaresearch.microg.adapter.library.gms.common.Constants.GMS_PACKAGE_NAME;
 import static at.sbaresearch.microg.adapter.library.gms.common.Constants.GSF_PACKAGE_NAME;
 import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
-import static at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging.ERROR_SERVICE_NOT_AVAILABLE;
-import static at.sbaresearch.microg.adapter.library.gms.gcm.GoogleCloudMessaging.TAG;
 
 public class CloudMessagingRpc {
+  /**
+   * The device can't read the response, or there was a 500/503 from the
+   * server that can be retried later. The application should use exponential
+   * back off and retry.
+   */
+  public static final String ERROR_SERVICE_NOT_AVAILABLE = GcmConstants.ERROR_SERVICE_NOT_AVAILABLE;
+  public static final String TAG = "GoogleCloudMessagingRpc";
+
   private static final AtomicInteger messageIdCounter = new AtomicInteger(1);
   private static String gcmPackageName;
 
@@ -105,7 +111,6 @@ public class CloudMessagingRpc {
   private PendingIntent getSelfAuthIntent() {
     if (selfAuthIntent == null) {
       Intent intent = new Intent();
-      // TODO this looks strange, should this be a packagename of the requesting app?
       intent.setPackage("com.google.example.invalidpackage");
       selfAuthIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
     }
@@ -136,14 +141,6 @@ public class CloudMessagingRpc {
     intent.putExtra(EXTRA_MESSENGER, messenger);
     intent.putExtra(EXTRA_APP, getSelfAuthIntent());
     context.startService(intent);
-  }
-
-  public void sendGcmMessage(Bundle extras) {
-    Intent intent = new Intent(ACTION_GCM_SEND);
-    intent.setPackage(GMS_PACKAGE_NAME);
-    intent.putExtras(extras);
-    intent.putExtra(EXTRA_APP, getSelfAuthIntent());
-    context.sendOrderedBroadcast(intent, PERMISSION_GTALK);
   }
 
   public String handleRegisterMessageResult(Intent resultIntent) throws IOException {
