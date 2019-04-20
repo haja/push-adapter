@@ -87,7 +87,8 @@ public class FirebaseInstanceId {
    *
    * @throws IOException
    */
-  public void deleteInstanceID() throws IOException {
+  public void deleteInstanceId() throws IOException {
+    Log.w(TAG, "deleteInstanceId: called, not implemented");
     throw new UnsupportedOperationException();
   }
 
