@@ -29,6 +29,7 @@
                 android:permission="at.sbaresearch.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="at.sbaresearch.android.c2dm.intent.RECEIVE"/>
+                <!-- TODO does this work? package is wrong, last ".microgadapter" is superfluous -->
                 <category android:name="at.sbaresearch.microg.adapter.sample.microgadapter"/>
             </intent-filter>
         </receiver>
