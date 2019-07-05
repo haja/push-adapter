@@ -8,6 +8,7 @@
         android:protectionLevel="dangerous" />
 
     <uses-permission android:name="at.sbaresearch.android.gcm.mqtt.intent.SEND"/>
+    <uses-permission android:name="at.sbaresearch.android.c2dm.permission.CONNECT"/>
 
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>

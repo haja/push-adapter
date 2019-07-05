@@ -9,6 +9,7 @@ import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmPrefs.MqttSettings;
 import lombok.val;
 
 import static at.sbaresearch.microg.adapter.backend.MQTT_API.*;
+import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.PERMISSION_CONNECT;
 
 public class MqttClientAdapter {
 
@@ -22,7 +23,7 @@ public class MqttClientAdapter {
     val connectIntent = new Intent(MQTT_API.INTENT_MQTT_CONNECT);
     connectIntent.putExtras(fromSettings(mqttSettings));
 
-    ctx.sendBroadcast(connectIntent, PERMISSION_SEND);
+    ctx.sendBroadcast(connectIntent, PERMISSION_CONNECT);
   }
 
   private static Bundle fromSettings(MqttSettings s) {

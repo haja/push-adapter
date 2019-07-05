@@ -24,7 +24,6 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
 
   private static final String TAG = "MqttBackendConfig";
 
-  private static final String SEND_PERM = API.SEND_PERM;
   private static final int SEND_PERM_REQ = 1;
 
   private MqttConnectionManagerService mqttConnectionManagerService;
@@ -96,9 +95,14 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
   }
 
   public void reqPermission(View view) {
-    if (ContextCompat.checkSelfPermission(this, SEND_PERM)
+    reqPermission(API.SEND_PERM);
+    reqPermission(API.CONNECT_PERM);
+  }
+
+  private void reqPermission(final String permission) {
+    if (ContextCompat.checkSelfPermission(this, permission)
         != PackageManager.PERMISSION_GRANTED) {
-      ActivityCompat.requestPermissions(this, new String[]{SEND_PERM}, SEND_PERM_REQ);
+      ActivityCompat.requestPermissions(this, new String[]{permission}, SEND_PERM_REQ);
     } else {
       // all fine
     }

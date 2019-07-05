@@ -11,6 +11,7 @@ public class API {
   public static final String INTENT_MQTT_CONNECT_CLIENT_CERT = "clientcert";
 
   public static final String SEND_PERM = "at.sbaresearch.android.gcm.mqtt.intent.SEND";
+  public static final String CONNECT_PERM = "at.sbaresearch.android.c2dm.permission.CONNECT";
 
   public static final String app = "app";
   public static final String signature = "sig";
