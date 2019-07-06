@@ -135,14 +135,16 @@ public abstract class FirebaseMessagingService extends Service {
       String messageType = intent.getStringExtra(EXTRA_MESSAGE_TYPE);
       if (messageType == null || MESSAGE_TYPE_GCM.equals(messageType)) {
         String from = intent.getStringExtra(EXTRA_FROM);
+        long sent = intent.getLongExtra(EXTRA_SENT_TIME, 0L);
         Bundle data = intent.getExtras();
         // TODO cleanup
         data.remove(EXTRA_MESSAGE_TYPE);
         data.remove(
             "android.support.content.wakelockid"); // WakefulBroadcastReceiver.EXTRA_WAKE_LOCK_ID
         data.remove(EXTRA_FROM);
+        data.remove(EXTRA_SENT_TIME);
         String msgId = intent.getStringExtra(EXTRA_MESSAGE_ID);
-        onMessageReceived(buildRemoteMessage(from, data.getString(EXTRA_PAYLOAD), msgId));
+        onMessageReceived(buildRemoteMessage(from, data.getString(EXTRA_PAYLOAD), msgId, sent));
         // TODO add if for onNewToken
         // TODO delete not supported message types
       } else if (MESSAGE_TYPE_DELETED_MESSAGE.equals(messageType)) {
@@ -161,14 +163,14 @@ public abstract class FirebaseMessagingService extends Service {
   }
 
   private RemoteMessage buildRemoteMessage(String from, String dataAsString,
-      String messageId) {
+      String messageId, long sentTime) {
     Map<String, String> asMap = new HashMap<>();
     try {
       asMap = parseData(new JSONObject(dataAsString));
     } catch (JSONException e) {
       Log.e(TAG, "buildRemoteMessage: cannot parse json string", e);
     }
-    return new RemoteMessage(from, asMap, messageId);
+    return new RemoteMessage(from, asMap, messageId, sentTime);
   }
 
   private Map<String, String> parseData(JSONObject data) {

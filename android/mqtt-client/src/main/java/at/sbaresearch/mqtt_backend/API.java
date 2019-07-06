@@ -17,4 +17,5 @@ public class API {
   public static final String signature = "sig";
   public static final String payload = "payload";
   public static final String messageId = "messageId";
+  public static final String sentTime = "sent_time";
 }

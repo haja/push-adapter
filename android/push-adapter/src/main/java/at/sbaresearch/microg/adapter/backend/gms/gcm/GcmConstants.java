@@ -29,6 +29,7 @@ public final class GcmConstants {
   public static final String EXTRA_DELETE = "delete";
   public static final String EXTRA_ERROR = "error";
   public static final String EXTRA_FROM = "from";
+  public static final String EXTRA_SENT_TIME = "sent_time";
   public static final String EXTRA_GSF_INTENT = "GSF";
   public static final String EXTRA_GMS_VERSION = "gmsv";
   public static final String EXTRA_IS_MESSENGER2 = "messenger2";

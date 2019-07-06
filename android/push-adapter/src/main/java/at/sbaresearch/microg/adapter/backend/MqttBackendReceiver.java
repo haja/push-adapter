@@ -10,8 +10,7 @@ import org.json.JSONObject;
 import java.util.HashMap;
 import java.util.Map;
 
-import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.ACTION_C2DM_RECEIVE;
-import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.EXTRA_FROM;
+import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
 /**
  * TODO should this service be a WakefulBroadcastReceiver, like in microG?
@@ -36,6 +35,9 @@ public class MqttBackendReceiver extends BroadcastReceiver {
     String app = backendIntent.getStringExtra(MQTT_API.app);
     // TODO FROM should be something else
     out.putExtra(EXTRA_FROM, app);
+
+    long sentTime = backendIntent.getLongExtra(MQTT_API.sentTime, 0L);
+    out.putExtra(EXTRA_SENT_TIME, sentTime);
     String clientPackageName = app;
     out.setPackage(clientPackageName);
 

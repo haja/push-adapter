@@ -6,11 +6,13 @@ public class RemoteMessage {
   private final Map<String, String> data;
   private final String from;
   private final String messageId;
+  private final long sentTime;
 
-  public RemoteMessage(String from, Map<String, String> data, String messageId) {
+  public RemoteMessage(String from, Map<String, String> data, String messageId, long sentTime) {
     this.from = from;
     this.data = data;
     this.messageId = messageId;
+    this.sentTime = sentTime;
   }
 
   /**
@@ -32,6 +34,10 @@ public class RemoteMessage {
    */
   public String getMessageId() {
     return messageId;
+  }
+
+  public final long getSentTime() {
+    return sentTime;
   }
 
 }

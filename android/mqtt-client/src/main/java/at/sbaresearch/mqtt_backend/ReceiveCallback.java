@@ -50,7 +50,8 @@ class ReceiveCallback implements MqttCallback {
     String sig = json.getString("signature");
     String name = json.getString("messageId");
     val data = json.getJSONObject("data").toString();
-    return new Message(app, sig, name, data);
+    long sentTime = json.getLong("sentTime");
+    return new Message(app, sig, name, data, sentTime);
   }
 
   private void sendIntent(Message message) {
@@ -60,6 +61,7 @@ class ReceiveCallback implements MqttCallback {
     intent.putExtra(API.signature, message.signature);
     intent.putExtra(API.messageId, message.messageId);
     intent.putExtra(API.payload, message.dataAsJson);
+    intent.putExtra(API.sentTime, message.sentTime);
 
     // TODO enforce some permission here? enforce package messageId here
     context.sendBroadcast(intent);
@@ -76,5 +78,6 @@ class ReceiveCallback implements MqttCallback {
     String signature;
     String messageId;
     String dataAsJson;
+    long sentTime;
   }
 }

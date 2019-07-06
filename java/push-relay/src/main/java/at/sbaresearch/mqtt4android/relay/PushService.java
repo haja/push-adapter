@@ -45,7 +45,8 @@ public class PushService {
   private void sendAsJson(AppRegistration app, String msgId,
       Map<String, String> data) throws JsonProcessingException {
     val jsonMsg = objectMapper.writeValueAsString(
-        MqttMessage.of(app.getApp(), app.getSignature(), msgId, data));
+        MqttMessage.of(app.getApp(), app.getSignature(), msgId, data,
+            System.currentTimeMillis()));
     jmsTemplate.convertAndSend(app.getDeviceId().getId(), jsonMsg);
   }
 
@@ -55,6 +56,7 @@ public class PushService {
     String signature;
     String messageId;
     Map<String, String> data;
+    long sentTime;
   }
 
   @Value(staticConstructor = "of")
