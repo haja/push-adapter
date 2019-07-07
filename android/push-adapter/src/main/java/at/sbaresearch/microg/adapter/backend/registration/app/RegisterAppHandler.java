@@ -116,12 +116,24 @@ class RegisterAppHandler extends Handler {
       return;
     }
 
+    String senderId = getSenderId(msg);
+    if (senderId == null) {
+      Log.w(TAG, "senderId is null");
+      return;
+    }
+
     // TODO: We should checkin and/or ask for permission here.
 
     Log.d(TAG, "about to send app register request");
     // TODO fix http requests
-    httpService.registerApp(context, database, packageName,
+    httpService.registerApp(context, database, packageName, senderId,
         bundle -> sendReply(what, id, replyTo, bundle));
+  }
+
+  private String getSenderId(Message msg) {
+    String sender = msg.getData().getString(EXTRA_SENDER);
+    Log.i(TAG, "getSenderId: sender id is: " + sender);
+    return sender;
   }
 
   private Message fromIntentMsg(Message msg) {

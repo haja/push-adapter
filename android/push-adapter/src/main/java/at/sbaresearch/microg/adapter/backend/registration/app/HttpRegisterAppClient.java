@@ -20,6 +20,7 @@ public interface HttpRegisterAppClient {
   class AppRegisterRequest {
     String app;
     String signature;
+    String senderId;
   }
 
   @Data

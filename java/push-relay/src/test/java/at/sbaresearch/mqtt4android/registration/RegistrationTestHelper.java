@@ -13,6 +13,7 @@ public class RegistrationTestHelper {
 
   public static AppRegistrationRequestBuilder appReq() {
     return AppRegistrationRequest.testWith()
+        .senderId("someSenderId")
         .app("my.test.app");
   }
 }

@@ -21,6 +21,7 @@ public class AppRegistrationHttpsTest extends HttpTest {
   public void testAppRegistration_shouldSucceed() throws Exception {
     val req = RegistrationResource.AppRegistrationRequest.testWith()
         .app("my.test.app")
+        .senderId("333")
         .build();
 
     val restTemplate = cryptoHelper.addClientKeys(this.restBuilder, testData.clients.client1Keys)

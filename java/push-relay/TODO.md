@@ -7,6 +7,9 @@ TESTS: some complete integration test?
 
 ## overall
 - cleanup TODOs in code
+- do we need to verify senderId for pushToken?
+    - in FCM docs, senderId is never referenced when pushing, only projectId somehow... how is authorization working in FCM?
+    - is this a security issue at all?
 
 # crypto setup
 write script to do the following:

@@ -36,6 +36,7 @@ public class RegistrationService {
     String app;
     String signature;
     DeviceId deviceId;
+    String senderId;
   }
 
   @Value

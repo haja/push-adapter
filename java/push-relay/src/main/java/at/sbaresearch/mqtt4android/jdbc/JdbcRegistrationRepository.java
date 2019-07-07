@@ -17,10 +17,10 @@ public class JdbcRegistrationRepository implements RegistrationRepository {
 
   //language=SQL
   private static final String INSERT_TOKEN =
-      "INSERT INTO app_registrations(token, device_id, app, app_signature) VALUES (:token, :device_id, :app, :signature)";
+      "INSERT INTO app_registrations(token, device_id, app, app_signature, sender_id) VALUES (:token, :device_id, :app, :signature, :sender_id)";
   //language=SQL
   private static final String SELECT_TOPIC =
-      "SELECT device_id, app, app_signature FROM app_registrations WHERE token=:token";
+      "SELECT device_id, app, app_signature, sender_id FROM app_registrations WHERE token=:token";
 
   Jdbi jdbi;
 
@@ -32,6 +32,7 @@ public class JdbcRegistrationRepository implements RegistrationRepository {
         .bind("device_id", registration.getDeviceId().getId())
         .bind("app", registration.getApp())
         .bind("signature", registration.getSignature())
+        .bind("sender_id", registration.getSenderId())
         .execute());
   }
 
@@ -41,7 +42,8 @@ public class JdbcRegistrationRepository implements RegistrationRepository {
         new AppRegistration(
             rs.getString("app"),
             rs.getString("app_signature"),
-            new DeviceId(rs.getString("device_id"))
+            new DeviceId(rs.getString("device_id")),
+            rs.getString("sender_id")
         );
     return jdbi.withHandle(h -> h.select(SELECT_TOPIC)
         .bind("token", token)

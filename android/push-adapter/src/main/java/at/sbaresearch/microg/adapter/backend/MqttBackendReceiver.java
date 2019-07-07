@@ -32,14 +32,14 @@ public class MqttBackendReceiver extends BroadcastReceiver {
     Intent out = new Intent(ACTION_C2DM_RECEIVE);
 
     // TODO lookup package and from of receiving app from appId of intent
-    String app = backendIntent.getStringExtra(MQTT_API.app);
-    // TODO FROM should be something else
-    out.putExtra(EXTRA_FROM, app);
+    //  still needed?
+    String senderId = backendIntent.getStringExtra(MQTT_API.senderId);
+    out.putExtra(EXTRA_FROM, senderId);
+    String clientPackageName = backendIntent.getStringExtra(MQTT_API.app);
+    out.setPackage(clientPackageName);
 
     long sentTime = backendIntent.getLongExtra(MQTT_API.sentTime, 0L);
     out.putExtra(EXTRA_SENT_TIME, sentTime);
-    String clientPackageName = app;
-    out.setPackage(clientPackageName);
 
     String payload = backendIntent.getStringExtra(MQTT_API.payload);
     out.putExtra("payload", payload);

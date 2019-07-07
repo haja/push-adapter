@@ -120,7 +120,7 @@ public class RegisterAppService extends IntentService {
   public void registerAndReply(Context context, GcmDatabase database, Intent intent,
       String packageName, String requestId) {
     Log.d(TAG, "register[req]: " + intent.toString() + " extras=" + intent.getExtras());
-    httpService.registerApp(context, database, packageName,
+    httpService.registerApp(context, database, packageName, intent.getStringExtra(EXTRA_SENDER),
         bundle -> {
           Intent outIntent = new Intent(ACTION_C2DM_REGISTRATION);
           outIntent.putExtras(bundle);

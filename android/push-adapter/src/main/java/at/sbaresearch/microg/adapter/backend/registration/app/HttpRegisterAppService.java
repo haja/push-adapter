@@ -78,10 +78,10 @@ public class HttpRegisterAppService {
   }
 
   public void registerApp(Context context, final GcmDatabase database,
-      String appPackageName, final BundleCallback callback) {
+      String appPackageName, String senderId, final BundleCallback callback) {
     String appSignature = PackageUtils.firstSignatureDigest(context, appPackageName);
 
-    AppRegisterRequest request = new AppRegisterRequest(appPackageName, appSignature);
+    AppRegisterRequest request = new AppRegisterRequest(appPackageName, appSignature, senderId);
     val registerCall = httpClient.registerApp(
         request);
     registerCall.enqueue(new Callback<AppRegisterResponse>() {

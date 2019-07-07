@@ -6,6 +6,7 @@ public class MQTT_API {
   public static final String messageId = "messageId";
   public static final String payload = "payload";
   public static final String sentTime = "sentTime";
+  public static final String senderId = "senderId";
 
   public static final String INTENT_MQTT_CONNECT =
       "at.sbaresearch.android.gcm.mqtt.intent.CONNECT";

@@ -62,7 +62,7 @@ public class RegistrationResource {
   }
 
   private AppRegistration mapFromRequest(AppRegistrationRequest req, DeviceId deviceId) {
-    return new AppRegistration(req.app, req.signature, deviceId);
+    return new AppRegistration(req.app, req.signature, deviceId, req.senderId);
   }
 
   @Value
@@ -70,6 +70,7 @@ public class RegistrationResource {
   public static class AppRegistrationRequest {
     String app;
     String signature;
+    String senderId;
   }
 
   @Value

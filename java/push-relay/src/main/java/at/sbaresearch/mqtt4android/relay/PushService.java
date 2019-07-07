@@ -2,7 +2,6 @@ package at.sbaresearch.mqtt4android.relay;
 
 import at.sbaresearch.mqtt4android.registration.RegistrationService;
 import at.sbaresearch.mqtt4android.registration.RegistrationService.AppRegistration;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators.UUIDGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
@@ -46,7 +45,7 @@ public class PushService {
       Map<String, String> data) throws JsonProcessingException {
     val jsonMsg = objectMapper.writeValueAsString(
         MqttMessage.of(app.getApp(), app.getSignature(), msgId, data,
-            System.currentTimeMillis()));
+            System.currentTimeMillis(), app.getSenderId()));
     jmsTemplate.convertAndSend(app.getDeviceId().getId(), jsonMsg);
   }
 
@@ -57,6 +56,7 @@ public class PushService {
     String messageId;
     Map<String, String> data;
     long sentTime;
+    String senderId;
   }
 
   @Value(staticConstructor = "of")

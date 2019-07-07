@@ -41,7 +41,9 @@ public class DeviceAndAppRegistrationTest extends AppTest {
       mqttHelper.subscribe(connection, reg.getMqttTopic());
 
       val mockUser = registrationToUser(reg);
-      val appResp = registrationResource.registerApp(appReq().build(), mockUser);
+      val senderId = "123456";
+      val appResp = registrationResource.registerApp(
+          appReq().senderId(senderId).build(), mockUser);
 
       val messageContent = "some push content";
       val msg = helper.pushMessageBuilder(messageContent)
@@ -51,6 +53,7 @@ public class DeviceAndAppRegistrationTest extends AppTest {
       val message = mqttHelper.await(connection.receive());
       // TODO better assert of payload
       assertThat(new String(message.getPayload())).contains(messageContent);
+      assertThat(new String(message.getPayload())).contains(senderId);
     });
   }
 
