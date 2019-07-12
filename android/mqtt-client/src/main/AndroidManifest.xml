@@ -13,6 +13,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <!-- TODO set android:persistent="true" ? -->
     <application
         android:networkSecurityConfig="@xml/network_security_config"
         android:allowBackup="true"
@@ -34,6 +36,8 @@
 
         <service android:name="org.eclipse.paho.android.service.MqttService" />
         <service android:name=".MqttConnectionManagerService" />
+        <service android:name=".MqttConnectReceiverService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <receiver
             android:name="at.sbaresearch.mqtt_backend.MqttConnectReceiver"

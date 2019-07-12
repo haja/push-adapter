@@ -1,13 +1,19 @@
 package at.sbaresearch.mqtt_backend;
 
+import android.Manifest.permission;
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Handler.Callback;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import at.sbaresearch.mqtt4android.pinning.ClientKeyCert;
 import at.sbaresearch.mqtt4android.pinning.PinningSslFactory;
@@ -20,6 +26,8 @@ import java.util.Objects;
 import static at.sbaresearch.mqtt_backend.API.*;
 
 public class MqttConnectionManagerService extends Service {
+
+  public static final int NOTIFICATION_ID = 1;
 
   private static final String TAG = "MqttConnectionMgrSrvc";
 
@@ -51,7 +59,18 @@ public class MqttConnectionManagerService extends Service {
   public void onCreate() {
     super.onCreate();
 
-    //android.os.Debug.waitForDebugger();
+    if (android.os.Build.VERSION.SDK_INT >= VERSION_CODES.O) {
+        if (ContextCompat.checkSelfPermission(this, permission.FOREGROUND_SERVICE)
+            != PackageManager.PERMISSION_GRANTED) {
+          Log.i(TAG, "cannot start in foreground, no permission");
+        } else {
+          Log.i(TAG, "starting in foreground");
+          val notif = new Notification.Builder(this, MqttBackendConfigActivity.LOW_PRIO_CHANNEL_ID)
+              .setContentTitle("push connection open")
+              .build();
+          startForeground(NOTIFICATION_ID, notif);
+        }
+    }
   }
 
   @Override

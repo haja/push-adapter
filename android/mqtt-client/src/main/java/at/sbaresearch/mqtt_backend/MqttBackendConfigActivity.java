@@ -1,10 +1,15 @@
 package at.sbaresearch.mqtt_backend;
 
+import android.Manifest.permission;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
@@ -25,6 +30,7 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
   private static final String TAG = "MqttBackendConfig";
 
   private static final int SEND_PERM_REQ = 1;
+  public static final String LOW_PRIO_CHANNEL_ID = "lowChannelId";
 
   private MqttConnectionManagerService mqttConnectionManagerService;
   private boolean mqttBound = false;
@@ -44,6 +50,7 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
       public void onClick(View view) {
       }
     });
+    createNotificationChannel();
   }
 
   @Override
@@ -61,6 +68,22 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     Log.i(TAG, "on stop");
     unbindService(serviceConnection);
     mqttBound = false;
+  }
+
+  private void createNotificationChannel() {
+    // Create the NotificationChannel, but only on API 26+ because
+    // the NotificationChannel class is new and not in the support library
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      CharSequence name = "permanentNotification";
+      String description = "permanentNotification";
+      int importance = NotificationManager.IMPORTANCE_LOW;
+      NotificationChannel channel = new NotificationChannel(LOW_PRIO_CHANNEL_ID, name, importance);
+      channel.setDescription(description);
+      // Register the channel with the system; you can't change the importance
+      // or other notification behaviors after this
+      NotificationManager notificationManager = getSystemService(NotificationManager.class);
+      notificationManager.createNotificationChannel(channel);
+    }
   }
 
   public void disconnect(final View view) {
@@ -95,6 +118,9 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
   }
 
   public void reqPermission(View view) {
+    if (android.os.Build.VERSION.SDK_INT >= VERSION_CODES.P) {
+      reqPermission(permission.FOREGROUND_SERVICE);
+    }
     reqPermission(API.SEND_PERM);
     reqPermission(API.CONNECT_PERM);
   }
@@ -102,9 +128,10 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
   private void reqPermission(final String permission) {
     if (ContextCompat.checkSelfPermission(this, permission)
         != PackageManager.PERMISSION_GRANTED) {
+      Log.i(TAG, "req perm: " + permission);
       ActivityCompat.requestPermissions(this, new String[]{permission}, SEND_PERM_REQ);
     } else {
-      // all fine
+      Log.i(TAG, "perm already granted: " + permission);
     }
   }
 

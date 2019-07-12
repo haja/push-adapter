@@ -14,6 +14,6 @@ public class MqttConnectReceiver extends BroadcastReceiver {
     Log.i(TAG, "connect intent received");
     Intent out = new Intent(context, MqttConnectionManagerService.class);
     out.putExtras(intent);
-    context.startService(out);
+    MqttConnectReceiverService.enqueueWork(context, out);
   }
 }

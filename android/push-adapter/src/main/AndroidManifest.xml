@@ -31,7 +31,9 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
 
+    <!-- TODO set android:persistent="true" ? -->
     <application
             android:allowBackup="true"
             android:icon="@mipmap/ic_launcher"
@@ -100,7 +102,10 @@
         </receiver>
 
         <service android:name=".gms.gcm.McsService"/>
-        <service android:name=".registration.device.RegisterDeviceService" />
+        <service android:name=".registration.device.RegisterDeviceService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+        <service android:name=".BootBroadcastReceiverService"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
 
         <receiver
             android:name="at.sbaresearch.microg.adapter.backend.gms.gcm.SendReceiver"

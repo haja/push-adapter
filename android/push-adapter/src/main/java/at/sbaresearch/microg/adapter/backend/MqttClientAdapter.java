@@ -22,6 +22,8 @@ public class MqttClientAdapter {
 
     val connectIntent = new Intent(MQTT_API.INTENT_MQTT_CONNECT);
     connectIntent.putExtras(fromSettings(mqttSettings));
+    connectIntent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+    connectIntent.setClassName("at.sbaresearch.mqtt_backend", "at.sbaresearch.mqtt_backend.MqttConnectReceiver");
 
     ctx.sendBroadcast(connectIntent, PERMISSION_CONNECT);
   }

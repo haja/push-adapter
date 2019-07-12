@@ -16,7 +16,6 @@
 
 package at.sbaresearch.microg.adapter.backend.registration.app;
 
-import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -24,8 +23,9 @@ import android.content.pm.PackageManager;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.v4.content.WakefulBroadcastReceiver;
+import android.support.v4.app.JobIntentService;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.backend.gms.common.PackageUtils;
 import at.sbaresearch.microg.adapter.backend.gms.gcm.GcmDatabase;
@@ -34,17 +34,16 @@ import at.sbaresearch.microg.adapter.backend.gms.ui.AskPushPermission;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
-public class RegisterAppService extends IntentService {
+public class RegisterAppService extends JobIntentService {
   private static final String TAG = "RegisterAppSvc";
-  private static final String EXTRA_SKIP_TRY_CHECKIN = "skip_checkin";
+  public static final int JOB_ID = 2;
 
   private GcmDatabase database;
-  private static boolean requestPending = false;
   private HttpRegisterAppService httpService = null;
 
-  public RegisterAppService() {
-    super(TAG);
-    setIntentRedelivery(false);
+
+  public static void enqueueWork(Context context, Intent work) {
+    enqueueWork(context, RegisterAppService.class, JOB_ID, work);
   }
 
   @Override
@@ -65,9 +64,8 @@ public class RegisterAppService extends IntentService {
   }
 
   @Override
-  protected void onHandleIntent(Intent intent) {
-    WakefulBroadcastReceiver.completeWakefulIntent(intent);
-    Log.d(TAG, "onHandleIntent: " + intent);
+  protected void onHandleWork(@NonNull Intent intent) {
+    Log.d(TAG, "onHandleWork: " + intent);
 
     String requestId = null;
     if (intent.hasExtra(EXTRA_KID) && intent.getStringExtra(EXTRA_KID).startsWith("|")) {
@@ -76,8 +74,6 @@ public class RegisterAppService extends IntentService {
         requestId = kid[2];
       }
     }
-
-    // TODO checkin service call was here
 
     try {
       if (ACTION_C2DM_REGISTER.equals(intent.getAction())) {

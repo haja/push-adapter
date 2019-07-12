@@ -11,6 +11,6 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
   @Override
   public void onReceive(Context ctx, Intent intent) {
     Log.d(TAG, "boot complete");
-    MqttClientAdapter.ensureBackendConnection(ctx);
+    BootBroadcastReceiverService.enqueueWork(ctx, intent);
   }
 }
