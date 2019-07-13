@@ -58,6 +58,7 @@ class ReceiveCallback implements MqttCallback {
   private void sendIntent(Message message) {
     // TODO register intent, well-defined intent constant
     Intent intent = new Intent(API.INTENT_MQTT_RECEIVE);
+    intent.setClassName(API.ADAPTER_PKG, API.ADAPTER_MSG_RECEIVER);
     intent.putExtra(API.app, message.app);
     intent.putExtra(API.signature, message.signature);
     intent.putExtra(API.messageId, message.messageId);

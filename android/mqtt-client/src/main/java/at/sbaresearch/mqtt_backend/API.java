@@ -13,6 +13,9 @@ public class API {
   public static final String SEND_PERM = "at.sbaresearch.android.gcm.mqtt.intent.SEND";
   public static final String CONNECT_PERM = "at.sbaresearch.android.c2dm.permission.CONNECT";
 
+  public static final String ADAPTER_PKG = "at.sbaresearch.microg.adapter.backend";
+  public static final String ADAPTER_MSG_RECEIVER = "at.sbaresearch.microg.adapter.backend.MqttBackendReceiver";
+
   public static final String app = "app";
   public static final String signature = "sig";
   public static final String payload = "payload";

@@ -4,17 +4,9 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import lombok.val;
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static at.sbaresearch.microg.adapter.backend.gms.gcm.GcmConstants.*;
 
-/**
- * TODO should this service be a WakefulBroadcastReceiver, like in microG?
- */
 public class MqttBackendReceiver extends BroadcastReceiver {
 
   private static final String TAG = MqttBackendReceiver.class.getSimpleName();
