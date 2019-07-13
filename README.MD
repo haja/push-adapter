@@ -37,3 +37,13 @@ sample app which uses push-integration-lib
 
 ## app-backend (sample)
 backend for the sample app
+
+# Android O and up:
+
+some settings to get this to work with doze mode:
+
+## exceptions from doze mode needed:
+- mqtt client
+- push adapter
+- <app using push-integration-lib
+
