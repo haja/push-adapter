@@ -16,16 +16,20 @@
 
 package at.sbaresearch.microg.adapter.library.firebase.messaging;
 
-import android.app.PendingIntent;
-import android.app.Service;
+import android.Manifest.permission;
+import android.app.*;
+import android.app.Notification.Builder;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.os.AsyncTaskCompat;
 import android.util.Log;
 import at.sbaresearch.microg.adapter.library.gms.common.PublicApi;
-import at.sbaresearch.microg.adapter.library.gms.gcm.GcmReceiver;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -39,7 +43,7 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  * Base class for receiving Firebase Messages.
  * Override base class methods to handle any events required by the application.
  * Methods are invoked asynchronously.
- * // TODO This is wrong
+ * // TODO This is wrong, update usage of FirebaseMessagingService
  * <p/>
  * Include the following in the manifest:
  * <pre>
@@ -50,10 +54,17 @@ import static at.sbaresearch.microg.adapter.library.gms.gcm.GcmConstants.*;
  *         <action android:name="at.sbaresearch.android.c2dm.intent.RECEIVE" />
  *     </intent-filter>
  * </service></pre>
+ * on android O and higher, requires
+ * <pre>
+ *   <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+ * </pre>
  */
 @PublicApi
 public abstract class FirebaseMessagingService extends Service {
   private static final String TAG = "FcmListenerService";
+
+  private static final String FALLBACK_LOW_PRIO_CHANNEL_ID = "lowChannelId";
+  private static final int NOTIFICATION_ID = 3011;
 
   private final Object lock = new Object();
   private int startId;
@@ -105,11 +116,28 @@ public abstract class FirebaseMessagingService extends Service {
       this.counter++;
     }
 
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.O) {
+      // TODO the version_codes check uses API level of this lib,
+      //  not the actual app API level which uses this lib; how to fix this?
+      if (Build.VERSION.SDK_INT >= VERSION_CODES.P && ContextCompat.checkSelfPermission(this, permission.FOREGROUND_SERVICE)
+          != PackageManager.PERMISSION_GRANTED) {
+        Log.w(TAG,
+            "no permission, but trying to start in foreground anyways (might be running on android O and < P");
+      }
+      Log.i(TAG, "starting in foreground");
+      Notification notif = new Builder(this, getOrCreateNotificationChannel())
+          .setContentTitle("receiving push message")
+          .setContentText("receiving push message")
+          .build();
+      startForeground(NOTIFICATION_ID, notif);
+    }
+
     if (intent != null) {
       if (ACTION_NOTIFICATION_OPEN.equals(intent.getAction())) {
         handlePendingNotification(intent);
         finishCounter();
-        GcmReceiver.completeWakefulIntent(intent);
+        // TODO stop foreground service?
+        // GcmReceiver.completeWakefulIntent(intent);
       } else if (ACTION_C2DM_RECEIVE.equals(intent.getAction())) {
         AsyncTaskCompat.executeParallel(new AsyncTask<Intent, Void, Void>() {
           @Override
@@ -158,7 +186,8 @@ public abstract class FirebaseMessagingService extends Service {
       }
       finishCounter();
     } finally {
-      GcmReceiver.completeWakefulIntent(intent);
+      // TODO stop foreground service?
+      // GcmReceiver.completeWakefulIntent(intent);
     }
   }
 
@@ -181,6 +210,39 @@ public abstract class FirebaseMessagingService extends Service {
       map.put(key, data.optString(key));
     }
     return map;
+  }
+
+  private String getOrCreateNotificationChannel() {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      NotificationManager notificationManager = getSystemService(NotificationManager.class);
+      for (NotificationChannel channel : notificationManager.getNotificationChannels()) {
+        if (channel.getImportance() == NotificationManager.IMPORTANCE_LOW) {
+          Log.i(TAG, "getOrCreateNotificationChannel: reusing notification channel " + channel.getId());
+          return channel.getId();
+        }
+      }
+      return createNotificationChannel();
+    }
+    return null;
+  }
+
+  private String createNotificationChannel() {
+    // Create the NotificationChannel, but only on API 26+ because
+    // the NotificationChannel class is new and not in the support library
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+      Log.i(TAG, "createNotificationChannel: creating notification channel");
+      CharSequence name = "permanentNotification";
+      String description = "permanentNotification";
+      int importance = NotificationManager.IMPORTANCE_LOW;
+      NotificationChannel channel = new NotificationChannel(FALLBACK_LOW_PRIO_CHANNEL_ID, name, importance);
+      channel.setDescription(description);
+      // Register the channel with the system; you can't change the importance
+      // or other notification behaviors after this
+      NotificationManager notificationManager = getSystemService(NotificationManager.class);
+      notificationManager.createNotificationChannel(channel);
+      return  FALLBACK_LOW_PRIO_CHANNEL_ID;
+    }
+    return null;
   }
 
 
