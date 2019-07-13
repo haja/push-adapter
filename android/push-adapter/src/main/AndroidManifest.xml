@@ -86,19 +86,21 @@
 
         <service
             android:name="at.sbaresearch.microg.adapter.backend.registration.app.RegisterAppService"
-            android:permission="at.sbaresearch.android.c2dm.permission.RECEIVE">
-            <intent-filter>
-                <action android:name="at.sbaresearch.android.c2dm.intent.REGISTER"/>
-                <action android:name="at.sbaresearch.android.c2dm.intent.UNREGISTER"/>
-
-                <category android:name="android.intent.category.DEFAULT"/>
-            </intent-filter>
+            android:permission="android.permission.BIND_JOB_SERVICE">
         </service>
 
-        <receiver android:name="at.sbaresearch.microg.adapter.backend.registration.app.RegisterAppReceiver">
+        <receiver
+            android:name="at.sbaresearch.microg.adapter.backend.registration.app.RegisterAppReceiver"
+            android:permission="at.sbaresearch.android.c2dm.permission.RECEIVE">
+            <intent-filter>
+                <action android:name="at.sbaresearch.android.c2dm.intent.REGISTER" />
+                <action android:name="at.sbaresearch.android.c2dm.intent.UNREGISTER" />
+            </intent-filter>
+            <!--
             <intent-filter>
                 <action android:name="com.google.iid.TOKEN_REQUEST"/>
             </intent-filter>
+            -->
         </receiver>
 
         <service android:name=".gms.gcm.McsService"/>

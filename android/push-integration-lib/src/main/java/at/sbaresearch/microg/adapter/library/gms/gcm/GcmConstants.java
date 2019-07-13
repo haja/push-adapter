@@ -101,4 +101,5 @@ public final class GcmConstants {
   // TODO change this urls?
   public static final String GCMID_INSTANCE_ID = "google.com/iid";
   public static final String GCMID_REFRESH = "gcm.googleapis.com/refresh";
+  public static final String HARDCODED_GCM_PACKAGE_NAME = "at.sbaresearch.microg.adapter.backend";
 }

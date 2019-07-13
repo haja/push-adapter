@@ -97,7 +97,8 @@ public class CloudMessagingRpc {
       ApplicationInfo appInfo = packageManager.getApplicationInfo(GSF_PACKAGE_NAME, 0);
       return gcmPackageName = appInfo.packageName;
     } catch (PackageManager.NameNotFoundException ex3) {
-      return null;
+      Log.w(TAG, "getGcmPackageName: using hardcoded package name");
+      return HARDCODED_GCM_PACKAGE_NAME;
     }
   }
 
@@ -133,15 +134,17 @@ public class CloudMessagingRpc {
   }
 
   private void sendRegisterMessage(Bundle extras) {
+    Log.i(TAG, "sendRegisterMessage");
     Intent intent = new Intent(ACTION_C2DM_REGISTER);
     final String gcmPackageName = getGcmPackageName(context);
     Log.i(TAG, "got package name " + gcmPackageName);
-    intent.setPackage(gcmPackageName);
+    intent.setClassName(gcmPackageName, "at.sbaresearch.microg.adapter.backend.registration.app.RegisterAppReceiver");
     extras.putString(EXTRA_MESSAGE_ID, "google.rpc" + messageIdCounter.getAndIncrement());
     intent.putExtras(extras);
     intent.putExtra(EXTRA_MESSENGER, messenger);
     intent.putExtra(EXTRA_APP, getSelfAuthIntent());
-    context.startService(intent);
+    intent.addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES);
+    context.sendBroadcast(intent);
   }
 
   public RelayConnection handleRegisterMessageResult(Intent resultIntent) throws IOException {
