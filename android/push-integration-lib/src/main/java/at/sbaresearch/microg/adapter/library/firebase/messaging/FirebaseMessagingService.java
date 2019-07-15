@@ -172,7 +172,10 @@ public abstract class FirebaseMessagingService extends Service {
         data.remove(EXTRA_FROM);
         data.remove(EXTRA_SENT_TIME);
         String msgId = intent.getStringExtra(EXTRA_MESSAGE_ID);
+        // TODO acquire + hold wakelock here? for ~10sec max, as this is IIRC what FCM assures?
+        //  or hold wakelock in other app (push-adapter) which has already doze exception?
         onMessageReceived(buildRemoteMessage(from, data.getString(EXTRA_PAYLOAD), msgId, sent));
+        // TODO how to release wakelock early (before 10 sec over, if app already finished processing)?
         // TODO add if for onNewToken
         // TODO delete not supported message types
       } else if (MESSAGE_TYPE_DELETED_MESSAGE.equals(messageType)) {
