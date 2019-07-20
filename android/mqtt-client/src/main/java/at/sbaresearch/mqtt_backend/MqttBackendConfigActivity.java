@@ -8,10 +8,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +27,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 import at.sbaresearch.mqtt_backend.MqttConnectionManagerService.MqttConnectionBinder;
+import lombok.val;
 
 public class MqttBackendConfigActivity extends AppCompatActivity {
 
@@ -92,6 +96,21 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
     } else {
       Snackbar.make(view, "cannot disconnect, service not bound", Snackbar.LENGTH_LONG)
           .setAction("Action", null).show();
+    }
+  }
+
+  public void reqIgnoreBattery(final View view) {
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
+      Intent intent = new Intent();
+      String pkg = getPackageName();
+      PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+      if (pm.isIgnoringBatteryOptimizations(pkg))
+        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+      else {
+        intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+        intent.setData(Uri.parse("package:" + pkg));
+      }
+      startActivity(intent);
     }
   }
 

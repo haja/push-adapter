@@ -29,5 +29,12 @@
         android:onClick="disconnect"
         android:id="@+id/button_disconnect"
         app:layout_constraintTop_toBottomOf="@+id/button_req_perm"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ignore bat optimizations"
+        android:onClick="reqIgnoreBattery"
+        android:id="@+id/button_bat"
+        app:layout_constraintTop_toBottomOf="@+id/button_disconnect"/>
 
 </android.support.constraint.ConstraintLayout>

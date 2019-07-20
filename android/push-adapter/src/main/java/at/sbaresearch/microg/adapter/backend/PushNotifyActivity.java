@@ -1,8 +1,14 @@
 package at.sbaresearch.microg.adapter.backend;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -39,6 +45,21 @@ public class PushNotifyActivity extends AppCompatActivity {
   public void ensureConnection(View view) {
     Log.d(TAG, "ensureConnection");
     MqttClientAdapter.ensureBackendConnection(this);
+  }
+
+  public void reqIgnoreBattery(final View view) {
+    if (Build.VERSION.SDK_INT >= VERSION_CODES.M) {
+      Intent intent = new Intent();
+      String pkg = getPackageName();
+      PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+      if (pm.isIgnoringBatteryOptimizations(pkg))
+        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+      else {
+        intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+        intent.setData(Uri.parse("package:" + pkg));
+      }
+      startActivity(intent);
+    }
   }
 
   public void reqPermission(View view) {
