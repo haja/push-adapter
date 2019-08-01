@@ -17,7 +17,7 @@ server:
     client-auth: want
 
 mqtt:
-  hostname: "trigger.lan"
+  hostname: "localhost"
   port: 61610
 
 ssl:
