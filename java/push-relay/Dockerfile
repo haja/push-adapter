@@ -26,4 +26,5 @@ COPY --from=build /home/app/target/push-relay-1.0-SNAPSHOT.war /usr/local/lib/se
 # don't run as root
 # USER 1001:1001
 
+# TODO this does not work with activeMQ, consider running with dedicated tomcat
 ENTRYPOINT ["java","-jar","/usr/local/lib/service.war"]
