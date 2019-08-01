@@ -5,7 +5,10 @@
     xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
-    <includeAll path="./changesets" relativeToChangelogFile="true"/>
+    <!-- this is needed when running war file with java, some liquibase bug with includeAll -->
+    <include file="classpath:db/changelog/changesets/01-init.xml" />
+    <include file="classpath:db/changelog/changesets/02-serial-generator-store.xml" />
+    <include file="classpath:db/changelog/changesets/03-registration-sender-id.xml" />
 </databaseChangeLog>
 
 
