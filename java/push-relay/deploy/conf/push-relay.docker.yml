@@ -1,0 +1,30 @@
+server:
+  port: 9876
+
+mqtt:
+  hostname: "trigger.lan" # external name as seen by push-adapter mqtt clients
+  port: 61613
+
+
+spring:
+  datasource:
+    url: "jdbc:h2:/db-store/push-relay.h2;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE"
+  h2:
+    console:
+      enabled: false
+  insights:
+    web:
+      log-request-details: false
+  http:
+    log-request-details: false
+  main:
+    banner-mode: 'off'
+
+logging:
+  level:
+    ROOT: "WARN"
+    org:
+      springframework: "INFO"
+    web: "INFO"
+    filter:
+      CommonsRequestLoggingFilter: "WARN"

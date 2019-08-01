@@ -7,14 +7,18 @@ can be run natively or via docker
 
 ### build and run with docker
 
-build
+#### build
 ```
 sudo make docker # sudo needed if user is not in docker group
 ```
 
-run
+#### configure and run
+- certificates need to be reachable via your docker service, by defaul this is `deploy/cert-stores/`
+- mqtt.hostname and port must be configured, so mqtt clients can connect; see `deploy/conf/push-relay.docker.yml`
+
+then run:
 ```
-run-docker.sh
+./deploy/run-docker.sh
 ```
 
 

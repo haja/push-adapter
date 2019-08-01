@@ -1,0 +1,14 @@
+version: '2'
+services:
+  push-relay:
+    image: 'sba-research.at/mqtt4android/push-relay:local'
+    ports:
+      - '9876:9876'   # tomcat
+      - '61613:61613' # mqtt
+    volumes:
+      - ./:/configs
+      - ./db-store:/db-store
+    working_dir: /configs
+    environment:
+      - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/configs/conf/push-relay.docker.yml
+
