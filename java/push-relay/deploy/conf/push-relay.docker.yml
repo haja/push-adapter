@@ -23,6 +23,8 @@ spring:
 logging:
   level:
     ROOT: "WARN"
+    at:
+      sbaresearch: "INFO"
     org:
       springframework: "INFO"
     web: "INFO"
