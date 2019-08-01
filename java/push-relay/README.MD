@@ -1,7 +1,22 @@
-# Registration Backend
+# Registration Backend - push-relay
 
 ## setup
 this uses maven and embedded tomcat
+
+can be run natively or via docker
+
+### build and run with docker
+
+build
+```
+sudo make docker # sudo needed if user is not in docker group
+```
+
+run
+```
+run-docker.sh
+```
+
 
 ### IDE config
 this project uses lombok. You might need to enable support for it in your IDE.
