@@ -1,6 +1,6 @@
 DOCKER_USER    ?= sba-research.at/mqtt4android
 DOCKER_TAG     ?= local
-M2_SYSTEM      := /home/n0s/.m2
+M2_SYSTEM      := ~/.m2
 LIB_PINNING    := repository/at/sbaresearch/mqtt4android/pinning-tls-lib
 
 .PHONY: install
