@@ -17,4 +17,4 @@ docker:
 docker-skip-tests:
 	mkdir -p m2-docker/$(LIB_PINNING)
 	cp -r $(M2_SYSTEM)/$(LIB_PINNING)/* m2-docker/$(LIB_PINNING)
-	sudo docker build --build-arg buildargs=-DskipTests=true -t $(DOCKER_USER)/push-relay:$(DOCKER_TAG) .
+	sudo docker build --build-arg MVN_ARGS=-DskipTests -t $(DOCKER_USER)/push-relay:$(DOCKER_TAG) .

@@ -10,8 +10,8 @@ RUN mvn dependency:go-offline -B
 
 COPY src src
 
-RUN mvn package
-
+ARG MVN_ARGS
+RUN mvn package $MVN_ARGS
 #
 # minimize
 #
