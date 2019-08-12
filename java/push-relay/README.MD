@@ -6,6 +6,7 @@ this uses maven and embedded tomcat
 can be run natively or via docker
 
 ### build and run with docker
+to get the tests running the application-test-setup.yml file in `src/test/resources` needs to be adopted (mqtt.hostname needs to be set), the server certificate needs to be regenerated for your hostname and finally the class `at.sbaresearch.mqtt4android.OneTimeTestSetupHelper` needs to be executed once (to generate client keys for the tests, might not be needed if only server key is exchanges?).
 
 #### build
 ```
@@ -33,7 +34,7 @@ we need a 3 java keystores to run the server:
 - castore.p12
 - truststore.p12
 
-see `<root of this project>/tls-pinning` for some helpful scripts.
+see `setup-helpers` and `<root of this project>/tls-pinning` for some helpful scripts.
 
 ### keystore.p12
 holds the server key, with which the server authenticates itself to its clients.
