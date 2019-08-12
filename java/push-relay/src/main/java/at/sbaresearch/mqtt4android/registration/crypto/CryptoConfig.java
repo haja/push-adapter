@@ -35,10 +35,12 @@ public class CryptoConfig {
     try {
       maxKeySize = javax.crypto.Cipher.getMaxAllowedKeyLength("AES");
     } catch (NoSuchAlgorithmException e) {
-      e.printStackTrace();
+      log.error("could not get algorithm", e);
     }
     if (maxKeySize < 2147483647) {
-      throw new CryptoSetupConfigException("Max key size for AES too low: " + maxKeySize);
+      String msg = "Max key size for AES too low: " + maxKeySize;
+      log.error(msg);
+      throw new CryptoSetupConfigException(msg);
     }
   }
 
