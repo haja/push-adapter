@@ -1,5 +1,6 @@
 package at.sbaresearch.mqtt4android.registration.crypto;
 
+import at.sbaresearch.mqtt4android.common.SecureRngGenerator;
 import io.vavr.control.Option;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -55,15 +56,17 @@ public class ClientKeyFactory {
   KeyWriter keyWriter;
 
   SerialDao serialGenerator;
+  final SecureRandom secureRandom;
 
   public ClientKeyFactory(
       String securityProvider, PrivateKey caKey, java.security.cert.Certificate caCert,
       String keyPath, KeyWriter keyWriter,
-      SerialDao serialGenerator)
+      SerialDao serialGenerator, SecureRngGenerator secureRngGenerator)
       throws IOException, CertificateEncodingException, OperatorCreationException {
     this.securityProvider = securityProvider;
     this.keyWriter = keyWriter;
     this.serialGenerator = serialGenerator;
+    this.secureRandom = secureRngGenerator.getSecureRandom();
     AsymmetricKeyParameter caKey1 = toBCstructure(caKey);
     this.caCert = toBCstructure(caCert);
 
@@ -90,7 +93,7 @@ public class ClientKeyFactory {
 
   private KeyPair generateKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
     val keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM, securityProvider);
-    keyGen.initialize(KEYSIZE, SecureRandom.getInstanceStrong());
+    keyGen.initialize(KEYSIZE, this.secureRandom);
     return keyGen.genKeyPair();
   }
 

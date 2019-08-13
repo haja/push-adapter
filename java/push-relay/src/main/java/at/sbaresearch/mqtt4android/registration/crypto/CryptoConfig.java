@@ -1,5 +1,6 @@
 package at.sbaresearch.mqtt4android.registration.crypto;
 
+import at.sbaresearch.mqtt4android.common.SecureRngGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -23,9 +24,9 @@ public class CryptoConfig {
       PrivateKey caKey, Certificate caCert,
       @Value("${ssl.debug.writeKeysPath}") String keyPath,
       KeyWriter keyWriter,
-      SerialDao serialDao) throws CertificateEncodingException, OperatorCreationException, IOException {
+      SerialDao serialDao, SecureRngGenerator rng) throws CertificateEncodingException, OperatorCreationException, IOException {
     setupBouncyCastle();
-    return new ClientKeyFactory("BC", caKey, caCert, keyPath, keyWriter, serialDao);
+    return new ClientKeyFactory("BC", caKey, caCert, keyPath, keyWriter, serialDao, rng);
   }
 
   private void setupBouncyCastle() {

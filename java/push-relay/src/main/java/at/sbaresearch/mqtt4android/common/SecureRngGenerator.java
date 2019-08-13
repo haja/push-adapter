@@ -25,4 +25,8 @@ public class SecureRngGenerator {
     return Base64.getUrlEncoder().encodeToString(bytes)
         .replaceAll("=", "");
   }
+
+  public SecureRandom getSecureRandom() {
+    return RNG;
+  }
 }
