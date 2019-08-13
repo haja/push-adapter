@@ -13,7 +13,7 @@ public class SecureRngGenerator {
 
   static {
     try {
-      RNG = SecureRandom.getInstanceStrong();
+      RNG = SecureRandom.getInstance("SHA1PRNG");
     } catch (NoSuchAlgorithmException e) {
       throw new RuntimeException(e);
     }
