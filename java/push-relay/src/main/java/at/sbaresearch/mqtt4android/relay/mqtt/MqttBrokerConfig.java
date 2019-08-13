@@ -49,6 +49,7 @@ public class MqttBrokerConfig {
   private final String embeddedBrokerName = "embeddedManual";
 
   public MqttBrokerConfig(SecureRngGenerator generator) {
+    log.info("generating system user password...");
     writeUserPassword = generator.randomString(SYSTEM_USER_PW_LENGTH);
     log.info("system user password generated: {}", writeUserPassword);
   }
