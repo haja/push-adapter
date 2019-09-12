@@ -138,6 +138,7 @@ public class MqttBackendConfigActivity extends AppCompatActivity {
 
   public void reqPermission(View view) {
     if (android.os.Build.VERSION.SDK_INT >= VERSION_CODES.P) {
+      // TODO this is granted automatically
       reqPermission(permission.FOREGROUND_SERVICE);
     }
     reqPermission(API.SEND_PERM);
