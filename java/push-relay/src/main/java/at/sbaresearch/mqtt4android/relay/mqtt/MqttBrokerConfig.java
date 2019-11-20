@@ -123,7 +123,7 @@ public class MqttBrokerConfig {
 
     broker.addConnector("mqtt+ssl://" + externalIp + ":" + mqttPort
         + "?needClientAuth=true"
-    );
+    ).setAllowLinkStealing(true);
     return broker;
   }
 
