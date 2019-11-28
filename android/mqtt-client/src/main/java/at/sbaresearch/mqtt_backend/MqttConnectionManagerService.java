@@ -3,20 +3,17 @@ package at.sbaresearch.mqtt_backend;
 import android.Manifest.permission;
 import android.app.Notification;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.ConnectivityManager;
-import android.net.ConnectivityManager.NetworkCallback;
-import android.net.Network;
-import android.net.NetworkCapabilities;
-import android.net.NetworkRequest;
-import android.os.AsyncTask;
-import android.os.Binder;
+import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
+import android.os.*;
 import android.os.Build.VERSION_CODES;
-import android.os.Bundle;
 import android.os.Handler.Callback;
-import android.os.IBinder;
+import android.os.PowerManager.WakeLock;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import at.sbaresearch.mqtt4android.pinning.ClientKeyCert;
@@ -34,6 +31,7 @@ public class MqttConnectionManagerService extends Service {
   public static final int NOTIFICATION_ID = 1;
 
   private static final String TAG = "MqttConnectionMgrSrvc";
+  private static final boolean WIFI_LOCK = true;
 
   private MqttAndroidClient mqttAndroidClient;
 
@@ -43,7 +41,8 @@ public class MqttConnectionManagerService extends Service {
   private IBinder binder = new MqttConnectionBinder();
 
   private Integer currentStartId = null;
-  private NetworkCallback networkCallback;
+  private WifiLock wifiLock = null;
+  private WakeLock wakeLock = null;
 
   public MqttConnectionManagerService() {
     mqttConnectOptions = new MqttConnectOptions();
@@ -125,7 +124,9 @@ public class MqttConnectionManagerService extends Service {
           new RuntimeException("mqtt still connected"));
     }
 
-    requestNetwork();
+    if (WIFI_LOCK) {
+      acquireWifiLock();
+    }
 
     setupSsl(sett);
     createClient(sett);
@@ -195,8 +196,9 @@ public class MqttConnectionManagerService extends Service {
     if (forStartId == null) {
       Log.d(TAG, "doDisconnect: startId provided is null");
     }
-    releaseNetwork();
-
+    if (WIFI_LOCK) {
+      releaseWifiLock();
+    }
     if (mqttAndroidClient != null) {
       try {
         final IMqttToken token = mqttAndroidClient.disconnect(0);
@@ -248,54 +250,24 @@ public class MqttConnectionManagerService extends Service {
     mqttAndroidClient = null;
   }
 
-  private void requestNetwork() {
-    Log.i(TAG, "acquire network");
-
-    NetworkRequest.Builder req = new NetworkRequest.Builder()
-        .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-        .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
-        .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
-        .addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-
-    ConnectivityManager conMgr = getConnMgr();
-    networkCallback = new NetworkCallback() {
-      @Override
-      public void onAvailable(Network network) {
-        Log.i(TAG, "net available " + network.toString());
-        // TODO does this help in keeping wifi awake?
-        //getConnMgr().bindProcessToNetwork(network);
-      }
-
-      @Override
-      public void onLosing(Network network, int maxMsToLive) {
-        Log.i(TAG, "net loosing " + network.toString());
-      }
-
-      @Override
-      public void onLost(Network network) {
-        Log.i(TAG, "net lost " + network.toString());
-        //getConnMgr().bindProcessToNetwork(null);
-      }
-
-      @Override
-      public void onUnavailable() {
-        Log.i(TAG, "net unavailable");
-      }
-    };
-    conMgr.requestNetwork(req.build(), networkCallback);
+  private void acquireWifiLock() {
+    Log.i(TAG, "acquire wifilock");
+    wakeLock = ((PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "mqtt-wake-lock");
+    WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL , "mqtt-wifi-lock");
+    wifiLock.acquire();
   }
 
-  private void releaseNetwork() {
-    Log.i(TAG, "release network");
-    if (networkCallback != null) {
-      ConnectivityManager conMgr = getConnMgr();
-      conMgr.unregisterNetworkCallback(networkCallback);
-      networkCallback = null;
+  private void releaseWifiLock() {
+    Log.i(TAG, "release wifilock");
+    if (wifiLock != null && wifiLock.isHeld()) {
+      wifiLock.release();
+      wifiLock = null;
     }
-  }
-
-  private ConnectivityManager getConnMgr() {
-    return getApplicationContext().getSystemService(ConnectivityManager.class);
+    if (wakeLock != null && wakeLock.isHeld()) {
+      wakeLock.release();
+      wakeLock = null;
+    }
   }
 
   private static class ConnectTask extends AsyncTask<Void, Void, Void> {
