@@ -3,15 +3,14 @@ package at.sbaresearch.mqtt_backend;
 import android.Manifest.permission;
 import android.app.Notification;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiManager;
-import android.net.wifi.WifiManager.WifiLock;
-import android.os.*;
+import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.Build.VERSION_CODES;
+import android.os.Bundle;
 import android.os.Handler.Callback;
-import android.os.PowerManager.WakeLock;
+import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -31,7 +30,6 @@ public class MqttConnectionManagerService extends Service {
   public static final int NOTIFICATION_ID = 1;
 
   private static final String TAG = "MqttConnectionMgrSrvc";
-  private static final boolean WIFI_LOCK = true;
 
   private MqttAndroidClient mqttAndroidClient;
 
@@ -41,8 +39,6 @@ public class MqttConnectionManagerService extends Service {
   private IBinder binder = new MqttConnectionBinder();
 
   private Integer currentStartId = null;
-  private WifiLock wifiLock = null;
-  private WakeLock wakeLock = null;
 
   public MqttConnectionManagerService() {
     mqttConnectOptions = new MqttConnectOptions();
@@ -124,10 +120,6 @@ public class MqttConnectionManagerService extends Service {
           new RuntimeException("mqtt still connected"));
     }
 
-    if (WIFI_LOCK) {
-      acquireWifiLock();
-    }
-
     setupSsl(sett);
     createClient(sett);
     Log.d(TAG, "startId " + this.currentStartId + " connecting to " + sett.getServerUrl());
@@ -196,9 +188,6 @@ public class MqttConnectionManagerService extends Service {
     if (forStartId == null) {
       Log.d(TAG, "doDisconnect: startId provided is null");
     }
-    if (WIFI_LOCK) {
-      releaseWifiLock();
-    }
     if (mqttAndroidClient != null) {
       try {
         final IMqttToken token = mqttAndroidClient.disconnect(0);
@@ -248,26 +237,6 @@ public class MqttConnectionManagerService extends Service {
       mqttAndroidClient.close();
     }
     mqttAndroidClient = null;
-  }
-
-  private void acquireWifiLock() {
-    Log.i(TAG, "acquire wifilock");
-    wakeLock = ((PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE)).newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "mqtt-wake-lock");
-    WifiManager wm = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-    wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL , "mqtt-wifi-lock");
-    wifiLock.acquire();
-  }
-
-  private void releaseWifiLock() {
-    Log.i(TAG, "release wifilock");
-    if (wifiLock != null && wifiLock.isHeld()) {
-      wifiLock.release();
-      wifiLock = null;
-    }
-    if (wakeLock != null && wakeLock.isHeld()) {
-      wakeLock.release();
-      wakeLock = null;
-    }
   }
 
   private static class ConnectTask extends AsyncTask<Void, Void, Void> {
