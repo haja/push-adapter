@@ -21,6 +21,7 @@ spring:
     banner-mode: 'off'
 
 logging:
+  file: "/logs/push-relay.log"
   level:
     ROOT: "WARN"
     at:

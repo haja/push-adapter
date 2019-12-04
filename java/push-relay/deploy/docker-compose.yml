@@ -8,6 +8,7 @@ services:
     volumes:
       - ./:/configs
       - ./db-store:/db-store
+      - ./logs:/logs
     working_dir: /configs
     environment:
       - SPRING_CONFIG_ADDITIONAL_LOCATION=file:/configs/conf/push-relay.docker.yml
