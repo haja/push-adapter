@@ -12,7 +12,6 @@ import android.os.Bundle;
 import android.os.Handler.Callback;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import at.sbaresearch.mqtt4android.pinning.ClientKeyCert;
@@ -32,8 +31,6 @@ public class MqttConnectionManagerService extends Service {
   private static final String TAG = "MqttConnectionMgrSrvc";
 
   private MqttAndroidClient mqttAndroidClient;
-
-  private MqttCallback recvCallback;
 
   private MqttConnectOptions mqttConnectOptions;
   private IBinder binder = new MqttConnectionBinder();
@@ -79,14 +76,19 @@ public class MqttConnectionManagerService extends Service {
     if (intent == null) {
       Log.i(TAG, "* onStartCommand: intent is null, we were restarted");
       resetStartId(startId);
+      Log.i(TAG, "onStartCommand finished START_STICKY; after resetStartId");
       return START_STICKY;
     }
     doDisconnect(currentStartId, (msg) -> {
+      Log.i(TAG, "onStartCommand callback: startId next");
+      Log.i(TAG, "onStartCommand callback: startId " + startId);
       currentStartId = startId;
       ConnectionSettings s = fromBundle(Objects.requireNonNull(intent.getExtras()));
       this.connect(s);
+      Log.i(TAG, "onStartCommand callback finished");
       return true;
     });
+    Log.i(TAG, "onStartCommand finished START_STICKY");
     return START_STICKY;
   }
 
@@ -124,37 +126,21 @@ public class MqttConnectionManagerService extends Service {
     createClient(sett);
     Log.d(TAG, "startId " + this.currentStartId + " connecting to " + sett.getServerUrl());
 
-    recvCallback = new ReceiveCallback(this, currentStartId);
+    final TopicSubscriber subscriber = new TopicSubscriber(mqttAndroidClient, sett);
+    MqttCallback recvCallback = new ReceiveCallback(this, currentStartId, subscriber);
     mqttAndroidClient.setCallback(recvCallback);
+
     final IMqttActionListener connectCb = new IMqttActionListener() {
       @Override
       public void onSuccess(IMqttToken asyncActionToken) {
-        final String msg = "connection established to: " + sett;
-        Log.i(TAG, msg);
-        try {
-          asyncActionToken.getClient().subscribe(sett.getTopic(), 0).setActionCallback(
-              new IMqttActionListener() {
-                @Override
-                public void onSuccess(IMqttToken asyncActionToken) {
-                  Log.i(TAG, "subscribe success");
-                }
-
-                @Override
-                public void onFailure(IMqttToken asyncActionToken, Throwable e) {
-                  Log.e(TAG, "subscribe failed", e);
-                }
-              });
-        } catch (MqttException e) {
-          String msgFail = "subscribe failed: " + e.getMessage();
-          Log.e(TAG, msgFail);
-        }
+        Log.i(TAG, "initial connection established to: " + sett);
       }
 
       @Override
       public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
         Throwable cause = exception.getCause();
-        String causeMsg = cause == null ? "" : cause.getMessage();
-        Log.e(TAG, "connect failed: " + exception.getMessage() + causeMsg);
+        String causeMsg = cause == null ? "" : " cause: " + cause.getMessage();
+        Log.e(TAG, "initial connection failed: " + exception.getMessage() + causeMsg);
       }
     };
     AsyncTask<Void, Void, Void> connectTask =

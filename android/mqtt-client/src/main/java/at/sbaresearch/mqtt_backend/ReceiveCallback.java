@@ -6,21 +6,24 @@ import android.util.Log;
 import lombok.Value;
 import lombok.val;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-class ReceiveCallback implements MqttCallback {
+class ReceiveCallback implements MqttCallbackExtended {
   private static final String TAG = "ReceiveCallback";
 
   private final Context context;
+  private TopicSubscriber subscriber;
   private final int id;
 
-  public ReceiveCallback(Context ctx, int id) {
+  public ReceiveCallback(Context ctx, int id,
+      TopicSubscriber subscriber) {
     this.id = id;
     this.context = ctx;
+    this.subscriber = subscriber;
   }
 
   @Override
@@ -30,6 +33,12 @@ class ReceiveCallback implements MqttCallback {
     } else {
       Log.w(TAG, id +  " connection lost: without cause (client disconnected?)");
     }
+  }
+
+  @Override
+  public void connectComplete(boolean reconnect, String serverURI) {
+    Log.i(TAG, "connection complete; is reconnect: " + reconnect);
+    subscriber.subscribe();
   }
 
   @Override
