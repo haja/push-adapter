@@ -47,7 +47,7 @@ dependencies {
 
     // TODO trustKit is not needed / should target high enough API level / implementing own pinning
     //compile 'com.datatheorem.android.trustkit:trustkit:1.1.0'
-    implementation files('libs/trustkit-debug.aar')
+    // implementation files('libs/trustkit-debug.aar')
 
     compileOnly "org.projectlombok:lombok:$project.lombokVersion"
     annotationProcessor "org.projectlombok:lombok:$project.lombokVersion"
