@@ -42,7 +42,7 @@ dependencies {
     // TODO or should we use a local maven repo? how to include it?
     //implementation 'at.sbaresearch.mqtt4android:pinning-tls-lib:1.0-SNAPSHOT'
 
-    api 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.1.0'
+    api 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.0'
     api 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
 
     // TODO trustKit is not needed / should target high enough API level / implementing own pinning
