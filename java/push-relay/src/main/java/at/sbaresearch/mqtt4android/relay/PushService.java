@@ -29,10 +29,10 @@ public class PushService {
   JmsTemplate jmsTemplate;
 
   public String pushMessage(String token, PushMessage msg) {
-    log.info("pushing message: {}", msg);
     val app = registrationService.getApp(token);
+    val messageId = UUID.randomUUID().toString();
+    log.info("pushing messageId {}: msg: {}", messageId, msg);
     try {
-      val messageId = UUID.randomUUID().toString();
       sendAsJson(app, messageId, msg.data);
       return messageId;
     } catch (JsonProcessingException e) {
@@ -46,7 +46,9 @@ public class PushService {
     val jsonMsg = objectMapper.writeValueAsString(
         MqttMessage.of(app.getApp(), app.getSignature(), msgId, data,
             System.currentTimeMillis(), app.getSenderId()));
-    jmsTemplate.convertAndSend(app.getDeviceId().getId(), jsonMsg);
+    val deviceId = app.getDeviceId().getId();
+    log.info("pushing messageId {}: toDevice: {}", msgId, deviceId);
+    jmsTemplate.convertAndSend(deviceId, jsonMsg);
   }
 
   @Value(staticConstructor = "of")
