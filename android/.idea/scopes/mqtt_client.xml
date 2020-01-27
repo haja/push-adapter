@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="mqtt-client" pattern="file[mqtt-client]:*/&amp;&amp;!file[mqtt-client]:build//*" />
+</component>

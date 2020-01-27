@@ -2,6 +2,7 @@
   <settings>
     <module2copyright>
       <element module="sample-app" copyright="GPLv3" />
+      <element module="mqtt-client" copyright="EPLv1" />
     </module2copyright>
   </settings>
 </component>
