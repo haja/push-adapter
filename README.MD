@@ -47,3 +47,5 @@ some settings to get this to work with doze mode:
 - push adapter
 - <app using push-integration-lib
 
+# Credits
+This project was created as part of a master thesis at [SBA Research](https://www.sba-research.org/).
