@@ -55,7 +55,7 @@ some settings to get this to work with doze mode:
 ## exceptions from doze mode needed:
 - mqtt client
 - push adapter
-- <app using push-integration-lib>
+- `<app using push-integration-lib>`
 
 # Acknowledgements
 This project was created as part of a master thesis at [SBA Research](https://www.sba-research.org/).
