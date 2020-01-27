@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="push-integration-lib" pattern="file[push-integration-lib]:*/&amp;&amp;!file[push-integration-lib]:build//*" />
+</component>
