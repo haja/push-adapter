@@ -28,7 +28,7 @@ this project uses lombok. You might need to enable support for it in your IDE.
 see https://projectlombok.org/setup/overview
 
 ## certificate generation
-we need a 3 java keystores to run the server:
+we need three java keystores to run the server:
 
 - keystore.p12
 - castore.p12
