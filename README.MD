@@ -1,7 +1,7 @@
 # Push Adapter
 Service and Library to replace Googles FCM service for push notifications.
 
-This service is self-contained, it does not depend on any thrid-party service.
+This service is self-contained, it does not depend on any third-party service.
 It is split up in serveral components:
 - two Android apps
 - an Android library
